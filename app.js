@@ -44,6 +44,10 @@ app.use(async function (req, res, next) {
   next();
 });
 
+// Parse request bodies before registering routes that use `req.body`
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
 // app.use(require("./modules/backup/routes"));
 app.use(require("./modules/programador/routes"));
 app.use(require("./modules/index/routes"));
@@ -51,11 +55,9 @@ app.use(require("./modules/usuarios/routes"));
 app.use(require("./modules/categorias/routes"));
 app.use(require("./modules/subCategorias/routes"));
 app.use(require("./modules/productos/routes"));
-// Solo después de las rutas que usan archivos
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
 app.use(require("./modules/clientes/routes"));
 app.use(require("./modules/tiposDocumentosAfip/routes"));
+app.use(require("./modules/deportes/routes"))
 
 app.use(require("./modules/provincias/routes"));
 app.use(require("./modules/localidades/routes"));

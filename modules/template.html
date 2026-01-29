@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Chama Estudio Creativo</title>
+    <title>Club La Emilia</title>
     <link rel="icon" type="image/png" href="/img/favicon.ico">
     <link rel="stylesheet" href="/css/bootstrap.min.css">
     <!-- FONTS -->
@@ -119,8 +119,8 @@
         }
 
         .blue-border {
-            border: 1px solid #fe7f00 !important;
-            color: #fe7f00;
+            border: 1px solid #D4AF37 !important;
+            color: #D4AF37;
         }
 
         @media (max-width: 1305px) {
@@ -192,7 +192,7 @@
             left: 0;
             width: 60px;
             height: 4px;
-            background: linear-gradient(90deg, #175676 0%, #fe7f00 100%);
+            background: linear-gradient(90deg, #000000 0%, #D4AF37 100%);
             border-radius: 2px;
         }
 
@@ -207,7 +207,8 @@
         }
 
         .table thead th {
-            background: linear-gradient(135deg, #0f3d54 0%, #175676 50%, #1a6b8f 100%);
+            /* Gradiente sutil para cabeceras: tonos oscuros sin acento dorado */
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
             color: #ffffff;
             font-weight: 700;
             text-transform: uppercase;
@@ -220,11 +221,11 @@
             z-index: 10;
             box-shadow: 0 2px 8px rgba(0,0,0,0.15);
             text-shadow: 0 1px 2px rgba(0,0,0,0.2);
-            border-bottom: 3px solid #fe7f00;
+            border-bottom: 3px solid #D4AF37;
         }
 
         .table thead th:not(:last-child) {
-            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .table thead th:first-child {
@@ -295,6 +296,19 @@
             background: linear-gradient(135deg, #1a6b8f 0%, #175676 100%);
         }
 
+        /* Toggle menu button specific styles */
+        #sidebarCollapse.btn-primary {
+            background: #000 !important;
+            background-image: none !important;
+            border-color: #000 !important;
+            color: #fff !important;
+        }
+
+        #sidebarCollapse.btn-primary:hover {
+            background: #000 !important;
+            color: #fff !important;
+        }
+
         .btn-warning {
             background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
             color: #fff;
@@ -332,6 +346,7 @@
             font-size: 0.875rem;
         }
 
+
         .btn-sm {
             padding: 0.4rem 0.8rem;
             font-size: 0.8rem;
@@ -365,7 +380,7 @@
 
         /* Modales mejorados */
         .modal-header {
-            background: linear-gradient(135deg, #175676 0%, #1a6b8f 100%);
+            background: linear-gradient(90deg, #000000 0%, #D4AF37 100%);
             color: white;
             border-radius: 0;
             padding: 1.2rem 1.5rem;
@@ -532,6 +547,38 @@
             margin-right: 8px;
         }
     </style>
+    <style>
+        /* Ajustes del logo en el sidebar (agrandado) */
+        #sidebar .logo {
+            display: block;
+            width: 200px;
+            height: 160px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center center;
+            margin-bottom: 12px;
+        }
+
+        /* En pantallas pequeñas reducir tamaño */
+        @media (max-width: 768px) {
+            #sidebar .logo {
+                width: 160px;
+                height: 120px;
+            }
+        }
+        /* Modales: coherencia con paleta */
+        .modal-header {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+            color: #ffffff;
+            border-bottom: 3px solid #D4AF37;
+        }
+        .modal-title {
+            color: #ffffff !important;
+            font-weight: 700;
+        }
+
+        /* SweetAlert2 custom styles removed to keep default appearance */
+    </style>
     {% block styles %}
     {% endblock %}
 </head>
@@ -544,7 +591,7 @@
 
     <div id="preloaderAPP" class="preloader" style="background: rgb(244, 243, 239, .85); top: 0px;"></div>
     <div class="wrapper d-flex align-items-stretch">
-        <nav id="sidebar" style="background-color: #175676!important;">
+        <nav id="sidebar" style="background-color: #000!important;">
             <div class="pb-0 pl-4 pr-4  pt-3">
                 <a href="/inicio" class="img logo mb-2"
                     style="background-image: url(/img/logo2.png); background-color: inherit;"></a>
@@ -559,38 +606,38 @@
             <nav class="navbar navbar-expand-lg navbar-light bg-light">
                 <div class="container-fluid">
                     <button type="button" id="sidebarCollapse" class="btn btn-primary"
-                        style="background-color:#175676!important">
+                        style="background-color:#000!important">
                         <i class="fa fa-bars"></i>
                         <span class="sr-only">Toggle Menu</span>
                     </button>
                     <div>
                         <!-- <a type="button" id="sidebarCollapse" class="btn"
-                        style="color:#000000!important; background-color: transparent; border-color: #fe7f00;" 
+                        style="color:#000000!important; background-color: transparent; border-color: #D4AF37;" 
                         data-toggle="tooltip" data-placement="bottom" title="Productos" href="/productos">
                         <i class="fa fa-box"></i>
                         </a>
                         <a type="button" id="sidebarCollapse" class="btn"
-                        style="color:#000000!important; background-color: transparent; border-color: #fe7f00;" 
+                        style="color:#000000!important; background-color: transparent; border-color: #D4AF37;" 
                         data-toggle="tooltip" data-placement="bottom" title="Ventas" href="/ventas">
                         <i class="fa fa-shopping-cart"></i>
                         </a>
                         <a type="button" class="btn"
-                        style="color:#000000!important; background-color: transparent; border-color: #fe7f00;" 
+                        style="color:#000000!important; background-color: transparent; border-color: #D4AF37;" 
                         data-toggle="tooltip" data-placement="bottom" title="Registrar Compras" href="/compras">
                         <i class="fa fa-shopping-basket"></i>
                         </a>
                         <a type="button" class="btn"
-                        style="color:#000000!important; background-color: transparent; border-color: #fe7f00;" 
+                        style="color:#000000!important; background-color: transparent; border-color: #D4AF37;" 
                         data-toggle="tooltip" data-placement="bottom" title="Movimientos" href="/movimientos">
                         <i class="fa fa-exchange-alt"></i>
                         </a>
                         <a type="button" class="btn"
-                        style="color:#000000!important; background-color: transparent; border-color: #fe7f00;" 
+                        style="color:#000000!important; background-color: transparent; border-color: #D4AF37;" 
                         data-toggle="tooltip" data-placement="bottom" title="Clientes" href="/clientes">
                         <i class="fa fa-users"></i>
                         </a>
                         <a type="button" class="btn"
-                        style="color:#000000!important; background-color: transparent; border-color: #fe7f00;" 
+                        style="color:#000000!important; background-color: transparent; border-color: #D4AF37;" 
                         data-toggle="tooltip" data-placement="bottom" title="Stock" href="/reportes/reporteStock">
                         <i class="fa fa-warehouse"></i>
                         </a> -->
@@ -598,12 +645,12 @@
                     </div>
 
                     <div id="navbarSupportedContent">
-                        <ul class="nav navbar-nav ml-auto" style="color:#175676!important;">
+                        <ul class="nav navbar-nav ml-auto" style="color:#000!important;">
                             <li id="dmnu" class="nav-item dropdown dmenu"></li>
-                            <li class="nav-item dropdown" style="color:#175676!important;">
+                            <li class="nav-item dropdown" style="color:#000!important;">
                                 <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownUser" role="button"
                                     data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
-                                    style="color:#175676!important;"><i class="fa fa-user"></i>
+                                    style="color:#000!important;"><i class="fa fa-user"></i>
                                     {{user.nombre}}</a>
                                 <div class="dropdown-menu leftauto dropdown-menu-right"
                                     aria-labelledby="navbarDropdownUser">

@@ -23,8 +23,8 @@
         <thead>
             <tr>
                 <th scope="col">Acciones</th>
-                <th scope="col">Titulo</th>
-                <th scope="col">SubTitulo</th>
+                <th scope="col">Deporte</th>
+                <th scope="col">Descripcion</th>
             </tr>
         </thead>
         <tbody></tbody>
@@ -45,20 +45,30 @@
             <div class="modal-body">
                 <div class="row">
                     <div class="form-group col-sm-12">
-                        <label for="titulo">Titulo</label>
-                        <input type="text" class="form-control form-control-sm" id="titulo" maxlength="100">
-                    </div>
-                    <div class="form-group col-sm-12">
-                        <label for="subtitulo">SubTitulo</label>
-                        <input type="text" class="form-control form-control-sm" id="subtitulo" maxlength="200">
+                        <label for="nombre">Deporte</label>
+                        <input type="text" class="form-control form-control-sm" id="nombre" maxlength="100">
                     </div>
                 </div>
                 <div class="row">
                     <div class="form-group col-sm-12">
                         <label for="descripcion">Descripcion</label>
-                        <textarea class="form-control form-control-sm" id="descripcion" rows="10" maxlength="3000"></textarea>
+                        <textarea class="form-control form-control-sm" id="descripcion" rows="10" maxlength="5000"></textarea>
                     </div>
                 </div>
+                <div class="row">
+                    <div class="form-group col-sm-12">
+                        <label for="horarios">Horarios</label>
+                        <textarea class="form-control form-control-sm" id="horarios" rows="6" maxlength="600"></textarea>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12">
+                        <label for="profesores">Profesores</label>
+                        <textarea class="form-control form-control-sm" id="profesores" rows="6" maxlength="1000"></textarea>
+                    </div>
+                </div>
+
+                
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="CerrarModal()">Cancelar</button>
@@ -73,15 +83,25 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="modalVerLabel">Ver noticia</h5>
+                <h5 class="modal-title" id="modalVerLabel">Ver deporte</h5>
                 <button type="button" class="close" aria-label="Close" onclick="$('#modalVer').modal('hide')">
                     <span aria-hidden=" true">&times;</span>
                 </button>
             </div>
             <div class="modal-body">
-                <h3 id="verTitulo"></h3>
-                <h5 id="verSubtitulo" class="text-muted" style="margin-bottom:1rem;"></h5>
-                <div id="verDescripcion"></div>
+                <h3 id="verNombre"></h3>
+                <div id="verDescripcion" style="margin-bottom:1rem; white-space:pre-wrap; line-height:1.5;"></div>
+
+                <!-- Horarios: listado debajo de la descripción -->
+                <div class="mb-3">
+                    <strong>Horarios:</strong>
+                    <div id="verHorarios" style="margin-top:0.5rem;"></div>
+                </div>
+
+                <div>
+                    <strong>Profesores:</strong>
+                    <div id="verProfesores" style="margin-top:0.5rem;"></div>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="$('#modalVer').modal('hide')">Cerrar</button>
@@ -104,7 +124,7 @@
     
     const getLista = async () => {
         $("#preloaderAPP").show()
-        const res = await $.post('/noticias/getListaAjax')
+        const res = await $.post('/deportes/getListaAjax')
         let html = ""
         if(res.status){
             for (let i = 0; i < res.data.length; i++) {
@@ -112,7 +132,7 @@
                     <tr>
                         <td>
                             <div style="display: flex; gap: 6px; align-items:center;">
-                                <button class="btn btn-round btn-sm btn-info" onclick="VerNoticia(${res.data[i].id})"
+                                <button class="btn btn-round btn-sm btn-info" onclick="Ver(${res.data[i].id})"
                                     data-toggle="tooltip" data-placement="top" title="Ver">
                                     <i class="fa fa-eye"></i>
                                 </button>
@@ -131,8 +151,8 @@
                                 {% endif %}
                             </div>
                         </td>
-                        <td class='search'>${res.data[i].titulo}</td>
-                        <td>${res.data[i].subtitulo}</td>
+                        <td class='search'>${res.data[i].nombre}</td>
+                        <td>${res.data[i].descripcion}</td>
                     </tr>`
             }
         }else{
@@ -146,18 +166,19 @@
     const ModalAccion = async (accion, id) => {
         $("#preloaderAPP").show()
         if (accion === 'a') {
-            $('#modalLabel').text('Nueva noticia')
+            $('#modalLabel').text('Nuevo deporte')
             $('#btnAccion').attr('onclick', `PostRegistro("a")`)
             $('#btnAccion').text('Guardar')
         }
         if (accion == 'm') {
-            let res = await $.post(`/noticias/getByIdAjax`, {id})
+            let res = await $.post(`/deportes/getByIdAjax`, {id})
             if (res.status != 0) {
-                $('#titulo').val(res.data[0].titulo)
-                $('#subtitulo').val(res.data[0].subtitulo)
+                $('#nombre').val(res.data[0].nombre)
                 $('#descripcion').val(res.data[0].descripcion)
+                $('#horarios').val(res.data[0].horarios)
+                $('#profesores').val(res.data[0].profesores)
             }
-            $('#modalLabel').text('Modificar noticia')
+            $('#modalLabel').text('Modificar deporte')
             $('#btnAccion').text('Guardar')
             $('#btnAccion').attr('onclick', `PostRegistro("m",${id})`)
             $('#actionSeccion').removeClass('d-none')
@@ -167,39 +188,67 @@
         $('#modal').modal('show')
     }
 
-    const VerNoticia = async (id) => {
+    const Ver = async (id) => {
         try {
             $('#preloaderAPP').show()
-            let res = await $.post('/noticias/getByIdAjax', { id })
+            let res = await $.post('/deportes/getByIdAjax', { id })
             $('#preloaderAPP').hide()
             if (res.status && res.data && res.data.length) {
                 let d = res.data[0]
-                $('#verTitulo').text(d.titulo)
-                $('#verSubtitulo').text(d.subtitulo)
-                // Mantener saltos de línea
-                $('#verDescripcion').html((d.descripcion || '').replace(/\n/g, '<br/>'))
+                $('#verNombre').text(d.nombre || '')
+
+                // Descripción con saltos
+                $('#verDescripcion').html((d.descripcion || '').toString().replace(/\n/g, '<br/>'))
+
+                // Horarios: renderizar como lista (separadores: coma o salto de línea)
+                let horariosRaw = (d.horarios || '').toString().trim()
+                if (!horariosRaw) {
+                    $('#verHorarios').html('<em>No hay horarios cargados</em>')
+                } else {
+                    let items = horariosRaw.split(/\r?\n|,/).map(s => s.trim()).filter(Boolean)
+                    if (items.length) {
+                        $('#verHorarios').html('<ul style="margin:0; padding-left:1rem;">' + items.map(it => `<li>${it}</li>`).join('') + '</ul>')
+                    } else {
+                        $('#verHorarios').text(horariosRaw)
+                    }
+                }
+
+                // Profesores: renderizar como lista si corresponde
+                let profsRaw = (d.profesores || '').toString().trim()
+                if (!profsRaw) {
+                    $('#verProfesores').html('<em>No hay profesores listados</em>')
+                } else {
+                    let profs = profsRaw.split(/\r?\n|,/).map(s => s.trim()).filter(Boolean)
+                    if (profs.length) {
+                        $('#verProfesores').html('<ul style="margin:0; padding-left:1rem;">' + profs.map(p => `<li>${p}</li>`).join('') + '</ul>')
+                    } else {
+                        $('#verProfesores').text(profsRaw)
+                    }
+                }
+
                 $('#modalVer').modal('show')
             } else {
-                Swal.fire({ icon: 'warning', title: 'Atención', text: res.text || 'No se encontró la noticia', timer: 2000 })
+                Swal.fire({ icon: 'warning', title: 'Atención', text: res.text || 'No se encontró el deporte', timer: 2000 })
             }
         } catch (err) {
             console.log(err)
             $('#preloaderAPP').hide()
-            Swal.fire({ icon: 'error', title: 'Error', text: 'Error al obtener la noticia', timer: 2000 })
+            Swal.fire({ icon: 'error', title: 'Error', text: 'Error al obtener el deporte', timer: 2000 })
         }
     }
 
     const PostRegistro = async (accion, Id) => {
         $("#preloaderAPP").show()
-        let url = '/noticias/alta',
+        let url = '/deportes/alta',
             body = {
-                titulo: $('#titulo').val(),
-                subtitulo: $('#subtitulo').val(),
-                descripcion: $('#descripcion').val()
+                nombre: $('#nombre').val(),
+                descripcion: $('#descripcion').val(),
+                horarios: $('#horarios').val(),
+                profesores: $('#profesores').val()
             }
 
         if (accion === 'm') {
-            url = '/noticias/modificar'
+            url = '/deportes/modificar'
             body.id = Id
         }
 
@@ -231,7 +280,7 @@
         }).then(async result => {
             if (result.isConfirmed) {
                 $("#preloaderAPP").show();
-                let res = await $.post('/noticias/eliminar', { id })
+                let res = await $.post('/deportes/eliminar', { id })
                 $("#preloaderAPP").hide();
                 Swal.fire({
                     type: res.type,

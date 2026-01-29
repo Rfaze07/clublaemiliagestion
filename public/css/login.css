@@ -43,7 +43,7 @@ main {
 
 /* ========== PANEL IZQUIERDO ========== */
 .login-left-panel {
-  background: linear-gradient(to bottom, #1e6b8f 0%, #0d3d54 100%);
+  background: linear-gradient(to bottom, #000000 0%, #3a3a3a 100%);
   position: relative;
   display: flex;
   align-items: center;
@@ -219,24 +219,25 @@ main {
 }
 
 .form-control:focus {
-  border-color: #175676;
-  box-shadow: 0 0 0 3px rgba(23, 86, 118, 0.1);
+  border-color: #000000;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.08);
   background-color: #ffffff;
 }
 
 /* ========== BOTÓN ========== */
+
 .btn-ingreso {
   width: 100%;
   padding: 0.875rem 1.5rem;
   font-size: 1rem;
   font-weight: 600;
   color: #ffffff;
-  background: linear-gradient(135deg, #175676 0%, #0d3d54 100%);
+  background: linear-gradient(135deg, #000000 0%, #4a4a4a 100%);
   border: none;
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(23, 86, 118, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
   margin-top: 0.5rem;
   display: flex;
   align-items: center;
@@ -245,8 +246,8 @@ main {
 }
 
 .btn-ingreso:hover {
-  background: linear-gradient(135deg, #1e6b8f 0%, #114b68 100%);
-  box-shadow: 0 6px 16px rgba(23, 86, 118, 0.4);
+  background: linear-gradient(135deg, #1a1a1a 0%, #6b6b6b 100%);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45);
   transform: translateY(-2px);
 }
 
