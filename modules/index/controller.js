@@ -17,7 +17,7 @@ exports.getLogin = async (req, res) => {
 }
 
 exports.postLogin = async (req, res) => {
-    const { user, pass } = req.body
+    const { user = '', pass = '' } = req.body || {}
 
     if (!user.length || !pass.length) return res.json({ icon: "error", title: "Error", text: 'Complete los campos' })
 

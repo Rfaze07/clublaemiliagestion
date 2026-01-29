@@ -23193,26 +23193,13 @@ INSERT INTO condiciones_iva (id,descripcion,codigo_afip,A_M,B,C,activo,usar_dni)
 	 (13,'Monotributo Trabajador Independiente Promovido',16,1,0,1,1,0);
 
 
-   CREATE TABLE `clientes` (
+
+CREATE TABLE `noticias` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `razon_social` varchar(100) DEFAULT NULL,
-  `nro_doc` varchar(13) DEFAULT NULL,
-  `id_condicioniva_fk` int DEFAULT NULL,
-  `id_localidad_fk` int DEFAULT NULL,
-  `direccion` varchar(100) DEFAULT NULL,
-  `mail` varchar(100) DEFAULT NULL,
-  `telefono` varchar(30) DEFAULT NULL,
-  `observaciones` varchar(5000) DEFAULT NULL,
-  `activo` tinyint DEFAULT '1',
-  `id_tipodoc_fk` int DEFAULT NULL,
+  `titulo` varchar(100) NOT NULL,
+  `subtitulo` varchar(200) NOT NULL,
+  `fecha` date NOT NULL,
+  `descripcion` text NOT NULL,
+  `path_foto` varchar(300) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
-
-ALTER TABLE clientes add COLUMN id_provincia_fk int(11)
-
-create table colores_productos (
-	id int primary key auto_increment,
-	id_producto_fk int(11) not null,
-	descripcion varchar(40) not null,
-	codigo_hexa varchar(50) not null
-)
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
