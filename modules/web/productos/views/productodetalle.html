@@ -1,0 +1,98 @@
+{% extends '../../template.html' %}
+
+{% block title %}Bienvenido - Torneo Acercamiento{% endblock %}
+
+
+{% block styles %}
+
+<style>
+          .product-card {
+            max-width: 1100px;
+            margin: 40px auto;
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 10px 25px rgba(0,0,0,.08);
+        }
+        .product-title {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        .price {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #198754;
+        }
+        .badge-product {
+            font-size: .9rem;
+        }
+        .btn-buy {
+            padding: 14px;
+            font-size: 1.1rem;
+        }
+        .feature-list li {
+            margin-bottom: 8px;
+        }
+
+    
+</style>
+{% endblock %}
+    <div class="card product-card">
+    <div class="row g-0">
+
+        <!-- Imagen -->
+        <div class="col-md-6">
+            <img src="/img/logo.png"
+                 class="img-fluid h-100 w-100 object-fit-cover rounded-start"
+                 alt="Nombre del producto">
+        </div>
+
+        <!-- Info -->
+        <div class="col-md-6">
+            <div class="card-body p-4">
+                <h1 class="product-title">Nombre del Producto</h1>
+                <p class="text-muted">
+                    Lorem, ipsum dolor sit amet consectetur adipisicing elit. Repudiandae quo magnam exercitationem cumque autem quisquam dignissimos voluptas, similique ex distinctio. 
+                </p>
+                <div class="price mb-3">
+                    $ 59.999
+                </div>
+
+                <!-- Beneficios -->
+                <h5>¿Por qué elegir este producto?</h5>
+                <ul class="feature-list">
+                    <li>✔ Alta calidad y durabilidad</li>
+                    <li>✔ Diseño moderno y funcional</li>
+                    <li>✔ Fácil de usar</li>
+                    <li>✔ Excelente relación precio-calidad</li>
+                </ul>
+
+                <!-- CTA -->
+                <div class="d-grid gap-2 mt-4">
+                    <button class="btn btn-success btn-buy">
+                        🛒 Agregar al carrito
+                    </button>
+                </div>
+                <!-- Info extra -->
+                <div class="mt-4 small text-muted">
+                    ✔ Envíos a todo el país · ✔ Garantía incluida · ✔ Compra segura
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block content %}
+    
+
+
+
+{% endblock %}
+
+
+
+{% block scripts %}
+
+<script type="text/javascript">
+
+</script>
+{% endblock %}

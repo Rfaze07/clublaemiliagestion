@@ -1,0 +1,1103 @@
+{% extends '../../template.html' %}
+
+{% block styles %}
+<style>
+    .negrita { font-weight: 700; }
+    .altoTabla { height: calc(100vh - 269px); }
+    .swal2-container.swal2-top-end.swal2-backdrop-show { z-index: 999999!important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+    <h3>{{ pagename }}</h3>
+
+    {% if permisos.x %}
+        {% if orden.blindado == 0 %}
+            <button class="btn btn-round btn-warning ml-auto mr-1" data-toggle="tooltip" data-placement="top" title="Blindar" onclick="Blindar()">
+                <i class="fas fa-lock"></i>
+            </button>
+        {% endif %}
+    {% endif %}
+</div>
+
+<div class="row pt-3 pb-2">
+    <div class="col-sm-12 col-md-2">
+        <span class="negrita">Fecha:</span>
+        <span>{{ orden.fecha | date('d/m/Y') }}</span>
+    </div>
+    <div class="col-sm-12 col-md-2">
+        <span class="negrita">Coche:</span>
+        <span>{{ orden.patente }}</span>
+    </div>
+    <div class="col-sm-12 col-md-4">
+        <span class="negrita">Asignado:</span>
+        <span>({{ orden.nro_legajo }}) {{ orden.apellido }}, {{ orden.nombre }}</span>
+    </div>
+    <div class="col-sm-12 col-md-2">
+        <span class="negrita">Tipo:</span>
+        <span>{{ orden.otTipoTxt }}</span>
+    </div>
+    <div class="col-sm-12 col-md-2">
+        <span class="negrita">Estado:</span>
+        <span>{{ orden.otEstadoTxt }}</span>
+    </div>
+</div>
+
+
+
+
+<!-- TABLAS ORIGINALES (REEMPLAZADAS POR ACORDEON)
+<div class="row mt-2">
+     MOVIMIENTOS COMPONENTES
+    <div class="col-sm-12">
+        <div class="card">
+            <h5 class="card-header">
+                <div class="row justify-content-between pr-2 pl-2">
+                    <strong>Componentes</strong>
+                    {% if orden.blindado == 0 %}
+                        {% if permisos.a %}
+                            <button class="btn btn-round btn-sm btn-success ml-auto mr-1" data-toggle="tooltip" data-placement="top" title="Agregar" onclick="AgregarComponente()">
+                                <i class="fa fa-plus"></i>
+                            </button>
+                        {% endif %}
+
+                        {% if permisos.m %}
+                            <button class="btn btn-round btn-sm btn-danger" data-toggle="tooltip" data-placement="top" title="Quitar" onclick="QuitarComponente()">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </h5>
+            <div class="card-body p-0">
+                <div class="table-responsive altoTabla" id="tablaMovimientos">
+                    <table class="table table-sm table-fix table-hover tableFixHead">
+                        <thead>
+                            <tr>
+                                {% if orden.blindado == 0 %}<th class="text-center" style="width: 110px;">Acciones</th>{% endif %}
+                                <th>Cantidad</th>
+                                <th>Componente</th>
+                                <th>Ubicación</th>
+                                <th>Imputación</th>
+                                <th>Kms. iniciales</th>
+                                <th>Kms. totales</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+     MOVIMIENTOS COMPONENTES 
+
+    TAREAS
+    <div class="col-sm-12">
+        <div class="card">
+            <h5 class="card-header">
+                <div class="row justify-content-between pr-2 pl-2 w-100">
+                
+                    <strong>Tareas</strong>
+                        {% if orden.blindado == 0 %}
+                        {% if permisos.a %}
+                            <button class="btn btn-round btn-sm btn-success ml-auto mr-1" data-toggle="tooltip" data-placement="top" title="Agregar" id="btnAgregar" onclick="AgregarTarea()">
+                                <i class="fa fa-plus"></i>
+                            </button>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </h5>
+            <div class="card-body p-0">
+             Tabla Tareas
+                <div class="table-responsive altoTabla tabla-toggle" id="tablaTareasContainer">
+                    <table class="table table-sm table-fix table-hover tableFixHead">
+                        <thead>
+                            <tr>
+                                {% if orden.blindado == 0 %}<th class="text-center">Acc.</th>{% endif %}
+                                <th>Tarea</th>
+                                <th>Imputación</th>
+                                <th class="text-center">Realizado?</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+   NOVEDADES
+    <div class="col-sm-12">
+        <div class="card">
+            <h5 class="card-header">
+                <div class="row justify-content-between pr-2 pl-2 w-100">
+                    <strong>Novedades</strong>
+                    {% if orden.blindado == 0 %}
+                        {% if permisos.a %}
+                            <button class="btn btn-round btn-sm btn-success ml-auto mr-1" data-toggle="tooltip" data-placement="top" title="Agregar" id="btnAgregar" onclick="AgregarNovedad()">
+                                <i class="fa fa-plus"></i>
+                            </button>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </h5>
+            <div class="table-responsive altoTabla tabla-toggle" id="tablaNovedadesContainer">
+                <table class="table table-sm table-fix table-hover tableFixHead">
+                    <thead>
+                        <tr>
+                            {% if orden.blindado == 0 %}<th class="text-center">Acc.</th>{% endif %}
+                            <th>Novedad</th>
+                            <th>Prioridad</th>
+                            <th>Imputación</th>
+                            <th class="text-center">Realizado?</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<NOVEDADES
+
+
+
+<br><br>
+
+-->
+
+<!--
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+-->
+
+
+<div class="accordion" id="accordionExample">
+    <!--Item Componentes-->
+    <div class="card">
+        <div class="card-header" id="headingOne">
+            <h2 class="mb-0">
+                <button class="btn btn-block text-left" type="button" data-toggle="collapse" data-target="#collapseOne"
+                    aria-expanded="true" aria-controls="collapseOne">
+                    <strong>Componentes</strong>
+                </button>
+            </h2>
+        </div>
+        <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordionExample">
+            <div class="card-body">
+                <div class="row justify-content-between pr-2 pl-2">
+                    {% if orden.blindado == 0 %}
+                    {% if permisos.a %}
+                    <button class="btn btn-round btn-sm btn-success ml-auto mr-1" data-toggle="tooltip"
+                        data-placement="top" title="Agregar" onclick="AgregarComponente()">
+                        <i class="fa fa-plus"></i>
+                    </button>
+                    {% endif %}
+
+                    {% if permisos.m %}
+                    <button class="btn btn-round btn-sm btn-danger" data-toggle="tooltip" data-placement="top"
+                        title="Quitar" onclick="QuitarComponente()">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                    {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+
+            
+
+            <div class="card-body p-0">
+                <div class="table-responsive altoTabla" id="tablaMovimientos">
+                    <table class="table table-sm table-fix table-hover tableFixHead">
+                        <thead>
+                            <tr>
+                                {% if orden.blindado == 0 %}<th class="text-center" style="width: 110px;">Acciones
+                                </th>{% endif %}
+                                <th>Cantidad</th>
+                                <th>Componente</th>
+                                <th>Nro. de Serie</th>
+                                <th>Ubicación</th>
+                                <th>Imputación</th>
+                                <th>Kms. iniciales</th>
+                                <th>Kms. totales</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!--Item Tareas -->
+    <div class="card">
+        <div class="card-header" id="headingTwo">
+            <h2 class="mb-0">
+                <button class="btn btn-block text-left" type="button" data-toggle="collapse" data-target="#collapseTwo"
+                    aria-expanded="false" aria-controls="collapseTwo">
+                    <strong>Tareas</strong>
+                </button>
+            </h2>
+        </div>
+        <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionExample">
+            <div class="card-body">
+                <div class="row justify-content-between pr-2 pl-2">
+                    {% if orden.blindado == 0 %}
+                    {% if permisos.a %}
+                    <button class="btn btn-round btn-sm btn-success ml-auto mr-1" data-toggle="tooltip"
+                        data-placement="top" title="Agregar" id="btnAgregarTarea" onclick="AgregarTarea()">
+                        <i class="fa fa-plus"></i>
+                    </button>
+                    {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <!-- Tabla Tareas -->
+                <div class="table-responsive altoTabla tabla-toggle" id="tablaTareasContainer">
+                    <table class="table table-sm table-fix table-hover tableFixHead">
+                        <thead>
+                            <tr>
+                                {% if orden.blindado == 0 %}<th class="text-center">Acc.</th>{% endif %}
+                                <th>Tarea</th>
+                                <th>Imputación</th>
+                                <th class="text-center">Realizado?</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!--Item Novedades-->
+    <div class="card">
+        <div class="card-header" id="headingThree">
+            <h2 class="mb-0">
+                <button class="btn btn-block text-left" type="button" data-toggle="collapse"
+                    data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                    <strong>Novedades</strong>
+                </button>
+            </h2>
+        </div>
+        <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordionExample">
+            <div class="card-body">
+                <div class="row justify-content-between pr-2 pl-2">
+                    {% if orden.blindado == 0 %}
+                    {% if permisos.a %}
+                    <button class="btn btn-round btn-sm btn-success ml-auto mr-1" data-toggle="tooltip"
+                        data-placement="top" title="Agregar" id="btnAgregarNovedad" onclick="AgregarNovedad()">
+                        <i class="fa fa-plus"></i>
+                    </button>
+                    {% endif %}
+                    {% endif %}
+                </div>
+
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive altoTabla tabla-toggle" id="tablaNovedadesContainer">
+                    <table class="table table-sm table-fix table-hover tableFixHead">
+                        <thead>
+                            <tr>
+                                {% if orden.blindado == 0 %}<th class="text-center">Acc.</th>{% endif %}
+                                <th>Novedad</th>
+                                <th>Prioridad</th>
+                                <th>Imputación</th>
+                                <th class="text-center">Realizado?</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- MODAL MOVIMIENTOS -->
+<div class="modal fade modal-m" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true" id="modalAgregarComponente">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLblMovimiento"></h5>
+                <button type="button" class="close" aria-label="Close" onclick="CerrarModal()">
+                    <span aria-hidden=" true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-12" id="divRepuesto">
+                        <label for="cmbRepuesto">Componente</label>
+						<select class="form-control form-control-sm selectpicker" id="cmbRepuesto" onchange="ObtenerRepuesto(this.value)"></select>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-6 d-none" id="divUbicacion">
+                        <label for="cmbUbicacion">Ubicación</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbUbicacion"></select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-6 d-none" id="divFicha">
+                        <label for="cmbFicha">Ficha</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbFicha"></select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-2">
+                        <label for="txtCantidad">Cantidad</label>
+                        <input type="text" class="form-control form-control-sm" id="txtCantidad" onkeypress="return ValidarEnterosYDecimales(event,this,3)" />
+                    </div>
+                    <div class="form-group col-sm-12 col-md-2">
+                        <label for="txtKmsIniciales">Kms. iniciales</label>
+                        <input type="text" class="form-control form-control-sm" id="txtKmsIniciales" onkeypress="return ValidarEnterosYDecimales(event,this,7,2)" />
+                    </div>
+                    <div class="form-group col-sm-12 col-md-4" id="divDeposito">
+                        <label for="cmbDeposito">Depósito</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbDeposito"></select>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-4">
+                        <label for="cmbImputacion">Imputación</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbImputacion"></select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12">
+                        <label for="txtDetalles">Detalles</label>
+                        <textarea class="form-control form-control-sm" id="txtDetalles" rows="4" maxlength="1000"></textarea>
+                    </div>
+                </div>
+                <div class="row d-none" id="actionSeccion">
+                    <div class="col-sm-12 text-center">
+                        <div class="custom-control custom-switch ml-1">
+                            <input type="checkbox" class="custom-control-input" id="chbActivo" />
+                            <label class="custom-control-label" for="chbActivo">Activo</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="CerrarModalMovimiento()">Cancelar</button>
+                <button type="button" class="btn btn-success" onclick="GuardarMovimiento()">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- MODAL MOVIMIENTOS -->
+
+
+
+<!-- MODAL TAREAS -->
+<div class="modal fade modal-m" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true" id="modalAgregarTarea">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLblTarea"></h5>
+                <button type="button" class="close" aria-label="Close" onclick="CerrarModalTareas()">
+                    <span aria-hidden=" true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-5">
+                        <label for="cmbTarea">Tarea</label>
+						<select class="form-control form-control-sm selectpicker" id="cmbTarea" onchange="ObtenerTarea(this.value)"></select>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-5">
+                        <label for="txtTarea">Tarea</label>
+						<input type="text" class="form-control form-control-sm" id="txtTarea" />
+                    </div>
+                    <div class="form-group col-sm-12 col-md-2">
+                        <label for="txtImporte">Importe</label>
+                        <input type="text" class="form-control form-control-sm" id="txtImporte" autocomplete="off" onkeypress="return ValidarEnterosYDecimales(event,this,12,2)">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-6">
+                        <label for="cmbImputacion">Imputación</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbImputacionT"></select>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-6 d-flex justify-content-center align-items-end">
+                        <div class="custom-control custom-switch ml-1">
+                            <input type="checkbox" class="custom-control-input" id="chbRealizado" />
+                            <label class="custom-control-label" for="chbRealizado">Realizado?</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12">
+                        <label for="txtDetalles">Detalles</label>
+                        <textarea class="form-control form-control-sm" id="txtDetallesT" rows="4" maxlength="1000"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="CerrarModalTareas()">Cancelar</button>
+                <button type="button" class="btn btn-success" onclick="GuardarTarea()">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- MODAL TAREAS -->
+
+<!-- MODAL NOVEDADES -->
+<div class="modal fade modal-m" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true" id="modalAgregarNovedad">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLblNovedad"></h5>
+                <button type="button" class="close" aria-label="Close" onclick="CerrarModalNovedades()">
+                    <span aria-hidden=" true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-5">
+                        <label for="cmbNovedad">Novedad</label>
+						<select class="form-control form-control-sm selectpicker" id="cmbNovedades"></select>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-6 d-flex justify-content-center align-items-end">
+                        <div class="custom-control custom-switch ml-1">
+                            <input type="checkbox" class="custom-control-input" id="chbEstado" />
+                            <label class="custom-control-label" for="chbEstado">Realizado?</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-12">
+                        <label for="txtObservaciones">Observaciones</label>
+                        <textarea class="form-control form-control-sm textAreaSize" id="txtObservaciones" rows="2" maxlength="200"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="CerrarModalNovedades()">Cancelar</button>
+                <button type="button" class="btn btn-success" onclick="GuardarNovedad()">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- MODAL NOVEDADES -->
+
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let _esNeumatico=0, _esFicha=0
+    const _ordenTrabajo=JSON.parse('{{ orden | json | raw }}')
+    console.log(_ordenTrabajo)
+
+    $(document).ready(() => {
+        getListaMovimientos()
+        getListaTareas()
+        getListaNovedades()
+    })
+
+
+    '{% if orden.blindado == 0 %}'
+        const Blindar = async () => {
+            $("#preloaderAPP").show()
+            const res = await $.post('/ordenesTrabajos/blindar', {id:'{{orden.id}}'})
+            Toast.fire({ icon: res.icon, title: res.text, timer: 5000 })
+            if(res.status){
+                setTimeout(() => {
+                    $("#preloaderAPP").hide()
+                    window.location.href = '/ordenesTrabajos'
+                }, 5000)
+            }else{
+                $("#preloaderAPP").hide()
+            }
+        }
+    '{% endif %}'
+
+
+    //============================== MOVIMIENTOS  ==============================
+
+    '{% if orden.blindado == 0 %}'
+
+        const AgregarComponente = async () => {
+            await ObtenerCmbRepuestos('cmbRepuesto', false)
+            await ObtenerCmbImputaciones('cmbImputacion', false)
+            await ObtenerCmbDepositos('cmbDeposito', false)
+            await ObtenerCmbUbicaciones('cmbUbicacion', false)
+            $('#cmbTipoMovimiento').selectpicker('val', 1)
+            $('#modalLblMovimiento').html(`Agregar componente al coche: <strong>(${_ordenTrabajo.id_vehiculo_fk}) ${_ordenTrabajo.patente} - ${_ordenTrabajo.marcaTxt}</strong>`)
+            $('#modalAgregarComponente').modal('show')
+        }
+
+        const ObtenerRepuesto = id => {
+            return new Promise(async (resolve, reject) => {
+                $("#preloaderAPP").show()
+                const res = await $.post('/repuestos/getByIdAjax', {id})
+                console.log(res)
+                if(!res.status){
+                    $("#preloaderAPP").hide()
+                    Swal.fire(res.title, res.text, res.icon)
+                    return resolve()
+                }
+
+                // /fichasRepuestos/getIdRepuestoAjax
+
+                if(res.data.es_neumatico && res.data.es_ficha){
+                    $('#txtCantidad').val(1)
+                    $('#txtCantidad').prop('disabled', true)          
+                    await ObtenerCmbFichas('cmbFicha', false, $('#cmbRepuesto').val())                             
+                }else if(res.data.es_neumatico){
+                    $('#txtCantidad').val(1)
+                    $('#txtCantidad').prop('disabled', true)
+                }else if(res.data.es_ficha){
+                    $('#txtCantidad').val(1)
+                    $('#txtCantidad').prop('disabled', true)
+                    await ObtenerCmbFichas('cmbFicha', false, $('#cmbRepuesto').val())
+                }else{
+                    $('#txtCantidad').val('')
+                    $('#txtCantidad').prop('disabled', false)
+                    
+                }
+
+                _esNeumatico = res.data.es_neumatico
+                _esFicha = res.data.es_ficha
+
+                CambioClasesNeumatico()
+                CambioClasesFicha()
+                
+                $('#cmbDeposito').selectpicker('val', res.data.id_deposito_fk)
+                $('#cmbDeposito').selectpicker('refresh')
+                $("#preloaderAPP").hide()
+                return resolve()
+            })
+        }
+
+
+    const SeleccionoTipoMovimiento = id => {
+        if(id == 1){
+            $('#divDeposito').removeClass('d-none')
+            $('#divVehiculo').addClass('d-none')
+            // await 
+            $('#cmbDeposito').val()
+        } else if(id == 2){
+            $('#divVehiculo').removeClass('d-none')
+            $('#divDeposito').addClass('d-none')
+            // await 
+            $('#cmbVehiculo').val()
+        }
+        CambioClasesNeumatico()
+    }
+
+
+
+const CambioClasesFicha = () => {
+        if(_esFicha==1){
+            $('#divFicha').removeClass('d-none')
+            $('#divRepuesto').removeClass()
+            $('#divFicha').addClass('form-group col-sm-12 col-md-5')
+            $('#divRepuesto').addClass('form-group col-sm-12 col-md-7')
+        }else{
+            $('#divFicha').removeClass()
+            $('#divRepuesto').removeClass()
+            $('#divRepuesto').addClass('form-group col-sm-12 col-md-12')
+            $('#divFicha').addClass('d-none')
+        }
+    }
+
+    const CambioClasesNeumatico = () => {
+        if(_esNeumatico==1){
+            $('#divUbicacion').removeClass('d-none')
+            $('#divRepuesto').removeClass()
+            $('#divUbicacion').addClass('form-group col-sm-12 col-md-5')
+            $('#divRepuesto').addClass('form-group col-sm-12 col-md-7')
+        }else{
+            $('#divUbicacion').removeClass()
+            $('#divRepuesto').removeClass()
+            $('#divRepuesto').addClass('form-group col-sm-12 col-md-12')
+            $('#divUbicacion').addClass('d-none')
+        }
+    }
+
+        const GuardarMovimiento = async () => {
+            const body = {
+                idOrdenTrabajo: '{{ orden.id }}',
+                repuesto: $('#cmbRepuesto').val(),
+                ubicacion: $('#cmbUbicacion').val(),
+                cantidad: $('#txtCantidad').val(),            
+                kmsIni: $('#txtKmsIniciales').val(),
+                deposito: $('#cmbDeposito').val(),
+                imputacion: $('#cmbImputacion').val(),
+                detalles: $('#txtDetalles').val(),
+                esNeumatico: _esNeumatico,
+                esFicha: _esFicha,
+                ficha: $('#cmbFicha').val()
+            }
+            const res = await $.post('/ordenesTrabajos/altaMovimiento', body)
+            Swal.fire({
+                icon: res.icon,
+                title: res.title, 
+                text: res.text
+            }).then(async ()=> {
+                if(res.status){
+                    getListaMovimientos()
+                    CerrarModalMovimiento()
+                }
+            })
+        }
+    
+        const ModificarComponente = async id => {
+            $("#preloaderAPP").show()
+            await ObtenerCmbRepuestos('cmbRepuesto', false)
+            await ObtenerCmbImputaciones('cmbImputacion', false)
+            await ObtenerCmbDepositos('cmbDeposito', false)
+            const res = await $.post('/ordenesTrabajos/getMovimientoAjax', {id})
+            $('#cmbRepuesto').selectpicker('val', res.data.id_repuesto_fk)
+            $('#cmbRepuesto').selectpicker('refresh')
+            $('#cmbUbicacion').selectpicker('val', res.data.id_ubicacion_fk)
+            $('#cmbUbicacion').selectpicker('refresh')
+            $('#txtCantidad').val(res.data.cantidad)
+            $('#txtKmsIniciales').val(res.data.kms_iniciales)
+            $('#cmbDeposito').selectpicker('val', res.data.id_deposito_fk)
+            $('#cmbDeposito').selectpicker('refresh')
+            $('#cmbImputacion').selectpicker('val', res.data.id_imputacion_fk)
+            $('#cmbImputacion').selectpicker('refresh')
+            $('#txtDetalles').val(res.data.detalles)
+            _esNeumatico = res.data.es_neumatico
+            $("#preloaderAPP").hide()
+            $('#modalLblMovimiento').html(`Modificar componente del coche: <strong>(${_ordenTrabajo.id_vehiculo_fk}) ${_ordenTrabajo.patente} - ${_ordenTrabajo.marcaTxt}</strong>`)
+            $('#modalAgregarComponente').modal('show')
+        }
+
+        const EliminarComponente = async (id) => {
+            Swal.fire({
+                title: 'Confirmar',
+                text: "¿Desea borrar este registro?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                confirmButtonText: 'Sí, eliminar.',
+                cancelButtonColor: '#d33',
+                cancelButtonText: 'No, cancelar.'
+            }).then(async result => {
+                if (result.isConfirmed) {
+                    $("#preloaderAPP").show()
+                    let res = await $.post('/ordenesTrabajos/borrarMovimiento', { id })
+                    $("#preloaderAPP").hide()
+                    Swal.fire({
+                        icon: res.icon,
+                        title: res.title,
+                        text: res.text,
+                        timer: 2500
+                    }).then(() => {
+                        if(res.status){
+                            CerrarModalMovimiento()
+                            getListaMovimientos()
+                        }
+                    })
+                }    
+            })
+        }
+
+    '{% endif %}'
+
+    const LimpiarCamposMovimiento = () => {
+        $('#txtFecha').val('')
+        $('#cmbTipoMovimiento').selectpicker('val', '')
+        $('#cmbRepuesto').selectpicker('val', '')
+        $('#cmbDeposito').selectpicker('val', '')
+        $('#cmbVehiculo').selectpicker('val', '')
+        $('#cmbUbicacion').selectpicker('val', '')
+        $('#cmbImputacion').selectpicker('val', '')
+        $('.selectpicker').selectpicker('refresh')
+        $('#txtKmsIniciales').val('')
+        $('#txtKmsFinales').val('')
+        $('#txtKmsTotales').val('')
+        $('#txtDetalles').val('')
+        $('#txtCantidad').val('')
+        $('#txtCantidad').prop('disabled', false)
+        _esNeumatico=0
+    }
+
+    const CerrarModalMovimiento = () => {
+        LimpiarCamposMovimiento()
+        $('#modalAgregarComponente').modal('hide')
+    }
+
+ 
+
+    const getListaMovimientos = async () => {
+        $("#preloaderAPP").show()
+        const res = await $.post('/ordenesTrabajos/getListaMovAjax', {id:'{{ orden.id }}'})
+        if(!res.status && res.error) window.location.href='/inicio'
+        let html = ''
+        if(res.status){
+            for (let i = 0; i < res.movimientos.length; i++) {
+                html += `
+                <tr>
+                    {% if orden.blindado == 0 %}
+                        <td style="text-align: center;">
+                            {% if permisos.m %}
+                                <button class="btn btn-round btn-sm btn-warning" onclick="ModificarComponente(${res.movimientos[i].id})"
+                                    data-toggle="tooltip" data-placement="top" title="Modificar">
+                                    <i class="fa fa-pen"></i>
+                                </button>
+                            {% endif %}
+
+                            {% if permisos.b %}
+                                <button class="btn btn-round btn-sm btn-danger" onclick="EliminarComponente(${res.movimientos[i].id})"
+                                    data-toggle="tooltip" data-placement="top" title="Eliminar">
+                                    <i class="fa fa-trash-alt"></i>
+                                </button>
+                            {% endif %}
+                        </td>
+                    {% endif %}
+                    <td>${res.movimientos[i].cantidad}</td>
+                    <td>${res.movimientos[i].repuestoTxt}</td>
+                    <td>${res.movimientos[i].fichaTxt}</td>
+                    <td>${res.movimientos[i].ubicacionTxt}</td>
+                    <td>${res.movimientos[i].imputacionTxt}</td>
+                    <td>${formatCurrency(res.movimientos[i].kmsIniciales)}</td>
+                    <td>${formatCurrency(res.movimientos[i].kmsTotales)}</td>
+                </tr>`
+            }
+        }else{
+            html = `<tr><td class="font-weight-bold" colspan="10">${res.text}</td></tr>`
+        }
+        $('#tablaMovimientos tbody').html(html)
+        $("#preloaderAPP").hide()
+        $('[data-toggle="tooltip"]').tooltip()
+    }
+
+
+
+
+
+
+//============================== TAREAS  ==============================
+
+    '{% if orden.blindado == 0 %}'
+    
+        const AgregarTarea = async () => {
+            await ObtenerCmbOTTareas('cmbTarea', false)
+            await ObtenerCmbImputaciones('cmbImputacionT', false)
+            $('#modalLblTarea').html(`Agregar tarea al coche: <strong>(${_ordenTrabajo.id_vehiculo_fk}) ${_ordenTrabajo.patente} - ${_ordenTrabajo.marcaTxt}</strong>`)
+            $('#modalAgregarTarea').modal('show')
+        }
+
+        const ObtenerTarea = id => {
+            return new Promise(async (resolve, reject) => {
+                $("#preloaderAPP").show()
+                const res = await $.post('/ordenesTrabajosTareas/getByIdAjax', {id})
+                if(!res.status){
+                    $("#preloaderAPP").hide()
+                    Swal.fire(res.title, res.text, res.icon)
+                    return resolve()
+                }
+                $('#txtTarea').val(res.data.descripcion)
+                $('#txtImporte').val(parseFloat(res.data.precio))
+                $("#preloaderAPP").hide()
+                return resolve()
+            })
+        }
+
+        const GuardarTarea = async () => {
+            const body = {
+                idOrdenTrabajo: '{{ orden.id }}',
+                idTarea: $('#cmbTarea').val(),
+                tarea: $('#txtTarea').val(),
+                importe: $('#txtImporte').val(),
+                imputacion: $('#cmbImputacionT').val(),
+                realizado: $('#chbRealizado').prop('checked') ? 1 : 0,
+                detalles: $('#txtDetallesT').val()
+            }
+            const res = await $.post('/ordenesTrabajos/altaTarea', body)
+            Swal.fire({
+                icon: res.icon,
+                title: res.title, 
+                text: res.text
+            }).then(async ()=> {
+                if(res.status){
+                    getListaTareas()
+                    CerrarModalTareas()
+                }
+            })
+        }
+    
+        const ModificarTarea = async id => {
+            $("#preloaderAPP").show()
+            await ObtenerCmbRepuestos('cmbRepuesto', false)
+            await ObtenerCmbImputaciones('cmbImputacion', false)
+            await ObtenerCmbDepositos('cmbDeposito', false)
+            const res = await $.post('/ordenesTrabajos/getMovimientoAjax', {id})
+            $('#cmbRepuesto').selectpicker('val', res.data.id_repuesto_fk)
+            $('#cmbRepuesto').selectpicker('refresh')
+            $('#cmbUbicacion').selectpicker('val', res.data.id_ubicacion_fk)
+            $('#cmbUbicacion').selectpicker('refresh')
+            $('#txtCantidad').val(res.data.cantidad)
+            $('#txtKmsIniciales').val(res.data.kms_iniciales)
+            $('#cmbDeposito').selectpicker('val', res.data.id_deposito_fk)
+            $('#cmbDeposito').selectpicker('refresh')
+            $('#cmbImputacion').selectpicker('val', res.data.id_imputacion_fk)
+            $('#cmbImputacion').selectpicker('refresh')
+            $('#txtDetalles').val(res.data.detalles)
+            _esNeumatico = res.data.es_neumatico
+            $("#preloaderAPP").hide()
+            $('#modalLblMovimiento').html(`Modificar componente del coche: <strong>(${_ordenTrabajo.id_vehiculo_fk}) ${_ordenTrabajo.patente} - ${_ordenTrabajo.marcaTxt}</strong>`)
+            $('#modalAgregarComponente').modal('show')
+        }
+
+        const EliminarTarea = async () => {
+            Swal.fire({
+                title: 'Confirmar',
+                text: "¿Desea borrar este registro?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                confirmButtonText: 'Sí, eliminar.',
+                cancelButtonColor: '#d33',
+                cancelButtonText: 'No, cancelar.'
+            }).then(async result => {
+                if (result.isConfirmed) {
+                    $("#preloaderAPP").show()
+                    let res = await $.post('/ordenesTrabajos/borrarMovimiento', { id })
+                    $("#preloaderAPP").hide()
+                    Swal.fire({
+                        icon: res.icon,
+                        title: res.title,
+                        text: res.text,
+                        timer: 2500
+                    }).then(() => {
+                        if(res.status){
+                            CerrarModalMovimiento()
+                            getListaMovimientos()
+                        }
+                    })
+                }    
+            })
+        }
+
+        const ModificarRealizado = async id => {
+            $("#preloaderAPP").show()
+            const res = await $.post('/ordenesTrabajos/updateTareaRealizada', {id, estado:$(`#chbRealizado${id}`).is(':checked')})
+            $("#preloaderAPP").hide()
+            Toast.fire({ icon: res.icon, title: res.text })
+            if(res.status) getListaTareas()
+            $('[data-toggle="tooltip"]').tooltip('hide')
+        }
+    
+    '{% endif %}'
+
+    const getListaTareas = async () => {
+        $("#preloaderAPP").show()
+        const res = await $.post('/ordenesTrabajos/getListaTareasAjax', {id:'{{ orden.id }}'})
+        if(!res.status && res.error) window.location.href='/inicio'
+        let html = ''
+        if(res.status){
+            for (let i = 0; i < res.tareas.length; i++) {
+                html += `
+                <tr>
+                    {% if orden.blindado == 0 %}
+                        {% if permisos.b == 1 %}
+                            <td style="width: 70px; text-align: center;">
+                                <button class="btn btn-round btn-sm btn-danger" onclick="Eliminar(${res.tareas[i].id})"
+                                    data-toggle="tooltip" data-placement="top" title="Eliminar">
+                                    <i class="fa fa-trash-alt"></i>
+                                </button>
+                            </td>
+                        {% endif %}
+                    {% endif %}
+                    <td>${res.tareas[i].tarea}</td>
+                    <td>${res.tareas[i].imputacionTxt}</td>                    
+                    <td class="text-center">
+                        {% if orden.blindado == 0 %}
+                            <div class="custom-control custom-switch ml-auto" style="z-index:1;" data-toggle="tooltip" data-placement="top" title="Actualizar">
+                                <input type="checkbox" class="custom-control-input" id="chbRealizado${res.tareas[i].id}" 
+                                    ${res.tareas[i].realizado == 0 ? '':'checked'} onchange="ModificarRealizado(${res.tareas[i].id})">
+                                <label class="custom-control-label" for="chbRealizado${res.tareas[i].id}"></label>
+                            </div>
+                        {% else %}
+                            ${res.tareas[i].realizado == 0 ? 'No':'Si'}
+                        {% endif %}
+                    </td>
+                </tr>`
+            }
+        }else{
+            html = `<tr><td class="font-weight-bold" colspan="10">${res.text}</td></tr>`
+        }
+        $('#tablaTareasContainer tbody').html(html)
+        $("#preloaderAPP").hide()
+        $('[data-toggle="tooltip"]').tooltip()
+    }
+
+    const LimpiarCamposTareas = () => {
+        $('#txtFecha').val('')
+        $('#cmbTipoMovimiento').selectpicker('val', '')
+        $('#cmbRepuesto').selectpicker('val', '')
+        $('#cmbDeposito').selectpicker('val', '')
+        $('#cmbVehiculo').selectpicker('val', '')
+        $('#cmbUbicacion').selectpicker('val', '')
+        $('#cmbImputacion').selectpicker('val', '')
+        $('.selectpicker').selectpicker('refresh')
+        $('#txtKmsIniciales').val('')
+        $('#txtKmsFinales').val('')
+        $('#txtKmsTotales').val('')
+        $('#txtDetalles').val('')
+        $('#txtCantidad').val('')
+        $('#txtCantidad').prop('disabled', false)
+        _esNeumatico=0
+    }
+
+    const CerrarModalTareas = () => {
+        LimpiarCamposTareas()
+        $('#modalAgregarTarea').modal('hide')
+    }
+
+    //============================== NOVEDADES  ==============================
+
+
+'{% if orden.blindado == 0 %}'
+    
+        //Terminada
+        const AgregarNovedad = async () => {
+            await ObtenerCmbOTNovedades('cmbNovedades', false, _ordenTrabajo.id_vehiculo_fk)
+            $('#modalLblNovedad').html(`Agregar novedad al coche: <strong>(${_ordenTrabajo.id_vehiculo_fk}) ${_ordenTrabajo.patente} - ${_ordenTrabajo.marcaTxt}</strong>`)
+
+            if (document.getElementById('cmbNovedades').options.length > 0){
+            $('#modalAgregarNovedad').modal('show')}
+        }
+
+
+        //Terminada
+        const GuardarNovedad = async () => {
+            const body = {
+                id:$('#cmbNovedades').val(),
+                idOrdenTrabajo: '{{ orden.id }}',
+                estado:$('#chbEstado').prop('checked') ? 1 : 0,
+            }
+            const res = await $.post('/ordenesTrabajos/postUpdateNovedadAsignaOT', body)
+            Swal.fire({
+                icon: res.icon,
+                title: res.title, 
+                text: res.text
+            }).then(async ()=> {
+                if(res.status){
+                    getListaNovedades()
+                    CerrarModalNovedades()
+                }
+            })
+        }
+
+        
+    
+
+        //Terminada
+        const EliminarNovedad = async (id) => {
+            Swal.fire({
+                title: 'Confirmar',
+                text: "¿Desea borrar este registro?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                confirmButtonText: 'Sí, eliminar.',
+                cancelButtonColor: '#d33',
+                cancelButtonText: 'No, cancelar.'
+            }).then(async result => {
+                if (result.isConfirmed) {
+                    $("#preloaderAPP").show()
+                    console.log(id)
+                    let res = await $.post('/ordenesTrabajos/postUpdateNovedadQuitarOT', { id })
+                    $("#preloaderAPP").hide()
+                    Swal.fire({
+                        icon: res.icon,
+                        title: res.title,
+                        text: res.text,
+                        timer: 2500
+                    }).then(() => {
+                        if(res.status){
+                            CerrarModalNovedades()
+                            getListaNovedades()
+                        }
+                    })
+                }    
+            })
+        }
+
+
+        //Terminada
+        const ModificarRealizadoNovedad = async id => {
+            $("#preloaderAPP").show()
+            const res = await $.post('/ordenesTrabajos/postUpdateNovedadRealizada', {id, estado:$(`#chbEstado${id}`).is(':checked')})
+            $("#preloaderAPP").hide()
+            Toast.fire({ icon: res.icon, title: res.text })
+            if(res.status) getListaNovedades()
+            $('[data-toggle="tooltip"]').tooltip('hide')
+        }
+    
+    '{% endif %}'
+
+        
+
+
+
+    //Terminada
+    const getListaNovedades = async () => {
+        $("#preloaderAPP").show()
+        const res = await $.post('/ordenesTrabajos/postListaNovedadesAjax', {id:'{{ orden.id }}'})
+        if(!res.status && res.error) window.location.href='/inicio'
+        let html = ''
+        if(res.status){
+            for (let i = 0; i < res.novedades.length; i++) {
+                html += `
+                <tr>
+                    {% if orden.blindado == 0 %}
+                        {% if permisos.b == 1 %}
+                            <td style="width: 70px; text-align: center;">
+                                <button class="btn btn-round btn-sm btn-danger" onclick="EliminarNovedad(${res.novedades[i].id})"
+                                    data-toggle="tooltip" data-placement="top" title="Eliminar">
+                                    <i class="fa fa-trash-alt"></i>
+                                </button>
+                            </td>
+                        {% endif %}
+                    {% endif %}
+                    <td>${res.novedades[i].descripcion}</td>
+                    <td>${res.novedades[i].prioridad}</td>       
+                    <td>${res.novedades[i].imputacion}</td>  
+                    <td class="text-center">
+                        {% if orden.blindado == 0 %}
+                            <div class="custom-control custom-switch ml-auto" style="z-index:1;" data-toggle="tooltip" data-placement="top" title="Actualizar">
+                                <input type="checkbox" class="custom-control-input" id="chbEstado${res.novedades[i].id}" 
+                                    ${res.novedades[i].estado == 'Pendiente' ? '':'checked'} onchange="ModificarRealizadoNovedad(${res.novedades[i].id})">
+                                <label class="custom-control-label" for="chbEstado${res.novedades[i].id}"></label>
+                            </div>
+                        {% else %}
+                            ${res.novedades[i].estado == 'Realizado' ? 'No':'Si'}
+                        {% endif %}
+                    </td> 
+                </tr>`
+            }
+        }else{
+            html = `<tr><td class="font-weight-bold" colspan="10">${res.text}</td></tr>`
+        }
+        $('#tablaNovedadesContainer tbody').html(html)
+        $("#preloaderAPP").hide()
+        $('[data-toggle="tooltip"]').tooltip()
+    }
+
+    //Terminada
+    const LimpiarCamposNovedades = () => {
+        $('#cmbNovedad').selectpicker('val','')
+       
+    }
+
+    //Terminada
+    const CerrarModalNovedades = () => {
+        LimpiarCamposNovedades()
+        $('#modalAgregarNovedad').modal('hide')
+    }
+
+
+
+</script>
+{% endblock %}

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <title>{{ pagename }}</title>
+    <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, shrink-to-fit=no' name='viewport' />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css" />
+    <link href="/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/img/favicon.ico">
+    <link rel="stylesheet" href="/css/impresionRecibos.css"  />
+</head>
+<body>
+    <div class="pt-3 pb-4 text-center no-print">
+        <button type="button" class="btn btn-danger btn-sm" onclick="Cerrar()">
+            <i class="fas fa-times mr-1"></i> Cerrar
+        </button>
+        <button type="button" class="btn btn-success btn-sm" onclick="Imprimir()">
+            <i class="fas fa-print mr-1"></i> Imprimir
+        </button>
+    </div>
+
+    <!-- CONTAINER-->
+        
+    <!-- <div class="container mb-5 p-0 secciones logoMarcaAgua" style="width: 996px; min-height: 415mm;"> -->
+    <div class="container mb-5 p-0 secciones logoMarcaAgua" style="width: 996px; min-height: 365mm;">
+        <img class="imgLogoMarcaAgua" src="/img/bg.png" />
+
+        <div class="divRecibo">
+            <section id="encabezado">
+                <!-- DATOS EMPRESA Y COMPROBANTE -->
+                <div class="d-flex justify-content-between recuadroEncabezado" style="padding: 15px 15px 0 15px;">
+                    <!-- DATOS EMPRESA -->
+                    <div style="width: 445px;">
+                        <div class="text-center">
+                            <!-- <img src="/img/logo.png" width="140" style="margin-bottom: 10px;" /> -->
+                            <div class="row pb-2" style="width: 500px;">
+                                <div class="col-12" style="text-align: center;">
+                                    {% if empresa.imagen == null %}
+                                        <span class="textoFacturaEncabezado text-uppercase">{{ empresa.empresaTxt }}</span>
+                                    {% else %}
+                                        <img src="{{ empresa.imagen }}" style="max-height: 100px;">
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; justify-content: center;">
+                            <div class="text-center {% if empresa.imagen == null %}mt-5{% else %}mt-2{% endif %}">
+                                <div class="txtFechaEnc">Razón social: {{ empresa.razon_social }}</div>
+                                {{ empresa.direccion }} | E-Mail: {{ empresa.email }}
+                                <br>
+                                Tel.: +54 9 {{ empresa.telefono }}
+                                <br>
+                                {{ empresa.localidad }} ({{ empresa.cp }}) - {{ empresa.provincia }}
+                                <div class="text-center">www.typrex.com</div>
+                            </div>
+                            <!-- <div class="textoNegrita text-center" style="margin-top: 10px;">IVA - RESPONSABLE INSCRIPTO</div> -->
+                        </div>
+                    </div>
+    
+                    <!-- DIVISOR -->
+                    <div style="width: 26px;"> 
+                        <div class="textoCentrar" style="margin: -22px 0 0 -22px;">
+                            <div class="textoTipoFact">R</div>
+                            <!-- <div class="textoCodTipoFact"> Cód. 001</div> -->
+                        </div>
+                        <div class="dividsorEncabezadoR"></div>
+                    </div>
+    
+                    <!-- DATOS FACTURA -->
+                    <div style="width: 422px;">
+                        <div class="textoTipoComp" style="text-align: center; display: grid; margin-bottom: 10px;">
+                            Recibo
+                            <span style="font-size: .75rem;">Documento no válido como factura.</span>
+                        </div>
+                        <div>
+                            <span style="font-size: 1.2rem;">Nº</span> <span class="txtNroFactura">{{ titulo.puntoVentaTxt }}-{{ titulo.numeroTxt }}</span>
+                        </div>
+                        <div style="text-align: left; margin-top: 10px;">
+                            <div class="mb-3">Fecha <span class="txtFechaEnc">{{ titulo.fecha_recibo | date('d/m/Y') }}</span></div>
+                            <div>C.U.I.T.: {{ empresa.cuit }}</div>
+                            <div>Ingresos Brutos: {{ empresa.cuit }}</div>
+                            <div>Fecha de inicio de actividad: {{ empresa.fecha_inicio }}</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <!-- FIN DATOS EMPRESA Y COMPROBANTE -->
+
+            <!-- DATOS DEL CLIENTE -->
+            <section id="datosCliente">
+                <div class="recuadroEncabezado p-1" style="margin-top: -2px;">
+                    <table class="table table-borderless table-sm m-0">
+                        <tr>
+                            <td style="width: 110px;" class="textoCursiva">Cliente:</td>
+                            <td class="textoCliente">{{ titulo.clienteTxt }}</td>
+                            <td style="width: 110px;" class="textoCursiva">CUIT:</td>
+                            <td class="textoCliente">{{ titulo.nro_documento }}</td>
+                        </tr>
+                        <tr>
+                            <td style="width: 110px;" class="textoCursiva">Condición IVA.:</td>
+                            <td class="textoCliente">{{ titulo.condicionIVATxt }}</td>
+                            <td style="width: 110px;" class="textoCursiva">Dirección:</td>
+                            <td class="textoCliente">{{ titulo.direccion }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </section>
+            <!-- FIN DATOS DEL CLIENTE -->
+
+
+           <section id="cuerpo">
+                <div class="d-flex justify-content-between">
+                    <div class="recuadroEncabezado p-1" style="margin-top: -2px; margin-right: -1px; width: 49.9%;">
+                        <div class="textoNegrita text-center" style="margin: 0 0 10px 20px; text-transform: uppercase;">Comprobantes</div>
+                        <table class="table table-borderless table-sm m-0">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Nro. comprobante</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for c in comprobantes %}
+                                    <tr>
+                                        <td>{{ c.fecha_comprobante | date('d/m/Y') }}</td>
+                                        <td>{{ c.puntoVentaTxt }}-{{ c.numeroTxt }}</td>
+                                        <td style="text-align: right;">$ {{ c.total | currency }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="recuadroEncabezado p-1" style="margin-top: -2px; margin-left: -1xp; width: 49.9%;">
+                        <div class="textoNegrita text-center" style="margin: 0 0 10px 20px; text-transform: uppercase;">Medios de pagos</div>
+                        <table class="table table-borderless table-sm m-0">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Medio de pago</th>
+                                    <th>Importe</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for mp in mediosPagos %}
+                                    <tr>
+                                        <td>{{ mp.fecha | date('d/m/Y') }}</td>
+                                        <td>{{ mp.medioPagoTxt }}</td>
+                                        <td style="text-align: right;">$ {{ mp.importe | currency }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="recuadroEncabezado p-1" style="margin-top: 2px;">
+                    <div style="display: flex; justify-content: space-between; font-weight: 700; padding: 10px 20px 10px 20px;">
+                        <div>RECIBO - TOTAL$</div>
+                        <div>$ {{ totales.totalPagado | currency }}</div>
+                    </div>
+                </div>
+                <div class="recuadroEncabezado p-1" style="margin-top: 2px;">
+                    <div class="textoCursiva textoNegrita textoSubrayado" style="min-height: 85px;">Observaciones:</div>
+                    <div>
+                        {{ titulo.observacion }}
+                    </div>
+                </div>
+           </section>
+            <section id="footer">
+                <div class="recuadroEncabezado p-1" style="margin-top: -2px; display: flex; align-items: end; height: 90px;">
+                    <div>
+                        Confeccionó:<span class="mr-1 ml-2">{{ titulo.usuario }}</span>
+                    </div>
+                    <div style="margin-left: 200px;">
+                        <div class="textoCursiva textoNegrita textoSubrayado">Firma y aclaración:</div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- FIN CONTAINER-->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/js/all.min.js"></script>
+    <script>
+        const Cerrar = () => { window.close() }
+        const Imprimir = () => { window.print() }
+        // Imprimir()
+    </script>
+</body>
+</html>

@@ -1,0 +1,494 @@
+{% extends '../../template.html' %}
+
+{% block styles %}
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+    <h2>{{ pagename }}</h2>
+    <div class="d-flex align-items-end mb-3" style="gap: 0.2rem;">
+        <input type="text" class="form-control" id="txtFiltro" placeholder="Buscar" style="width: 10rem;" />
+        <div>
+            <label>Activos</label>
+            <select class="form-control" id="cmbActivoFiltro" onchange="getLista()">
+                <option value="t" selected>Todos</option>
+                <option value="1">Si</option>
+                <option value="0">No</option>
+            </select>
+        </div>
+        {% if permisos.a == 1 %}
+            <button class="btn btn-round btn-success modalAccion mr-1" data-accion="a" onclick='ModalAccion("a")'>
+                <i class="fa fa-plus"></i>
+            </button>
+        {% endif %}
+    </div>
+</div>
+<div class="table-responsive" style="height: calc(100vh - 218px)">
+    <table class="table table-sm table-fix table-hover tableFixHead" id="tablaEmpleados">
+        <thead>
+            <tr>
+                <th>Acciones</th>
+                <th>Apellido y nombre</th>
+                <th>DNI</th>                
+                <th>Nro. legajo</th>
+                <th>Cargo</th>
+                <th>Puesto</th>
+                <th>Fecha alta</th>
+                <th>Fecha baja</th>
+                <th>Activo</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<!-- MODAL -->
+<div class="modal fade" id="modalEmpleados" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabel"></h5>
+                <button type="button" class="close" aria-label="Close" onclick="CerrarModal()">
+                    <span aria-hidden=" true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-2">
+                        <label for="txtNroLegajo">Nro. de legajo</label>
+                        <input type="text" class="form-control form-control-sm" id="txtNroLegajo" maxlength="5" onkeypress="return soloNumeros(event)">
+                    </div>
+                    <div class="form-group col-sm-12 col-md-5">
+                        <label for="txtNombre">Nombre</label>
+                        <input type="text" class="form-control form-control-sm" id="txtNombre">
+                    </div>
+                    <div class="form-group col-sm-12 col-md-5">
+                        <label for="txtApellido">Apellido</label>
+                        <input type="text" class="form-control form-control-sm" id="txtApellido">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-3">
+                        <label for="txtDNI">DNI</label>
+                        <input type="text" class="form-control form-control-sm maskDNI" placeholder="99.999.999" id="txtDNI">
+                    </div>
+                    <div class="form-group col-sm-12 col-md-3">
+                        <label for="txtCUIL">CUIL</label>
+                        <input type="text" class="form-control form-control-sm maskCUIT" placeholder="99-99999999-9" id="txtCUIL">
+                    </div>
+                    <div class="form-group col-sm-12 col-md-2">
+                        <label for="txtFechaNac">Fecha Nac.</label>
+                        <input type="text" class="form-control form-control-sm datepicker maskDate" id="txtFechaNac">
+                    </div>
+                    <div class="form-group col-sm-12 col-md-4">
+                        <label for="txtDireccion">Dirección</label>
+                        <input type="text" class="form-control form-control-sm" id="txtDireccion">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-3">
+                        <label for="txtTelefono">Teléfono</label>
+                        <input type="text" class="form-control form-control-sm" id="txtTelefono" onkeypress="return soloNumeros(event)">
+                    </div>
+                    <div class="form-group col-sm-12 col-md-3">
+                        <label for="cmbObraSocial">Obra social</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbObraSocial"></select>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-2">
+                        <label for="txtNroObraSocial">Nº obra social</label>
+                        <input type="text" class="form-control form-control-sm" id="txtNroObraSocial" maxlength="10" onkeypress="return soloNumeros(event)">
+                    </div>
+                    <!-- <div class="form-group col-sm-12 col-md-3">
+                        <label for="txtPlanObraSocial">Plan obra social</label>
+                        <input type="text" class="form-control form-control-sm" id="txtPlanObraSocial">
+                    </div> -->
+
+                    <div class="form-group col-sm-12 col-md-2">
+                        <label for="txtFechaIngreso">Fecha ingreso</label>
+                        <input type="text" class="form-control form-control-sm datepicker maskDate" id="txtFechaIngreso">
+                    </div>
+                    <div class="form-group col-sm-12 col-md-2">
+                        <label for="txtFechaEgreso">Fecha Egreso</label>
+                        <input type="text" class="form-control form-control-sm datepicker maskDate" id="txtFechaEgreso">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-5">
+                        <label for="cmbProvincia">Provincia</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbProvincia" onchange="ObtenerCmbLocalidadesProvincia(this.value, 'cmbLocalidad', 'txtCP')"></select>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-5">
+                        <label for="cmbLocalidad">Localidad</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbLocalidad" disabled onchange="CargarCPSeleccionado(this, 'txtCP')"></select>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-2">
+                        <label for="txtCP">Cód. Postal</label>
+                        <input type="text" class="form-control form-control-sm" disabled readonly id="txtCP">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-4">
+                        <label for="txtMail">Mail</label>
+                        <input type="text" class="form-control form-control-sm" id="txtMail">
+                    </div>
+                    <div class="form-group col-sm-12 col-md-4">
+                        <label for="cmbCargo">Cargo</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbCargo">
+                            <option value="" selected disabled>Seleccione un cargo...</option>
+                            {% for c in cargos %}
+                                <option value="{{ c.id }}">{{ c.desc_corta }} - {{ c.descripcion }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-4">
+                        <label for="cmbPuesto">Puesto</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbPuesto">
+                            <option value="" selected disabled>Seleccione un puesto...</option>
+                            {% for p in puestos %}
+                                <option value="{{ p.id }}">{{ p.desc_corta }} - {{ p.descripcion }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="dropdown-divider d-none" id="actionSeccionDivider"></div>
+                <div class="row d-none" id="actionSeccion">
+                    <div class="col-12 row justify-content-center pt-2">
+                        <div class="custom-control custom-switch ml-1">
+                            <input type="checkbox" class="custom-control-input" id="chbActivo" />
+                            <label class="custom-control-label" for="chbActivo">Activo</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="CerrarModal()">Cancelar</button>
+                <button type="button" class="btn btn-success" id="btnAccion">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- MODAL -->
+
+
+<!-- MODAL VER -->
+<div class="modal fade" id="modalVer" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Ver más información</h5>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-2">
+                        <label for="txtNroLegajo">Nro. de legajo</label>
+                        <input type="text" class="form-control form-control-sm" id="txtNroLegajoV" disabled readonly>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-5">
+                        <label for="txtNombre">Nombre</label>
+                        <input type="text" class="form-control form-control-sm" id="txtNombreV" disabled readonly>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-5">
+                        <label for="txtApellido">Apellido</label>
+                        <input type="text" class="form-control form-control-sm" id="txtApellidoV" disabled readonly>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-3">
+                        <label for="txtDNI">DNI</label>
+                        <input type="text" class="form-control form-control-sm" id="txtDNIV" disabled readonly>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-3">
+                        <label for="txtCUIL">CUIL</label>
+                        <input type="text" class="form-control form-control-sm" id="txtCUILV" disabled readonly>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-2">
+                        <label for="txtFechaNac">Fecha Nac.</label>
+                        <input type="text" class="form-control form-control-sm" id="txtFechaNacV" disabled readonly>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-4">
+                        <label for="txtDireccionV">Dirección</label>
+                        <input type="text" class="form-control form-control-sm" id="txtDireccionV" disabled readonly>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-3">
+                        <label for="txtTelefonoV">Teléfono</label>
+                        <input type="text" class="form-control form-control-sm" id="txtTelefonoV" disabled readonly>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-6">
+                        <label for="txtObraSocialV">Obra social</label>
+                        <input type="text" class="form-control form-control-sm" id="txtObraSocialV" disabled readonly>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-3">
+                        <label for="txtNroObraSocialV">Nº obra social</label>
+                        <input type="text" class="form-control form-control-sm" id="txtNroObraSocialV" disabled readonly>
+                    </div>
+                    <!-- <div class="form-group col-sm-12 col-md-3">
+                        <label for="txtPlanObraSocialV">Plan obra social</label>
+                        <input type="text" class="form-control form-control-sm" id="txtPlanObraSocialV" disabled readonly>
+                    </div> -->
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-3">
+                        <label for="txtMailV">Mail</label>
+                        <input type="text" class="form-control form-control-sm" id="txtMailV" disabled readonly>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-3">
+                        <label for="txtCargoV">Cargo</label>
+                        <input type="text" class="form-control form-control-sm" id="txtCargoV" disabled readonly>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-3">
+                        <label for="txtCargoV">Puesto</label>
+                        <input type="text" class="form-control form-control-sm" id="txtPuestoV" disabled readonly>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-2">
+                        <label for="txtFechaIngresoV">Fecha ingreso</label>
+                        <input type="text" class="form-control form-control-sm" id="txtFechaIngresoV" disabled readonly>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-2">
+                        <label for="txtFechaBajaV">Fecha baja</label>
+                        <input type="text" class="form-control form-control-sm" id="txtFechaBajaV" disabled readonly>
+                    </div>
+                </div>
+                <div class="row" id="actionSeccion">
+                    <div class="form-group col-12 row justify-content-center pt-2">
+                        <div class="custom-control custom-switch ml-1">
+                            <input type="checkbox" class="custom-control-input" id="chbActivoV" disabled readonly />
+                            <label class="custom-control-label" for="chbActivoV">Activo</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- MODAL VER -->
+
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript">
+    
+    $(document).ready(async () => {
+        await ObtenerCmbObrasSociales()
+        await ObtenerCmbProvincias(['cmbProvincia'])
+        getLista()
+    })
+
+    $(document).on('input', '#txtFiltro', function(){
+        FiltrarTablas('tablaEmpleados','txtFiltro')
+    })
+
+    const getLista = async () => {
+        let html = '<tr><td colspan="20">Sin registros.</td></tr>',
+        res = await $.post('/empleados/listaAjax', { activo: $('#cmbActivoFiltro').val() })
+        if(res.status){
+            html=''
+            for(let i=0; i<res.data.length; i++){
+                html += `
+                <tr>
+                    <td>
+                        <div style="display: flex; gap: 2px;">
+                            <button class="btn btn-round btn-sm btn-info" data-accion="v"
+                                data-toggle="tooltip" data-placement="top" title="Ver" onclick="Ver(${res.data[i].id})">
+                                <i class="fa fa-eye"></i>
+                            </button>
+                            
+                            {% if permisos.m == 1 %}
+                                <button class="btn btn-round btn-sm btn-warning" data-accion="m"
+                                    data-toggle="tooltip" data-placement="top" title="Modificar" onclick="ModalAccion('m',${res.data[i].id})">
+                                    <i class="fa fa-pen"></i>
+                                </button>
+                            {% endif %}
+
+                            {% if permisos.b == 1 %}
+                                <button class="btn btn-round btn-sm btn-danger" onclick="Borrar(${res.data[i].id})"
+                                    data-toggle="tooltip" data-placement="top" title="Borrar">
+                                    <i class="fa fa-trash-alt"></i>
+                                </button>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td class="search">${res.data[i].apellido}, ${res.data[i].nombre}</td>
+                    <td class="search">${res.data[i].dni}</td>
+                    <td class="search ">${res.data[i].nro_legajo}</td>
+                    <td class="search">${res.data[i].cargoTxt}</td>
+                    <td class="search">${res.data[i].puestoTxt}</td>
+                    <td class="search ">${res.data[i].fecha_alta == null ? '-' : changeDateDMY(res.data[i].fecha_alta)}</td>
+                    <td class="search ">${res.data[i].fecha_baja == null ? '-' : changeDateDMY(res.data[i].fecha_baja)}</td>
+                    <td class="">${res.data[i].activo == 1 ? 'Si' : 'No'}</td>
+                </tr>`
+            }
+        }
+
+        $('#tablaEmpleados tbody').html(html)
+        $('[data-toggle="tooltip"]').tooltip()
+    }
+
+    const ModalAccion = async (accion, id) => {
+        if (accion === 'a') {
+            let res = await $.post(`/empleados/getLastNroLegajo`)
+            $('#txtNroLegajo').val(res.ultimo)
+            $('#txtFechaNac').val(generateTodayDateDMY())
+            $('#txtFechaIngreso').val(generateTodayDateDMY())
+            $('#modalLabel').text('Nuevo empleado')
+            $('#btnAccion').attr('onclick', `PostRegistro("a")`)
+            $('#btnAccion').text('Guardar')
+            AbrirModal()
+        }else if (accion === 'm') {
+            let res = await $.post(`/empleados/getModificar`, {id})
+            if(!res.status) return Swal.fire(res.title, res.text, res.icon)
+            await CargarDatosModificar(res.data)
+            $('#modalLabel').text('Modificar empleado')
+            $('#btnAccion').text('Guardar')
+            $('#btnAccion').attr('onclick', `PostRegistro("m", ${id})`)
+            $('#actionSeccion').removeClass('d-none')
+            $('#actionSeccionDivider').removeClass('d-none')
+            AbrirModal()
+        }
+    }
+
+    const PostRegistro = async (accion, idEmpleado) => {
+        let body = {
+            nroLegajo: $('#txtNroLegajo').val(),
+            nombre: $('#txtNombre').val(),
+            apellido: $('#txtApellido').val(),
+            dni: $('#txtDNI').val(),
+            cuil: $('#txtCUIL').val(),
+            direccion: $('#txtDireccion').val(),
+            telefono: $('#txtTelefono').val(),
+            obraSocial: $('#cmbObraSocial').val(),
+            nroObraSocial: $('#txtNroObraSocial').val(),
+            // planObraSocial: $('#txtPlanObraSocial').val(),
+            provincia: $('#cmbProvincia').val(),
+            localidad: $('#cmbLocalidad').val(),
+            fechaNac: $('#txtFechaNac').val(),
+            fechaIng: $('#txtFechaIngreso').val(),
+            fechaEgr: $('#txtFechaEgreso').val(),
+            mail: $('#txtMail').val(),
+            cargo: $('#cmbCargo').val(),
+            puesto: $('#cmbPuesto').val()
+        }
+        
+        if (accion == 'm') {
+            body.activo = $('#chbActivo').is(':checked')
+            body.id = idEmpleado
+        }
+
+        let res = await $.post(`/empleados/${accion === 'a' ? 'alta' : 'modificar'}`, body)
+        Swal.fire({
+            icon: res.icon,
+            title: res.title,
+            text: res.text,
+            timer: 2500
+        }).then(() => {
+            if(res.status){
+                $('#cmbActivoFiltro').val('t')
+                getLista()
+                CerrarModal()
+            }
+        })
+    }
+
+    const Borrar = idEmpleado => {
+        Swal.fire({
+            title: 'Advertencia',
+            text: "¿Desea borrar este registro?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar.',
+            cancelButtonColor: '#d33',
+            cancelButtonText: 'No, cancelar.'
+        }).then(async result => {
+            if (result.isConfirmed) {
+                let res = await $.post('/empleados/borrar', { idEmpleado })
+                Swal.fire({
+                    icon: res.icon,
+                    title: res.title,
+                    text: res.text
+                })
+                getLista()
+            }
+        })
+    }
+
+    const AbrirModal = () => {
+        $('#modalEmpleados').modal('show')
+    }
+
+    const CerrarModal = () => {
+        $('#modalEmpleados').modal('hide')
+        $('#actionSeccion').addClass('d-none')
+        $('#actionSeccionDivider').addClass('d-none')
+        LimpiarCampos()
+    }
+
+    const CargarDatosModificar = async o => {
+        $('#txtNroLegajo').val(o.nro_legajo).prop('disabled', true)
+        $('#txtNombre').val(o.nombre)
+        $('#txtApellido').val(o.apellido)
+        $('#txtDNI').val(o.dni)
+        $('#txtCUIL').val(o.cuil)
+        $('#txtDireccion').val(o.direccion)
+        $('#txtTelefono').val(o.celular)
+        $('#cmbObraSocial').selectpicker('val', o.id_obrasocial_fk)
+        $('#txtNroObraSocial').val(o.os_numero)
+        // $('#txtPlanObraSocial').val(o.os_plan)
+        $('#txtFechaNac').val(changeDateDMY(o.fecha_nac))
+        $('#txtFechaIngreso').val(o.fecha_alta == null ? '' : changeDateDMY(o.fecha_alta))
+        $('#txtFechaEgreso').val(o.fecha_baja == null ? '' : changeDateDMY(o.fecha_baja))
+        $('#cmbProvincia').selectpicker('val', o.id_provincia_fk)
+        await ObtenerCmbLocalidadesProvincia(o.id_provincia_fk, 'cmbLocalidad', 'txtCP')
+        $('#cmbLocalidad').selectpicker('val', o.id_localidad_fk)
+        $('.selectpicker').selectpicker('refresh')
+        $('#txtCP').val($('#cmbLocalidad option:selected').data('cp'))
+        $('#txtMail').val(o.email)
+        $('#cmbCargo').selectpicker('val', o.id_cargo_fk)
+        $('#cmbPuesto').selectpicker('val', o.id_puesto_fk)
+        $('#chbActivo').prop('checked', o.activo == 1)
+        $('.selectpicker').selectpicker('refresh')
+        $('#modalEmpleados').modal('show')
+    }
+
+    const LimpiarCampos = () => {
+        $('input[type="text"], input[type="email"], textarea').val('')
+        $('input[type="checkbox"], input[type="radio"]').prop('checked', false)
+        $('select').val('0')
+        $('#cmbLocalidad').prop('disabled', true)
+        $('#txtNroLegajo').prop('disabled', false)
+        $('.selectpicker').selectpicker('refresh')
+    }
+
+    const Ver = async id => {
+        let res = await $.post('/empleados/ver', {id})
+        if(res.status){
+            $('#txtNroLegajoV').val(res.data.nro_legajo).prop('disabled', true)
+            $('#txtNombreV').val(res.data.nombre)
+            $('#txtApellidoV').val(res.data.apellido)
+            $('#txtDNIV').val(res.data.dni)
+            $('#txtCUILV').val(res.data.cuil)
+            $('#txtDireccionV').val(res.data.direccion)
+            $('#txtTelefonoV').val(res.data.celular)
+            $('#txtObraSocialV').val(res.data.obraSocialTxt)
+            $('#txtNroObraSocialV').val(res.data.os_numero)
+            $('#txtPlanObraSocialV').val(res.data.os_plan)
+            $('#txtFechaNacV').val(changeDateDMY(res.data.fecha_nac))
+            $('#txtFechaIngresoV').val(res.data.fecha_alta == null ? '-' : changeDateDMY(res.data.fecha_alta))
+            $('#txtFechaBajaV').val(res.data.fecha_baja == null ? '-' : changeDateDMY(res.data.fecha_baja))
+            $('#txtMailV').val(res.data.email)
+            $('#txtCargoV').val(res.data.cargoTxt)
+            $('#txtPuestoV').val(res.data.puestoTxt)
+            $('#chbActivoV').prop('checked', res.data.activo == 1)
+            $('.selectpicker').selectpicker('refresh')
+            $('#modalVer').modal('show')
+        }else{
+            Swal.fire(res.title, res.text, res.text)
+        }
+    }
+
+</script>
+{% endblock %}

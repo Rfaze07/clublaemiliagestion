@@ -1,0 +1,402 @@
+{% extends '../../template.html' %}
+
+{% block styles %}
+<style>
+    .textAreaSize {
+        resize: vertical;
+        min-height: 48px;
+        max-height: 100px;
+    }
+
+    .heightTablas { max-height: calc(100vh - 415px); overflow: auto; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+    <h2>{{ pagename }}</h2>
+    <div class="d-flex align-items-end mb-3" style="gap: 0.2rem;">
+        <input type="text" class="form-control" id="txtFiltro" placeholder="Buscar" style="width: 10rem;" />
+        <div>
+            <label>Fecha desde</label>
+            <input type="text" class="form-control datepicker" id="txtDesde" style="width: 10rem;" />
+        </div>
+        <div>
+            <label>Fecha hasta</label>
+            <input type="text" class="form-control datepicker" id="txtHasta" style="width: 10rem;" />
+        </div>
+        <button class="btn btn-round btn-primary" data-toggle="tooltip" data-placement="top" title="Buscar" onclick="getLista()">
+            <i class="fa fa-search"></i>
+        </button>
+        {% if permisos.a == 1 %}
+        <button class="btn btn-round btn-success modalAccion" data-toggle="tooltip" data-placement="top" title="Nuevo" data-accion="a" onclick='ModalAccion("a")'>
+            <i class="fa fa-plus"></i>
+        </button>
+        {% endif %}
+    </div>
+</div>
+<div class="table-responsive" style="height: calc(100vh - 200px)" id="tablaDatos">
+    <table class="table table-sm table-fix table-hover tableFixHead">
+        <thead>
+            <tr>
+                <th scope="col">Acciones</th>
+                <th scope="col">Fecha</th>
+                <th scope="col">Proveedor</th>
+                <th scope="col">Impreso?</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<!-- MODAL -->
+<div class="modal fade modal-m" data-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true" id="modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabel"></h5>
+                <button type="button" class="close" aria-label="Close" onclick="CerrarModal()">
+                    <span aria-hidden=" true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-sm-12 col-md-8">
+                        <label for="cmbProveedor">Proveedor</label>
+                        <select class="form-control form-control-sm" id="cmbProveedor">
+                            {% for p in proveedores %}
+                                <option value="{{ p.id }}">{{ p.razon_social }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-sm-12 col-md-4">
+                        <label for="txtFecha">Fecha</label>
+                        <input type="text" class="form-control form-control-sm datepicker" id="txtFecha">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12">
+                        <label for="txtObservaciones">Observaciones</label>
+                        <textarea class="form-control form-control-sm" id="txtObservaciones"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="CerrarModal()">Cancelar</button>
+                <button type="button" class="btn btn-success" id="btnAccion">Guardar y continuar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- MODAL VER -->
+<div class="modal fade modal-m" tabindex="-1" aria-hidden="true" id="modalVer">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabelVer"></h5>
+                <button type="button" class="close" aria-label="Close" onclick="CerrarModal()">
+                    <span aria-hidden=" true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="divBodyMadalVer"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- MODAL VER -->
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+
+    $(document).ready(() => {
+        $('#txtDesde').val(generateFirstDateActualMonth())
+        $('#txtHasta').val(generateTodayDate())
+        $('#txtFecha').val(generateTodayDate())
+        getLista()
+    })
+
+    $("#txtFiltro").keyup(async function () {
+        Filtrar()
+    })
+    
+    const getLista = async () => {
+        $("#preloaderAPP").show()
+        
+        const body = {  desde: $('#txtDesde').val(), hasta: $('#txtHasta').val() }
+        const res = await $.post('/ordenesPagos/getlistaAjax', body)
+        let html = '<tr><td colspan="15">Sin registros para el rango de fechas seleccionado.</td></tr>'
+        if(res.status){
+            if(res.data.length > 0){
+                html = ''
+                for (let i = 0; i < res.data.length; i++) {
+                    html += `
+                        <tr>
+                            <td>
+                                <div style="display: flex; gap: 2px;">
+                                    <button class="btn btn-round btn-sm btn-info" onclick="Ver(${res.data[i].id})"
+                                            data-toggle="tooltip" data-placement="top" title="Ver">
+                                        <i class="fa fa-eye"></i>
+                                    </button>
+                                    
+                                    {% if permisos.m %}
+                                    ${
+                                         res.data[i].blindado == 0 && res.data[i].impreso == 0 ?
+                                            `<button class="btn btn-round btn-sm btn-warning" onclick="ModalAccion('m', ${res.data[i].id})"
+                                                    data-toggle="tooltip" data-placement="top" title="Modificar orden de pago">
+                                                <i class="fa fa-pen"></i>
+                                            </button>
+                                            <a class="btn btn-round btn-sm btn-secondary" role="button" data-accion="m" data-toggle="tooltip" 
+                                                        data-placement="top" title="Comprobantes y pagos" href="/ordenesPagos/detalles/${res.data[i].id}">
+                                                <i class="fa fa-file-lines"></i>
+                                            </a>`
+                                        :
+                                            ''
+                                    }
+                                    {% endif %}                                    
+
+                                    {% if permisos.b %}
+                                    ${
+                                        res.data[i].blindado == 0 && res.data[i].impreso == 0 ? 
+                                            `<button class="btn btn-round btn-sm btn-danger" onclick="Eliminar(${res.data[i].id})"
+                                                data-toggle="tooltip" data-placement="top" title="Eliminar">
+                                                <i class="fa fa-trash-alt"></i>
+                                            </button>`
+                                        :
+                                            ''
+                                    }
+                                        
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td class="search">${changeDateDMY(res.data[i].fecha)}</td>
+                            <td class="search">${res.data[i].proveedorTxt}</td>
+                            <td class="search">${res.data[i].impreso ? 'Si' : 'No'}</td>
+                        </tr>`
+                }
+            }
+        }else{
+            html = `<tr><td class="font-weight-bold" colspan="15">${res.text}</td></tr>`
+        }
+        $('#tablaDatos tbody').html(html)
+        $('[data-toggle="tooltip"]').tooltip()
+        $("#preloaderAPP").hide()
+    }
+
+    const ModalAccion = async (accion, id) => {
+        $("#preloaderAPP").show();
+        if (accion === 'a') {
+            $('#modalLabel').text('Nuevo comprobante de compra')
+            $('#btnAccion').attr('onclick', `PostRegistro("a")`)
+            $('#btnAccion').text('Guardar')
+        }
+        if (accion == 'm') {
+            let res = await $.post(`/ordenesPagos/getByIdAjax`,{id})
+            if (res.status != 0) {
+                $('#cmbProveedor').val(res.titulo.id_proveedor_fk)
+                $('#txtFecha').val(res.titulo.fecha)
+                $('#txtObservaciones').val(res.titulo.observacion)
+            }
+            $('#modalLabel').text('Modificar comprobante de compra')
+            $('#btnAccion').text('Guardar')
+            $('#btnAccion').attr('onclick', `PostRegistro("m",${id})`)
+            $('#actionSeccion').removeClass('d-none')
+            $('#actionSeccionDivider').removeClass('d-none')
+        }
+        $("#preloaderAPP").hide()
+        $('#modal').modal('show')
+    }
+
+    const PostRegistro = async (accion, Id) => {
+        $("#preloaderAPP").show();
+        let url = '/ordenesPagos/alta', 
+            res,
+            body = {
+                proveedor: $('#cmbProveedor').val(),
+                fecha: $('#txtFecha').val(),
+                observaciones: $('#txtObservaciones').val()
+            }
+
+        if (accion === 'm') {
+            url = '/ordenesPagos/modificar'
+            body.activo = $('#chbActivo').prop('checked') ? 1 : 0
+            body.id = Id
+        }
+
+        res = await $.post(url, body)
+        $("#preloaderAPP").hide()
+        Swal.fire({
+            icon: res.icon,
+            title: res.title, 
+            text: res.text,
+            confirmButtonText: 'Continuar'
+        }).then(() => {
+            if(res.status){
+                CerrarModal()
+                location = `/ordenesPagos/detalles/${res.id}`
+            }
+        })        
+    }
+
+    const Eliminar = id => {
+        Swal.fire({
+            title: 'Confirmar',
+            text: "¿Desea borrar este registro?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar.',
+            cancelButtonColor: '#d33',
+            cancelButtonText: 'No, cancelar.'
+        }).then(async result => {
+            if (result.isConfirmed) {
+                $("#preloaderAPP").show();
+                let res = await $.post('/ordenesPagos/eliminar', { id })
+                $("#preloaderAPP").hide();
+                Swal.fire({
+                    type: res.type,
+                    icon: res.icon,
+                    title: res.title,
+                    text: res.text,
+                    timer: 2000
+                }).then(() => {
+                    if(res.status){
+                        CerrarModal()
+                        getLista()
+                    }
+                })
+            }    
+        })
+    }
+
+    const Ver = async idOrdenPago => {
+        let res = await $.post('/ordenesPagos/ver', {idOrdenPago})
+        console.log(res)
+        if(res.status){
+            let htmlTablaComp='', htmlTablaMP=''
+
+            res.comprobantes.map(el => {
+                htmlTablaComp += `
+                    <tr>
+                        <td>${el.tipoComprobanteTxt}</td>
+                        <td>${changeDateDMY(el.fecha_real)}</td>
+                        <td>${el.numero}</td>
+                        <td class="text-right">$ ${formatCurrency(el.total)}</td>
+                    </tr>`
+            })
+
+            res.mediosPagos.map(el => {
+                htmlTablaMP += `
+                    <tr>
+                        <td>${changeDateDMY(el.fecha)}</td>
+                        <td>${el.medioPagoTxt}</td>
+                        <td class="text-right">$ ${formatCurrency(el.importe)}</td>
+                        <td>${el.descripcion}</td>
+                    </tr>`
+            })
+
+
+            const html = 
+            `
+            <div class="card w-100 mb-1">
+                <div class="card-header">
+                    <div class="row">
+                        <div class="col-sm-12 row">
+                            <div class="col-2" style="font-weight: 700;">Proveedor</div>
+                            <div class="col-2">${res.titulo.proveedorTxt}</div>
+                            <div class="col-2" style="font-weight: 700;">Fecha de alta</div>
+                            <div class="col-2">${changeDateDMY(res.titulo.fecha)}</div>
+                            <div class="col-2" style="font-weight: 700;">Blindado?</div>
+                            <div class="col-2">${res.titulo.blindado ? 'Si' : 'No'}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mb-1">
+                <div class="col-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <span style="font-weight: 700;">Compobantes asociados</span>
+                        </div>
+                        <div class="card-body heightTablas p-0">
+                            <table class="table table-hover table-sm tableFixHead" id="tablaVerComprobantes">
+                                <thead>
+                                    <tr>
+                                        <th class="text-center">Tipo Comp.</th>
+                                        <th class="text-center">Fecha</th>
+                                        <th class="text-center">Número</th>
+                                        <th class="text-center">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>${htmlTablaComp}</tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <span style="font-weight: 700;">Pagos</span>
+                        </div>
+                        <div class="card-body heightTablas p-0">
+                            <table class="table table-hover table-sm tableFixHead" id="tablaVerMediosPagos">
+                                <thead>
+                                    <tr>
+                                        <th class="text-center">Fecha</th>
+                                        <th class="text-center">Medio de pago</th>
+                                        <th class="text-center">Importe</th>
+                                        <th class="text-center">Observaciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>${htmlTablaMP}</tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card w-100">
+                <div class="card-header">
+                    <div class="row">
+                        <div class="col-sm-12 row">
+                            <div class="col-4" style="font-weight: 700;">
+                                Total $ <span class="ml-2">${res.totales.total}</span>
+                            </div>
+                            <div class="col-4" style="font-weight: 700;">
+                                Total pagado $<span class="ml-2">${res.totales.totalPagado}</span>
+                            </div>
+                            <div class="col-4" style="font-weight: 700;">
+                                Saldo pendiente $ <span class="ml-2">${res.totales.saldoPendiente}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>`
+
+            $('#divBodyMadalVer').html(html)
+            $('#modalLabelVer').text('Más información')
+            $('#modalVer').modal('show')
+        }
+
+    }
+    
+    const CerrarModal = () => {
+        $('#modal').modal('hide')
+        $('#actionSeccion').addClass('d-none')
+        $('#actionSeccionDivider').addClass('d-none')
+        LimpiarCampos()
+    }
+
+    const LimpiarCampos = () => {
+        $('input[type="text"]').val('')
+        $('textarea').val('')
+        $('input[type="checkbox"]').prop('checked', false)
+        $('input[type="radio"]').prop('checked', false)
+    }
+
+</script>
+{% endblock %}

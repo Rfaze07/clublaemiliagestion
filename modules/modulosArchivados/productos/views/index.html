@@ -1,0 +1,598 @@
+{% extends '../../template.html' %}
+
+{% block styles %}
+<style>
+    .textAreaSize {
+        resize: vertical;
+        min-height: 48px;
+        max-height: 100px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+    <h2>{{ pagename }}</h2>
+    <div class="d-flex align-items-end mb-3" style="gap: 0.2rem;">
+        <input type="text" class="form-control form-control-sm" id="txtFiltro" placeholder="Buscar" style="width: 10rem;" />
+        <div>
+            <label>Marca</label>
+            <select class="form-control form-control-sm selectpicker" id="cmbMarcaFiltro" onchange="getLista()"></select>
+        </div>
+        <div>
+            <label>Rubro</label>
+            <select class="form-control form-control-sm selectpicker" id="cmbRubroFiltro" onchange="getLista()"></select>
+        </div>
+        <div>
+            <label>Unidad de medida</label>
+            <select class="form-control form-control-sm selectpicker" id="cmbUnidadFiltro" onchange="getLista()"></select>
+        </div>
+        <div>
+            <label>Activos</label>
+            <select class="form-control form-control-sm" id="cmbActivoFiltro" onchange="getLista()">
+                <option value="t" selected>Todos</option>
+                <option value="1">Si</option>
+                <option value="0">No</option>
+            </select>
+        </div>
+        {% if permisos.a == 1 %}
+        <button class="btn btn-sm btn-round btn-success modalAccion mr-1" data-accion="a" onclick='ModalAccion("a")'>
+            <i class="fa fa-plus"></i>
+        </button>
+        {% endif %}
+        <button class="btn btn-sm btn-round btn-info mr-1" onclick="refrescarTabla()" title="Refrescar tabla">
+            <i class="fa fa-sync-alt"></i>
+        </button>
+    </div>
+</div>
+<div class="table-responsive" style="height: calc(100vh - 200px)" id="tablaDatos">
+    <table class="table table-sm table-fix table-hover tableFixHead">
+        <thead>
+            <tr>
+                <th scope="col">Acciones</th>
+                <th scope="col">Cod. Barras</th>
+                <th scope="col">Descripción</th>
+                <th scope="col">Marca</th>
+                <th scope="col">Rubro</th>
+                <th scope="col">Unidad de medida</th>
+                <th scope="col">Costo</th>
+                <th scope="col">Porcentaje</th>
+                <th scope="col">Alicuota IVA</th>
+                <th scope="col">Precio</th>
+                <th scope="col">Precio con IVA</th>
+                <th scope="col">Activo</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<!-- MODAL -->
+<div class="modal fade modal-m" data-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    aria-labelledby="staticBackdropLabel" aria-hidden="true" id="modal">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabel"></h5>
+                <button type="button" class="close" aria-label="Close" onclick="CerrarModal()">
+                    <span aria-hidden=" true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class = "row">
+                    <div class="col-sm-12 col-md-4">
+                        <label for="txtCodBarras">Codigo de Barras</label>
+                        <input type="text" class="form-control form-control-sm" id="txtCodBarras" maxlength="100">
+                    </div>
+                    <div class="col-sm-12 col-md-8">
+                        <label for="txtDescripcion">Descripción</label>
+                        <input type="text" class="form-control form-control-sm" id="txtDescripcion" maxlength="100">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 col-md-3">
+                        <label for="cmbUnidadMedida">Unidad de medida</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbUniMed"></select>
+                    </div>
+                    <div class="col-sm-12 col-md-3">
+                        <label for ="txtStockMinimo">Stock Mínimo</label>
+                        <input type="text" class="form-control form-control-sm" id="txtStockMinimo" onkeypress="return ValidarEnterosYDecimales(event, this, 9,2)">
+                    </div>
+                    <div class="col-sm-12 col-md-3">
+                        <label for="cmbMarca">Marca</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbMarca"></select>
+                    </div>
+                    <div class="col-sm-12 col-md-3">
+                        <label for="cmbRubros">Rubros</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbRubros"></select>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-sm-12 col-md-2">
+                        <label for="txtCosto">Costo</label>
+                        <input type="text" class="form-control form-control-sm" id="txtCosto" min="0" step="0.01" onkeypress="return ValidarEnterosYDecimales(event, this, 9,2)" onkeyup="calcularPrecio()">
+                    </div>
+                    <div class="col-sm-12 col-md-2">
+                        <label for="txtPorcentaje">Porcentaje %</label>
+                        <input type="text" class="form-control form-control-sm" id="txtPorcentaje" min="0" step="0.01" onkeypress="return ValidarEnterosYDecimales(event, this, 9,2)" onkeyup="calcularPrecio()">
+                    </div>
+                    <div class="col-sm-12 col-md-2">
+                        <label for="cmbAlicuota">Alicuota %</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbAlicuota" onchange="calcularPrecio()">
+                            <option data-id="1" value="0" selected>0%</option>
+                            <option data-id="2" value="10.5">10.5%</option>
+                            <option data-id="3" value="21">21%</option>
+                            <option data-id="4" value="27">27%</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-12 col-md-3">
+                        <label for="txtPrecio">Precio</label>
+                        <input type="text" class="form-control form-control-sm" id="txtPrecio" min="0" step="0.01" disabled>
+                    </div>
+                    <div class="col-sm-12 col-md-3">
+                        <label for="txtPrecioConIva">Precio con IVA</label>
+                        <input type="text" class="form-control form-control-sm" id="txtPrecioConIva" min="0" step="0.01" disabled>
+                    </div>
+                </div>
+                <div class="dropdown-divider d-none" id="actionSeccionDivider"></div>
+                <div class="row d-none" id="actionSeccion">
+                    <div class="col">
+                        <div class="custom-control custom-switch ml-1">
+                            <input type="checkbox" class="custom-control-input" id="chbActivo" />
+                            <label class="custom-control-label" for="chbActivo">Activo</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                    onclick="CerrarModal()">Cancelar</button>
+                <button type="button" class="btn btn-success" id="btnAccion">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Variables para virtualización y optimización
+    let datosCompletos = [];
+    let indiceFinal = 0;
+    const LOTE_SIZE = 100; // Cargar de a 100 registros
+    const SCROLL_THRESHOLD = 0.8; // Cargar más cuando llegue al 80% del scroll
+    let cargandoMas = false;
+    let busquedaActiva = false; // Nueva variable para controlar si hay búsqueda activa
+
+    $(document).ready(async () => {
+        // Configuración global para evitar caché en peticiones AJAX
+        $.ajaxSetup({
+            cache: false,
+            beforeSend: function(xhr, settings) {
+                // Agregar timestamp para evitar caché
+                if (settings.url.indexOf('?') === -1) {
+                    settings.url += '?_t=' + Date.now();
+                } else {
+                    settings.url += '&_t=' + Date.now();
+                }
+            }
+        });
+        
+        await ObtenerCmbUnidadesMedidas('cmbUniMed', false)
+        await ObtenerCmbMarcas('cmbMarca', false)
+        await ObtenerCmbRubros('cmbRubros', false)
+        await ObtenerCmbUnidadesMedidas('cmbUnidadFiltro', true)
+        await ObtenerCmbMarcas('cmbMarcaFiltro', true)
+        await ObtenerCmbRubros('cmbRubroFiltro', true)
+        getLista()
+        
+        // Configurar scroll infinito (opcional)
+        configurarScrollInfinito()
+    })
+
+    // Variable para debounce de búsqueda
+    let timeoutBusqueda = null;
+    
+    $("#txtFiltro").keyup(function () {
+        clearTimeout(timeoutBusqueda);
+        timeoutBusqueda = setTimeout(() => {
+            Filtrar();
+        }, 300); // Esperar 300ms después de que el usuario deje de escribir
+    });
+    
+    const getLista = async () => {
+        $("#preloaderAPP").show();
+        let activo = $('#cmbActivoFiltro').val()
+        let marca = $('#cmbMarcaFiltro').val()
+        let rubro = $('#cmbRubroFiltro').val()
+        let unidad = $('#cmbUnidadFiltro').val()
+        
+        // Agregar timestamp para evitar caché
+        let params = { 
+            activo, marca, rubro, unidad,
+            _timestamp: Date.now(),
+            _random: Math.random()
+        }
+        
+        let res = await $.post('/productos/getlistaAjax', params)
+        console.log(res)
+        
+        if(res.status && res.data.length > 0){
+            datosCompletos = res.data;
+            indiceFinal = 0;
+            
+            // Limpiar tabla y búsqueda
+            $('#tablaDatos tbody').html('');
+            $('#indicadorProgreso').remove();
+            
+            // Si hay texto de búsqueda, aplicar filtro; sino cargar por lotes
+            const textoBusqueda = $('#txtFiltro').val().trim();
+            if (textoBusqueda !== '') {
+                busquedaActiva = true;
+                setTimeout(() => Filtrar(), 100); // Aplicar filtro después de cargar datos
+            } else {
+                busquedaActiva = false;
+                cargarSiguienteLote();
+            }
+        } else {
+            busquedaActiva = false;
+            $('#tablaDatos tbody').html(`<tr><td class="font-weight-bold text-center" colspan="12">${res.text || 'No hay registros para mostrar'}</td></tr>`);
+        }
+        
+        $("#preloaderAPP").hide();
+    }
+
+    // Funciones de optimización para carga por lotes
+    const cargarSiguienteLote = () => {
+        if (cargandoMas || indiceFinal >= datosCompletos.length) return;
+        
+        cargandoMas = true;
+        const siguienteLote = datosCompletos.slice(indiceFinal, indiceFinal + LOTE_SIZE);
+        
+        requestAnimationFrame(() => {
+            procesarLoteEnSegmentos(siguienteLote, 0);
+        });
+    }
+    
+    const procesarLoteEnSegmentos = (lote, segmentoInicial) => {
+        const SEGMENTO_SIZE = 20;
+        const segmentoFinal = Math.min(segmentoInicial + SEGMENTO_SIZE, lote.length);
+        let htmlSegmento = '';
+        
+        for (let i = segmentoInicial; i < segmentoFinal; i++) {
+            const item = lote[i];
+            const costo = parseFloat(item.Costo) || 0;
+            const porcentaje = parseFloat(item.Porcentaje) || 0;
+            const porcIva = parseFloat(item.porcIva) || 0;
+            const precioSinIva = costo * (1 + porcentaje / 100);
+            const precioConIva = precioSinIva * (1 + porcIva / 100);
+            
+            htmlSegmento += `<tr data-id="${item.id}">
+                <td><div style="display: flex; gap: 2px;">
+                {% if permisos.c %}<button class="btn btn-round btn-sm btn-info" data-toggle="tooltip" title="Imprimir" onclick="ImprimirEtiqueta(${item.id})"><i class="fa fa-print"></i></button>{% endif %}
+                {% if permisos.m %}<button class="btn btn-round btn-sm btn-warning" data-toggle="tooltip" title="Modificar" onclick="ModalAccion('m',${item.id})"><i class="fa fa-pen"></i></button>{% endif %}
+                {% if permisos.b %}<button class="btn btn-round btn-sm btn-danger" data-toggle="tooltip" title="Eliminar" onclick="Eliminar(${item.id})"><i class="fa fa-trash-alt"></i></button>{% endif %}
+                </div></td>
+                <td class="search">${item.Cod_Producto}</td>
+                <td class="search">${item.Desc_Producto}</td>
+                <td class="search">${item.marcaTxt || ""}</td>
+                <td class="search">${item.rubroTxt || ""}</td>
+                <td class="search">${item.unidadMedidaTxt}</td>
+                <td>$ ${formatCurrency(costo)}</td>
+                <td>${porcentaje} %</td>
+                <td>${porcIva} %</td>
+                <td>$ ${formatCurrency(precioSinIva)}</td>
+                <td>$ ${formatCurrency(precioConIva)}</td>
+                <td>${item.Activo === 1 ? 'Si' : 'No'}</td>
+            </tr>`;
+        }
+        
+        $('#tablaDatos tbody').append(htmlSegmento);
+        
+        if (segmentoFinal < lote.length) {
+            requestAnimationFrame(() => procesarLoteEnSegmentos(lote, segmentoFinal));
+        } else {
+            indiceFinal += lote.length;
+            cargandoMas = false;
+            $('[data-toggle="tooltip"]:not(.tooltip-initialized)').addClass('tooltip-initialized').tooltip();
+            actualizarIndicadorProgreso();
+        }
+    }
+
+    const actualizarIndicadorProgreso = () => {
+        const cargados = indiceFinal;
+        const total = datosCompletos.length;
+        
+        if (total > LOTE_SIZE) {
+            let indicador = $('#indicadorProgreso');
+            if (!indicador.length) {
+                indicador = $('<div id="indicadorProgreso" class="text-center mt-2"></div>');
+                $('#tablaDatos').after(indicador);
+            }
+            
+            if (cargados < total) {
+                indicador.html(`<small class="text-muted">Mostrando ${cargados} de ${total} productos 
+                    <button class="btn btn-sm btn-outline-primary ml-2" onclick="cargarSiguienteLote()">
+                        <i class="fa fa-plus"></i> Cargar más (${Math.min(LOTE_SIZE, total - cargados)})
+                    </button></small>`);
+            } else {
+                indicador.html('<small class="text-success"><i class="fa fa-check"></i> Todos los productos cargados</small>');
+            }
+        }
+    }
+    
+    const configurarScrollInfinito = () => {
+        $('#tablaDatos').on('scroll', function() {
+            // No activar scroll infinito si hay búsqueda activa
+            if (busquedaActiva) return;
+            
+            const elemento = this;
+            const scrollPercent = (elemento.scrollTop + elemento.clientHeight) / elemento.scrollHeight;
+            if (scrollPercent >= SCROLL_THRESHOLD && !cargandoMas && indiceFinal < datosCompletos.length) {
+                cargarSiguienteLote();
+            }
+        });
+    }
+    
+ 
+    const ModalAccion = async (accion, id) => {
+        $("#preloaderAPP").show();
+        if (accion === 'a') {
+            $('#modalLabel').text('Nuevo producto')
+            $('#btnAccion').attr('onclick', `PostRegistro("a")`)
+            $('#btnAccion').text('Guardar')
+        }
+        if (accion == 'm') {
+            let res = await $.post(`/productos/getByIdAjax`,{id})
+            if (res.status != 0) {
+                await ObtenerCmbUnidadesMedidas()
+                $('#txtCodBarras').val(res.data.Cod_Producto)
+                $('#txtDescripcion').val(res.data.Desc_Producto)
+                $('#cmbUniMed').selectpicker('val', res.data.id_unmed_fk)
+                $('#cmbUniMed').selectpicker('refresh')
+                $('#txtStockMinimo').val(res.data.stockMinimo)
+                $('#cmbMarca').selectpicker('val', res.data.id_marca_fk)
+                $('#cmbMarca').selectpicker('refresh')
+                $('#cmbRubros').selectpicker('val', res.data.id_rubro_fk)
+                $('#cmbRubros').selectpicker('refresh')
+                let idBuscado = res.data.id_alicuota_iva_fk; // el data-id que quieres seleccionar
+                let valor = $('#cmbAlicuota option[data-id="' + idBuscado + '"]').val();
+                $('#cmbAlicuota').val(valor).trigger('change');
+                $('#cmbAlicuota').selectpicker('refresh');
+                $('#txtCosto').val(res.data.Costo)
+                $('#txtPorcentaje').val(res.data.Porcentaje)
+                calcularPrecio()
+                $('#chbActivo').prop('checked', res.data.Activo === 1 ? true : false)
+            }
+            $('#modalLabel').text('Modificar producto')
+            $('#btnAccion').text('Guardar')
+            $('#btnAccion').attr('onclick', `PostRegistro("m",${id})`)
+            $('#actionSeccion').removeClass('d-none')
+            $('#actionSeccionDivider').removeClass('d-none')
+        }
+        $("#preloaderAPP").hide();
+        $('#modal').modal('show')
+    }
+
+    const PostRegistro = async (accion, Id) => {
+        $("#preloaderAPP").show()
+        let url = '/productos/alta',
+            body = {
+                codBarras: $('#txtCodBarras').val(),
+                descripcion: $('#txtDescripcion').val(),
+                unidadMedida: $('#cmbUniMed').val(),
+                marca: $('#cmbMarca').val(),
+                rubro: $('#cmbRubros').val(),
+                costo: $('#txtCosto').val(),
+                porcentaje: $('#txtPorcentaje').val(),
+                alicuota: $('#cmbAlicuota').find('option:selected').data('id'),
+                stockMinimo: $('#txtStockMinimo').val()
+            }
+
+        if(accion === 'm'){
+            url = '/productos/modificar'
+            body.activo = $('#chbActivo').prop('checked') ? 1 : 0
+            body.id = Id
+        }
+
+        const res = await $.post(url, body)
+        $("#preloaderAPP").hide()
+        
+        if(res.status){
+            // Preguntar si desea imprimir etiqueta
+            Swal.fire({
+                icon: 'success',
+                title: res.title,
+                text: res.text,
+                showCancelButton: true,
+                confirmButtonText: 'Imprimir Etiqueta',
+                cancelButtonText: 'No, gracias',
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#6c757d'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Para modificaciones usar Id, para inserciones usar res.insertId
+                    let productoId = accion === 'm' ? Id : res.insertId;
+                    console.log('ID para imprimir:', productoId, 'Acción:', accion);
+                    ImprimirEtiqueta(productoId);
+                }
+                CerrarModal()
+                // Forzar actualización inmediata con un pequeño delay
+                getLista()
+            });
+        } else {
+            Swal.fire({
+                icon: res.type,
+                title: res.title, 
+                text: res.text, 
+                timer: 3000
+            });
+        }
+    }
+
+    const Eliminar = (id) => {
+        Swal.fire({
+            title: 'Confirmar',
+            text: "¿Desea borrar este registro?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar.',
+            cancelButtonColor: '#d33',
+            cancelButtonText: 'No, cancelar.'
+        }).then(async result => {
+            if (result.isConfirmed) {
+                $("#preloaderAPP").show();
+                let res = await $.post('/productos/eliminar', { id })
+                $("#preloaderAPP").hide();
+                Swal.fire({
+                    type: res.type,
+                    icon: res.icon,
+                    title: res.title,
+                    text: res.text,
+                    timer: 2000
+                }).then(() => {
+                    if(res.status){
+                        // Forzar actualización inmediata
+                        setTimeout(() => {
+                            getLista()
+                        }, 100)
+                    }
+                })
+            }    
+        })
+    }
+
+    const Filtrar = () => {
+        const textoBusqueda = $('#txtFiltro').val().toUpperCase();
+        
+        if (textoBusqueda.trim() === '') {
+            // Si no hay búsqueda, mostrar los datos normales por lotes
+            busquedaActiva = false;
+            indiceFinal = 0;
+            $('#tablaDatos tbody').html('');
+            $('#indicadorProgreso').remove();
+            cargarSiguienteLote();
+        } else {
+            // Activar modo búsqueda
+            busquedaActiva = true;
+            
+            // Filtrar en todos los datos disponibles
+            const datosFiltrados = datosCompletos.filter(item => {
+                const textoItem = `${item.Cod_Producto} ${item.Desc_Producto} ${item.marcaTxt || ''} ${item.rubroTxt || ''} ${item.unidadMedidaTxt}`.toUpperCase();
+                return textoItem.indexOf(textoBusqueda) > -1;
+            });
+            
+            // Mostrar todos los resultados filtrados de una vez (ya que son menos)
+            mostrarDatosFiltrados(datosFiltrados);
+        }
+    }
+    
+    const mostrarDatosFiltrados = (datos) => {
+        $('#tablaDatos tbody').html('');
+        $('#indicadorProgreso').remove();
+        
+        if (datos.length === 0) {
+            $('#tablaDatos tbody').html('<tr><td class="font-weight-bold text-center" colspan="12">No se encontraron productos que coincidan con la búsqueda</td></tr>');
+            return;
+        }
+        
+        let html = '';
+        datos.forEach(item => {
+            const costo = parseFloat(item.Costo) || 0;
+            const porcentaje = parseFloat(item.Porcentaje) || 0;
+            const porcIva = parseFloat(item.porcIva) || 0;
+            const precioSinIva = costo * (1 + porcentaje / 100);
+            const precioConIva = precioSinIva * (1 + porcIva / 100);
+            
+            html += `<tr data-id="${item.id}">
+                <td><div style="display: flex; gap: 2px;">
+                {% if permisos.c %}<button class="btn btn-round btn-sm btn-info" data-toggle="tooltip" title="Imprimir" onclick="ImprimirEtiqueta(${item.id})"><i class="fa fa-print"></i></button>{% endif %}
+                {% if permisos.m %}<button class="btn btn-round btn-sm btn-warning" data-toggle="tooltip" title="Modificar" onclick="ModalAccion('m',${item.id})"><i class="fa fa-pen"></i></button>{% endif %}
+                {% if permisos.b %}<button class="btn btn-round btn-sm btn-danger" data-toggle="tooltip" title="Eliminar" onclick="Eliminar(${item.id})"><i class="fa fa-trash-alt"></i></button>{% endif %}
+                </div></td>
+                <td class="search">${item.Cod_Producto}</td>
+                <td class="search">${item.Desc_Producto}</td>
+                <td class="search">${item.marcaTxt || ""}</td>
+                <td class="search">${item.rubroTxt || ""}</td>
+                <td class="search">${item.unidadMedidaTxt}</td>
+                <td>$ ${formatCurrency(costo)}</td>
+                <td>${porcentaje} %</td>
+                <td>${porcIva} %</td>
+                <td>$ ${formatCurrency(precioSinIva)}</td>
+                <td>$ ${formatCurrency(precioConIva)}</td>
+                <td>${item.Activo === 1 ? 'Si' : 'No'}</td>
+            </tr>`;
+        });
+        
+        $('#tablaDatos tbody').html(html);
+        $('[data-toggle="tooltip"]').tooltip();
+        
+        // Mostrar información de búsqueda
+        let indicador = $('#indicadorProgreso');
+        if (!indicador.length) {
+            indicador = $('<div id="indicadorProgreso" class="text-center mt-2"></div>');
+            $('#tablaDatos').after(indicador);
+        }
+        indicador.html(`<small class="text-info"><i class="fa fa-search"></i> Se encontraron ${datos.length} productos de ${datosCompletos.length} total</small>`);
+    }
+
+    const CerrarModal = () => {
+        $('#modal').modal('hide')
+        $('#actionSeccion').addClass('d-none')
+        $('#actionSeccionDivider').addClass('d-none')
+        LimpiarCampos()
+    }
+
+    const LimpiarCampos = () => {
+        $('input[type="text"]').val('')
+        $('textarea').val('')
+        $('input[type="checkbox"]').prop('checked', false)
+        $('input[type="radio"]').prop('checked', false)
+    }
+
+
+    const ImprimirEtiqueta = (id) => {
+        // Abre una nueva ventana para imprimir la etiqueta del producto
+        window.open(`/productos/imprimirEtiqueta/${id}`, '_blank');
+    }
+
+    const refrescarTabla = () => {
+        // Limpiar cualquier caché del navegador y forzar nueva consulta
+        $.ajaxSetup({ cache: false });
+        
+        // Mostrar feedback visual
+        Swal.fire({
+            title: 'Refrescando...',
+            text: 'Actualizando datos de la tabla',
+            icon: 'info',
+            timer: 1000,
+            showConfirmButton: false
+        });
+        
+        setTimeout(() => {
+            getLista();
+        }, 200);
+    }
+
+
+    const calcularPrecio = () => {
+        let costo = parseFloat($('#txtCosto').val())
+        let porcentaje = parseFloat($('#txtPorcentaje').val())
+        let alicuota = parseFloat($('#cmbAlicuota').val())
+        if(isNaN(costo)) costo = 0
+        if(isNaN(porcentaje)) porcentaje = 0
+        if(isNaN(alicuota)) alicuota = 0
+        let precio = costo * (1 + porcentaje / 100)
+        $('#txtPrecio').val(precio.toFixed(2))
+        $('#txtPrecioConIva').val((precio * (1 + alicuota / 100)).toFixed(2))
+
+        //Tener en cuenta alicuota iva
+    }
+    
+
+
+</script>
+{% endblock %}

@@ -1,0 +1,429 @@
+{% extends '../../template.html' %}
+
+{% block title %}Bienvenido - Torneo Acercamiento{% endblock %}
+
+{% block styles %}
+<style>
+    table th, table td {
+        vertical-align: middle;
+        text-align: center;
+        font-size: 14px;
+    }
+
+    /* ===== TABLAS DE ESTADÍSTICAS ===== */
+    .stats-table {
+        font-size: 13px;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .stats-table th {
+        background: #1f2933;
+        color: #ffffff;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 12px;
+        padding: 10px 6px;
+        border-bottom: 2px solid #111827;
+    }
+
+    .stats-table td {
+        background: #ffffff;
+        padding: 8px 6px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .stats-table tbody tr:hover td {
+        background-color: #f8fafc;
+    }
+
+    /* Columna jugador */
+    .stats-table td.player,
+    .stats-table th.player {
+        text-align: left;
+        font-weight: 500;
+        padding-left: 12px;
+    }
+
+    /* Número de camiseta */
+    .stats-table td.number {
+        font-weight: 600;
+        color: #374151;
+    }
+
+    /* Puntos destacados */
+    .stats-table td.pts {
+        font-weight: 700;
+        font-size: 14px;
+        color: #111827;
+        background-color: #fef3c7;
+    }
+
+    /* Faltas */
+    .stats-table td.fouls {
+        font-weight: 600;
+    }
+    .stats-table td.fouls.max {
+        background-color: #fee2e2;
+        color: #991b1b;
+    }
+
+    /* Fila de totales */
+    .stats-table tr.total-row {
+        border-top: 3px solid #1f2933;
+    }
+    .stats-table tr.total-row td {
+        background-color: #f3f4f6;
+        font-weight: 700;
+        font-size: 14px;
+        color: #111827;
+        padding: 12px 6px;
+    }
+    .stats-table tr.total-row td.player {
+        text-align: left;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .stats-table tr.total-row td.pts {
+        background-color: #fde68a;
+        font-size: 16px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .stats-table {
+            font-size: 12px;
+        }
+    }
+    /* Card */
+.card-partido {
+  border: none;
+  background-color: #fff;
+}
+
+.card-partido .card-body {
+  padding: 22px;
+}
+
+/* Equipos */
+.equipo {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.equipo-a {
+  text-align: left;
+}
+
+.equipo-b {
+  text-align: right;
+}
+
+/* Resultado */
+.resultado-partido {
+  font-size: 1.8rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+/* Estados */
+.estado-en-vivo {
+  color: #28a745;
+  animation: parpadeo 1.5s infinite alternate;
+}
+
+@keyframes parpadeo {
+  from { opacity: 1; }
+  to { opacity: 0.6; }
+}
+
+.estado-finalizado {
+  color: #000 !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .resultado-partido {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 425px) {
+  .resultado-partido {
+    font-size: 1.25rem;
+  }
+}
+
+
+</style>
+{% endblock %}
+
+{% block content %}
+
+
+<div class="container-fluid">
+
+    <!-- RESULTADO CENTRADO -->
+
+<div >
+  <article class="card card-partido">
+    <div class="card-body">
+
+      <div class="row align-items-center text-center mb-2">
+        <div class="col-4 equipo equipo-a" id="lblEquipoA">
+          Equipo A
+        </div>
+
+        <div class="col-4 resultado-partido estado-en-vivo">
+          45 - 38
+        </div>
+
+        <div class="col-4 equipo equipo-b" id="lblEquipoB">
+          Equipo B
+        </div>
+      </div>
+      <div class="row text-center">
+        <div class="col-12">
+          <label id="lblEstado"></label>
+        </div>
+
+    </div>
+  </article>
+</div>
+
+
+
+    <!-- TABLAS -->
+    <div class="row">
+
+        <!-- EQUIPO A -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header text-center fw-bold bg-dark text-white" id="lblEquipoAHeader">
+                    Equipo A
+                </div>
+
+                <div class="card-body table-responsive">
+                    <table class="table table-hover align-middle stats-table" id="tablaEquiposA">
+                        <thead>
+                            <tr>
+                                <th>Nº</th>
+                                <th class="player">Jugador</th>
+                                <th>T2</th>
+                                <th>T3</th>
+                                <th>TL</th>
+                                <th>RT</th>
+                                <th>AST</th>
+                                <th>FP</th>
+                                <th>PTS</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+         
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- EQUIPO B -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header text-center fw-bold bg-secondary text-white" id="lblEquipoBHeader">
+                    Equipo B
+                </div>
+
+                <div class="card-body table-responsive">
+                    <table class="table table-hover align-middle stats-table" id="tablaEquiposB">
+                        <thead>
+                            <tr>
+                                <th>Nº</th>
+                                <th class="player">Jugador</th>
+                                <th>T2</th>
+                                <th>T3</th>
+                                <th>TL</th>
+                                <th>RT</th>
+                                <th>AST</th>
+                                <th>FP</th>
+                                <th>PTS</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+
+<script type="text/javascript">
+$(document).ready(async function() {
+    await getLista();
+    setTimeout(function() {
+        location.reload();
+    }, 25000);
+});
+
+const getLista = async () => {
+    try {
+        $('#preloaderAPP').show();
+        
+        const res = await $.post('/web/partidos/getListaDetallesAjax', { idPartido: '{{ idPartido }}' });
+
+        console.log(res);
+
+        if (!res.status){
+            return;
+        }
+
+        //Carga datos partido y jugadores por equipo
+        const partido = res.partido;
+        const estadisticasA = res.estadisticasA;
+        const estadisticasB = res.estadisticasB;
+        const periodo = res.periodo;
+
+        // Actualizar nombres de equipos
+        $('#lblEquipoA').text(partido[0].equipoA);
+        $('#lblEquipoB').text(partido[0].equipoB);
+        $('#lblEquipoAHeader').text(partido[0].equipoA);
+        $('#lblEquipoBHeader').text(partido[0].equipoB);
+        
+        if (partido[0].estado === 1) {
+            $('.resultado-partido').addClass('estado-en-vivo').removeClass('estado-finalizado');
+            $('#lblEstado').addClass('estado-en-vivo').removeClass('estado-finalizado');
+        } else if (partido[0].estado === 2) {
+            $('.resultado-partido').addClass('estado-finalizado').removeClass('estado-en-vivo');
+            $('#lblEstado').addClass('estado-finalizado').removeClass('estado-en-vivo');
+        }
+
+        if (partido[0].estado === 1) {
+            $('#lblEstado').text('En Vivo ' + periodo[0].periodoActual + '° Cuarto').removeClass('d-none');
+        } else if (partido[0].estado === 2) {
+            $('#lblEstado').text('Finalizado').removeClass('d-none');
+        } else {
+            $('#lblEstado').addClass('d-none');
+        }
+
+        let puntosA = 0;
+        let puntosB = 0;
+
+        // Llenar tabla equipo A
+        const tablaA = $('#tablaEquiposA tbody');
+        tablaA.empty();
+        
+        let totalesA = { T2: 0, T3: 0, TL: 0, REB: 0, AST: 0, FAL: 0, PTS: 0 };
+        
+        estadisticasA.forEach(jugador => {
+          puntosA += parseInt(jugador.PTS);
+          totalesA.T2 += parseInt(jugador.T2) || 0;
+          totalesA.T3 += parseInt(jugador.T3) || 0;
+          totalesA.TL += parseInt(jugador.TL) || 0;
+          totalesA.REB += parseInt(jugador.REB) || 0;
+          totalesA.AST += parseInt(jugador.AST) || 0;
+          totalesA.FAL += parseInt(jugador.FAL) || 0;
+          totalesA.PTS += parseInt(jugador.PTS) || 0;
+          
+            const fila = `
+                <tr>
+                    <td class="number">${jugador.dorsal}</td>
+                    <td class="player text-start">${jugador.nombre}</td>
+                    <td>${jugador.T2}</td>
+                    <td>${jugador.T3}</td>
+                    <td>${jugador.TL}</td>
+                    <td>${jugador.REB}</td>
+                    <td>${jugador.AST}</td>
+                    <td class="fouls ${jugador.FAL >= 5 ? '5' : ''}">${jugador.FAL}</td>
+                    <td class="pts">${jugador.PTS}</td>
+                </tr>
+            `;
+            tablaA.append(fila);
+        });
+        
+        // Agregar fila de totales para equipo A
+        const filaTotalA = `
+            <tr class="total-row">
+                <td></td>
+                <td class="player text-start">TOTALES</td>
+                <td>${totalesA.T2}</td>
+                <td>${totalesA.T3}</td>
+                <td>${totalesA.TL}</td>
+                <td>${totalesA.REB}</td>
+                <td>${totalesA.AST}</td>
+                <td>${totalesA.FAL}</td>
+                <td class="pts">${totalesA.PTS}</td>
+            </tr>
+        `;
+        tablaA.append(filaTotalA);
+
+        // Llenar tabla equipo B
+        const tablaB = $('#tablaEquiposB tbody');
+        tablaB.empty();
+        
+        let totalesB = { T2: 0, T3: 0, TL: 0, REB: 0, AST: 0, FAL: 0, PTS: 0 };
+        
+        estadisticasB.forEach(jugador => {
+          puntosB += parseInt(jugador.PTS);
+          totalesB.T2 += parseInt(jugador.T2) || 0;
+          totalesB.T3 += parseInt(jugador.T3) || 0;
+          totalesB.TL += parseInt(jugador.TL) || 0;
+          totalesB.REB += parseInt(jugador.REB) || 0;
+          totalesB.AST += parseInt(jugador.AST) || 0;
+          totalesB.FAL += parseInt(jugador.FAL) || 0;
+          totalesB.PTS += parseInt(jugador.PTS) || 0;
+          
+            const fila = `
+                <tr>
+                    <td class="number">${jugador.dorsal}</td>
+                    <td class="player text-start">${jugador.nombre}</td>
+                    <td>${jugador.T2}</td>
+                    <td>${jugador.T3}</td>
+                    <td>${jugador.TL}</td>
+                    <td>${jugador.REB}</td>
+                    <td>${jugador.AST}</td>
+                    <td class="fouls ${jugador.FAL >= 5 ? '5' : ''}">${jugador.FAL}</td>
+                    <td class="pts">${jugador.PTS}</td>
+                </tr>
+            `;
+            tablaB.append(fila);
+        });
+        
+        // Agregar fila de totales para equipo B
+        const filaTotalB = `
+            <tr class="total-row">
+                <td></td>
+                <td class="player text-start">TOTALES</td>
+                <td>${totalesB.T2}</td>
+                <td>${totalesB.T3}</td>
+                <td>${totalesB.TL}</td>
+                <td>${totalesB.REB}</td>
+                <td>${totalesB.AST}</td>
+                <td>${totalesB.FAL}</td>
+                <td class="pts">${totalesB.PTS}</td>
+            </tr>
+        `;
+        tablaB.append(filaTotalB);
+
+        
+        // Actualizar resultado
+        $('.resultado-partido').text(`${puntosA} - ${puntosB}`);
+
+        
+    } catch (error) {
+        console.log(error);
+    } finally {
+        $('#preloaderAPP').hide();
+    }
+};
+
+
+</script>
+
+{% endblock %}

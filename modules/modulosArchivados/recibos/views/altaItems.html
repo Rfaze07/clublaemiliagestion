@@ -1,0 +1,549 @@
+{% extends '../../template.html' %}
+
+{% block styles %}
+<style>
+    .sinBorderTop { border-top: 0px!important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+    <h4>{{ pagename }}</h4>
+
+    <a class="btn btn-round btn-sm btn-secondary ml-auto" role="button" data-accion="m" data-toggle="tooltip" 
+                data-placement="top" title="Ir al listado" href="/recibos">
+        <i class="fa fa-arrow-left"></i>
+    </a>
+    {% if permisos.x %}
+        {% if recibo.blindado == 0 %}
+            <button class="btn btn-round btn-sm btn-warning ml-2" data-toggle="tooltip" data-placement="top" title="Blindar" onclick="Blindar()">
+                <i class="fa fa-lock"></i>
+            </button>
+        {% elseif recibo.blindado == 1 %}
+            <button class="btn btn-round btn-sm btn-warning ml-2" data-toggle="tooltip" data-placement="top" title="Desblindar" onclick="Desblindar()">
+                <i class="fa fa-lock-open"></i>
+            </button>
+        {% endif %}
+    {% endif %}
+
+    {% if recibo.blindado == 0 %}
+        <button class="btn btn-round btn-sm btn-primary ml-2" id="btnImprimir" data-toggle="tooltip" data-placement="top" title="Imprimir" onclick="Imprimir()">
+            <i class="fa fa-print"></i>
+        </button>
+    {% endif %}
+</div>
+<div class="d-flex justify-content-between align-items-center p-3">
+    <table class="table table-sm">
+        <tr>
+            <th class="sinBorderTop">Cliente</th>
+            <td class="sinBorderTop">{{ recibo.clienteTxt }}</td>
+            <th class="sinBorderTop">{{ recibo.tipoDoc }}</th>
+            <td class="sinBorderTop">{{ recibo.nro_documento }}</td>
+            <th class="sinBorderTop">Fecha de alta</th>
+            <td class="sinBorderTop">{{ recibo.fecha_recibo | date('d/m/Y') }}</td>
+        </tr>
+    </table>
+</div>
+<div class="row" style="min-height: calc(100vh - 288px);">
+    <div class="col-sm-6">
+        <div class="card">
+            <h5 class="card-header d-flex justify-content-between align-items-center">
+                <span>
+                    <h5 class="m-0">Detalles del comprobante</h5>
+                </span>
+                {% if permisos.a && recibo.blindado == 0 && recibo.impreso == 0 %}
+                    <button class="btn btn-round btn-sm btn-success" data-toggle="tooltip" data-placement="top" 
+                            title="Agregar comprobante" onclick="AbrirModalComprobantes()">
+                        <i class="fa fa-plus"></i>
+                    </button>
+                {% endif %}
+            </h5>
+            <div class="card-body p-0">
+                <div class="table-responsive" style="max-height: calc(100vh - 350px);">
+                    <table class="table table-sm table-fix table-hover tableFixHead" id="tablaComprobantes">
+                        <thead>
+                            <tr>
+                                {% if permisos.b && recibo.blindado == 0 && recibo.impreso == 0 %}<th scope="col" style="width: 50px;">Acc.</th>{% endif %}
+                                <th scope="col">Tipo Comp.</th>
+                                <th scope="col">Numero</th>
+                                <th scope="col">Fecha</th>
+                                <th scope="col">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6">
+        <div class="card">
+            <h5 class="card-header d-flex justify-content-between align-items-center">
+                <span>
+                    <h5 class="m-0">Detalles de pago</h5>
+                </span>
+                {% if permisos.a && recibo.blindado == 0 && recibo.impreso == 0 %}
+                    <button class="btn btn-round btn-sm btn-success" id="btnAgregarMedioPago" data-toggle="tooltip" data-placement="top"
+                            title="Agregar medio de pago" onclick="AbrirModalMediosPagos()">
+                        <i class="fa fa-plus"></i>
+                    </button>
+                {% endif %}
+            </h5>
+            <div class="card-body p-0">
+                <div class="table-responsive" style="max-height: calc(100vh - 350px);">
+                    <table class="table table-sm table-fix table-hover tableFixHead" id="tablaMediosPagos">
+                        <thead>
+                            <tr>
+                                {% if permisos.b == 1 && recibo.blindado == 0 && recibo.impreso == 0 %}<th scope="col" style="width: 50px;">Acc.</th>{% endif %}
+                                <th scope="col">Fecha</th>
+                                <th scope="col">Medio de pago</th>
+                                <th scope="col">Importe</th>
+                                <th scope="col">Observaciones</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="card mt-4">
+    <div class="card-header">
+        <div class="row align-items-center">
+            <div class="col-sm-12 col-md-4"><h6 class="m-0 p-0 text-left font-weight-bold">Total  $ <span class="spanTotal"></span></h6></div>
+            <div class="col-sm-12 col-md-4"><h6 class="m-0 p-0 text-center font-weight-bold">Total pagado  $ <span class="spanTotalPagado"></span></h6></div>
+            <div class="col-sm-12 col-md-4"><h6 class="m-0 p-0 text-right font-weight-bold">Saldo pendiente  $ <span class="spanSaldoPendiente"></span></h6></div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- MODAL COMPROBANTES -->
+<div class="modal fade" id="modalComprobantes" data-backdrop="static" tabindex="-1" aria-labelledby="modalComprobantesStatic" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Argegar nuevo comprobante</h5>
+                <button type="button" class="close" aria-label="Close">
+                    <span aria-hidden=" true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="form-group col-sm-12">
+                        <label for="cmbComprobantes">Comprobante</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbComprobantes" onchange="CargarComprobanteInfo(this.value)">
+                            <option value="" disabled selected>Seleccione un comprobante...</option>
+                            {% for c in comprobantes %}
+                                <option value="{{ c.id }}">({{ c.tipoComproTxt }}) {{ c.puntoVentaTxt }}-{{ c.numeroTxt }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-6">
+                        <label for="txtTotal">Total</label>
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text form-control-sm" style="font-size: .85rem;">$</span>
+                            </div>
+                            <input type="text" class="form-control form-control-sm disabled" id="txtTotal" disabled readonly>
+                        </div>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-6">
+                        <label for="txtTotalPendiente">Total pendiente</label>
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text form-control-sm" style="font-size: .85rem;">$</span>
+                            </div>
+                            <input type="text" class="form-control form-control-sm disabled" id="txtTotalPendiente" disabled readonly>
+                        </div>
+                    </div>
+                    <!-- <div class="col-sm-12 col-md-6">
+                        <label for="txtProveedor">Proveedor</label>
+                        <input type="text" class="form-control form-control-sm disabled" id="txtProveedor" disabled readonly>
+                    </div> -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="CerrarModalComprobantes()">Cancelar</button>
+                <button type="button" class="btn btn-success" onclick="PostRegistroComprobantes()">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- MODAL COMPROBANTES -->
+
+<!-- MODAL MEDIOS DE PAGO -->
+<div class="modal fade" id="modalMediosPagos" data-backdrop="static" tabindex="-1" aria-labelledby="modalMediosPagosStatic" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Argegar nuevo item</h5>
+                <button type="button" class="close" aria-label="Close">
+                    <span aria-hidden=" true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <label for="cmbMedioPago">Medio de pago</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbMedioPago">
+                            <option value="" disabled selected>Seleccione un medio pago...</option>
+                            {% for mp in mediosPagos %}
+                                <option value="{{ mp.id }}">{{ mp.desc_corta }} - {{ mp.descripcion }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 col-md-6">
+                        <label for="txtImporte">Importe</label>
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text form-control-sm" style="font-size: .85rem;">$</span>
+                            </div>
+                            <input type="text" class="form-control form-control-sm" id="txtImporte" autocomplete="off" onkeypress="return ValidarEnterosYDecimales(event,this,9,3)">
+                        </div>
+                    </div>
+                    <div class="col-sm-12 col-md-6">
+                        <label for="txtFecha">Fecha</label>
+                        <input type="text" class="form-control form-control-sm datepicker" id="txtFecha" autocomplete="off" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12">
+                        <label for="txtObservaciones">Observaciones</label>
+                        <textarea type="text" class="form-control form-control-sm" id="txtObservaciones" rows="1" maxlength="50"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="card w-100 mt-4">
+                <div class="card-header">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="row">
+                                <div class="col-4" style="font-weight: 700; text-align: center;">
+                                    Total $<br><span class="ml-2 spanTotal"></span>
+                                </div>
+                                <div class="col-4" style="font-weight: 700; text-align: center;">
+                                    Total pagado $<br><span class="ml-2 spanTotalPagado"></span>
+                                </div>
+                                <div class="col-4" style="font-weight: 700; text-align: center;">
+                                    Saldo pend. $<br><span class="ml-2 spanSaldoPendiente"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="CerrarModalMediosPagos()">Cancelar</button>
+                <button type="button" class="btn btn-success" onclick="PostRegistroMediosPagos()">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- MODAL MEDIOS DE PAGO -->
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const idRecibo = '{{ recibo.id }}'
+
+    $(document).ready(async () => {
+        $('#txtFecha').val(generateTodayDate())
+        await CargarListaComprobantes()
+        await CargarListaMediosPagos()
+    })
+
+    const Imprimir = async () => {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Confirmar', 
+            text: 'Desea imprimir el recibo?',
+            showCancelButton: true,
+            cancelButtonText: "No, cerrar",
+            confirmButtonText: "Si, generar",
+        }).then(async res1 => {
+            if(res1.isConfirmed){
+                let res = await $.post('/recibos/imprimir', {idRecibo})
+                if(res.impreso == 1){
+                    window.open(res.url, '_blank')
+                }else{
+                    Swal.fire({
+                        icon: res.icon,
+                        title: res.title, 
+                        text: res.text,
+                        showCancelButton: true,
+                        cancelButtonText: "Ok",
+                        confirmButtonText: "Imprimir",
+                    }).then(res2 => {
+                        if(res2.isConfirmed && res.status){
+                            window.open(res.url, '_blank')
+                            location.reload()
+                        }
+                    })
+                }
+            }
+        })
+    }
+
+    const Blindar = async () => {
+        Swal.fire({
+            title: "Confirmar",
+            text: "Desea blindar el recibo?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Si",
+            confirmButtonColor: "#28a745",
+            cancelButtonColor: "#dc3545",
+            cancelButtonText: "No, cancelar"
+        }).then(async result => {
+            if(result.isConfirmed){
+                let res = await $.post('/recibos/blindar', {idRecibo})
+                Swal.fire(res.title, res.text, res.icon)
+                if(res.status) window.location.reload()
+            }
+        })
+    }
+
+    const Desblindar = async () => {
+        Swal.fire({
+            title: "Confirmar",
+            text: "Desea desblindar la orden de pago?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Si",
+            confirmButtonColor: "#28a745",
+            cancelButtonColor: "#dc3545",
+            cancelButtonText: "No, cancelar"
+        }).then(async result => {
+            if(result.isConfirmed){
+                let res = await $.post('/recibos/desblindar', {idRecibo})
+                Swal.fire(res.title, res.text, res.icon)
+                if(res.status) window.location.reload()
+            }
+        })
+    }
+
+    const ObtenerTotales = async () => {
+        let res = await $.post('/recibos/totalesAjax', {idRecibo})
+        $('#txtImporte').val(parseFloat(res.saldoPendiente))
+        $('.spanTotal').text(formatCurrency(res.total))
+        $('.spanTotalPagado').text(formatCurrency(res.totalPagado))
+        $('.spanSaldoPendiente').text(formatCurrency(res.saldoPendiente))
+        res.saldoPendiente <= 0 ? $('#btnAgregarMedioPago').addClass('d-none') : $('#btnAgregarMedioPago').removeClass('d-none')
+        res.btnImprimirHidden ? $('#btnImprimir').addClass('d-none') : $('#btnImprimir').removeClass('d-none')
+    }
+
+
+
+    /****************************************
+                COMPROBANTES
+    ****************************************/
+
+    const CargarListaComprobantes = async () => {
+        return new Promise(async (resolve, reject) => {
+            $("#preloaderAPP").show()
+            let res = await $.post('/recibos/comprobantesListaAjax', {idRecibo})
+            let html='<tr><td colspan="10">Sin comprobantes vinculados.</td></tr>'
+
+            if(res.status){
+                if(res.data.length > 0){
+                    html=''
+                    for(let i=0; i<res.data.length; i++){
+                        html += `
+                        <tr>
+                            {% if permisos.b && recibo.blindado == 0 && recibo.impreso == 0 %}
+                                <td>
+                                    <button class="btn btn-round btn-danger btn-sm" data-toggle="tooltip" data-placement="top" 
+                                            title="Eliminar" onclick="EliminarComprobante(${res.data[i].id})">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+                                </td>
+                            {% endif %}
+                            <td>${res.data[i].tipoComprobanteTxt}</td>
+                            <td>${res.data[i].puntoVentaTxt}-${res.data[i].numeroTxt}</td>
+                            <td>${changeDateDMY(res.data[i].fecha_comprobante)}</td>
+                            <td>$ ${formatCurrency(res.data[i].total)}</td>
+                        </tr>
+                        `
+                    }
+                }
+            }
+            
+            ObtenerTotales()
+            $('#tablaComprobantes tbody').html(html)
+            $("#preloaderAPP").hide()
+            $('[data-toggle="tooltip"]').tooltip()
+            resolve()
+        })
+    }
+
+    const AbrirModalComprobantes = () => {
+        $('#modalComprobantes').modal('show')
+    }
+
+    const CerrarModalComprobantes = () => {
+        $('#cmbComprobantes').selectpicker('val', 0)
+        $('#txtTotal').val('')
+        $('#txtTotalPendiente').val('')
+        $('#txtProveedor').val('')
+        $('#modalComprobantes').modal('hide')
+    }
+
+    const CargarComprobanteInfo = async id => {
+        const res = await $.post('/recibos/getComprobantesTitulo', { id })
+        $('#txtTotal').val(formatCurrency(res.comprobante.total))
+        $('#txtTotalPendiente').val(formatCurrency(res.comprobante.total-res.comprobante.totalPagado))
+    }
+
+    const PostRegistroComprobantes = async () => {
+        $("#preloaderAPP").show()
+        const res = await $.post('/recibos/altaComprobantes', {  idRecibo, idComprobante: $('#cmbComprobantes').val() })
+        $("#preloaderAPP").hide()
+        Swal.fire({
+            icon: res.icon,
+            title: res.title, 
+            text: res.text, 
+            timer: 2000
+        }).then(async () => {
+            if(res.status){
+                await CargarListaComprobantes()
+                CerrarModalComprobantes()
+            }
+        }) 
+    }
+
+    const EliminarComprobante = id => {
+        Swal.fire({
+            title: "Confirmar",
+            text: "Desea eliminar el registro seleccionado?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Si, eliminar!",
+            confirmButtonColor: "#28a745",
+            cancelButtonColor: "#dc3545",
+            cancelButtonText: "No, cancelar"
+        }).then(async result => {
+            if(result.isConfirmed){
+                let res = await $.post('/recibos/eliminarComprobante', {id})
+                Swal.fire(res.title, res.text, res.icon)
+                if(res.status) await CargarListaComprobantes()
+            }
+        })
+    }
+
+
+
+    /****************************************
+                MEDIOS DE PAGOS
+    ****************************************/ 
+
+    const CargarListaMediosPagos = async () => {
+        return new Promise(async (resolve, reject) => {
+            $("#preloaderAPP").show()
+            let res = await $.post('/recibos/mediosPagosListaAjax', {idRecibo})
+            let html='<tr><td colspan="10">Sin pagos realizados.</td></tr>'
+
+            if(res.status){
+                if(res.data.length > 0){
+                    html=''
+                    for(let i=0; i<res.data.length; i++){
+                        html += `
+                        <tr>
+                            {% if permisos.b && recibo.blindado == 0 && recibo.impreso == 0 %}
+                                <td>
+                                    <button class="btn btn-round btn-danger btn-sm" data-toggle="tooltip" data-placement="top" 
+                                            title="Eliminar" onclick="EliminarMedioPago(${res.data[i].id})">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+                                </td>
+                            {% endif %}
+                            <td>${changeDateDMY(res.data[i].fecha)}</td>
+                            <td>${res.data[i].medioPagoTxt}</td>
+                            <td>$ ${formatCurrency(res.data[i].importe)}</td>
+                            <td>${res.data[i].descripcion}</td>
+                        </tr>`
+                    }
+                }
+            }
+            
+            ObtenerTotales()
+            $('#tablaMediosPagos tbody').html(html)
+            $("#preloaderAPP").hide()
+            $('[data-toggle="tooltip"]').tooltip()
+            resolve()
+        })
+    }
+
+    const AbrirModalMediosPagos = () => {
+        ObtenerTotales()
+        $('#txtFecha').val(generateTodayDate())
+        $('#modalMediosPagos').modal('show')
+    }
+
+    const CerrarModalMediosPagos = () => {
+        $('#cmbMedioPago').selectpicker('val', 0)
+        $('#txtImporte').val('')
+        $('#txtFecha').val('')
+        $('#txtObservaciones').val('')
+        $('#modalMediosPagos').modal('hide')
+    }
+
+    const CargarComprobanteInfo1 = async id => {
+        const res = await $.post('/recibos/getComprobantesTitulo', { id })
+        console.log(res)
+        $('#txtTotal').val(res.comprobante.total)
+        $('#txtProveedor').val(res.comprobante.proveedorTxt)
+    }
+
+    const PostRegistroMediosPagos = async () => {
+        $("#preloaderAPP").show()
+        const body = {
+            idRecibo, 
+            idMedioPago: $('#cmbMedioPago').val(),
+            importe: $('#txtImporte').val(),
+            fecha: $('#txtFecha').val(),
+            observaciones: $('#txtObservaciones').val()
+        }
+        const res = await $.post('/recibos/altaMediosPagos', body)
+        $("#preloaderAPP").hide()
+        Swal.fire({
+            icon: res.icon,
+            title: res.title, 
+            text: res.text, 
+            timer: 2000
+        }).then(async () => {
+            if(res.status){
+                await CargarListaMediosPagos()
+                CerrarModalMediosPagos()
+            }
+        }) 
+    }
+
+    const EliminarMedioPago = id => {
+        Swal.fire({
+            title: "Confirmar",
+            text: "Desea eliminar el registro seleccionado?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Si, eliminar!",
+            confirmButtonColor: "#28a745",
+            cancelButtonColor: "#dc3545",
+            cancelButtonText: "No, cancelar"
+        }).then(async result => {
+            if(result.isConfirmed){
+                let res = await $.post('/recibos/eliminarMediosPagos', {id})
+                Swal.fire(res.title, res.text, res.icon)
+                if(res.status) await CargarListaMediosPagos()
+            }
+        })
+    }
+
+</script>
+{% endblock %}

@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="es-ES">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Chama Estudio Creativo</title>
+    <link rel="icon" type="image/png" href="/img/favicon.ico">
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <!-- FONTS -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Roboto+Condensed:400,700" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Volkhov:400i" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700,800" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css"
+        integrity="sha512-SzlrxWUlpfuzQ+pcUCosxcglQRNAq/DZjVsC0lE40xsADsfeQoEypE+enwcOiGjk/bSuGGKHEyjSoQ1zVisanQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- CUSTOMS STYLES -->
+    <link rel="stylesheet" href="/css/style-panel.css">
+    <link rel="stylesheet" href="/css/bootstrap-datepicker.min.css">
+    <link rel="stylesheet" href="/css/bootstrap-select.min.css">
+    <link rel="stylesheet" href="/css/switch.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .dropdown-submenu {
+            position: relative;
+        }
+
+        .dropdown-submenu .dropdown-menu {
+            top: 0;
+            left: 100%;
+            margin-top: -1px;
+        }
+
+        fieldset.fieldset-border {
+            border: 1px groove #ddd !important;
+            padding: 0 1.4em 1.4em 1.4em !important;
+            margin: 0 0 1.5em 0 !important;
+            -webkit-box-shadow: 0px 0px 0px 0px #000;
+            box-shadow: 0px 0px 0px 0px #000;
+        }
+
+        legend.fieldset-label {
+            width: inherit;
+            /* Or auto */
+            padding: 0 10px;
+            /* To give a bit of padding on the left and right */
+            border-bottom: none;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .selected_row {
+            background-color: lightseagreen !important;
+        }
+
+        .h1tipo {
+            background: orange;
+            padding-left: 1rem;
+            padding-right: 1rem;
+            color: white;
+            border: 2px solid black;
+            font-weight: bold;
+        }
+
+        .total_span {
+            color: orange;
+            font-size: 1.2rem;
+        }
+
+        .flex-col {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .flex-row {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+        }
+
+        .flex-center {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .flex-end {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .flex-start {
+            display: flex;
+            justify-content: flex-start;
+        }
+
+        
+
+
+
+        .toggle_content {
+            cursor: pointer;
+        }
+
+        .centro_select {
+            color: orangered;
+            cursor: pointer;
+        }
+
+        .centro_costo_info {
+            color: lightseagreen
+        }
+
+        .container-accesos-dropdown {
+            display: none;
+        }
+
+        .blue-border {
+            border: 1px solid #fe7f00 !important;
+            color: #fe7f00;
+        }
+
+        @media (max-width: 1305px) {
+            .container-accesos {
+                display: none !important;
+            }
+
+            .container-accesos-dropdown {
+                display: block !important;
+            }
+
+            .dropdown-menu {
+                max-height: calc(100vh - 300px) !important;
+                overflow-y: auto;
+                width: calc(100vw / 3) !important;
+            }
+        }
+
+        @media (max-width: 450px) {
+            .dropdown-menu {
+                max-height: calc(100vh - 300px) !important;
+                overflow-y: auto;
+                width: calc(100vw / 2) !important;
+            }
+        }
+
+        /* Estilos Pastel para Filas de Tablas */
+        .table-row-verde {
+            background-color: #e8f5e8 !important;
+        }
+
+        .table-row-verde:hover {
+            background-color: #c8e6c9 !important;
+            
+        }
+
+        .table-row-amarillo {
+            background-color: #fffde7 !important;
+        }
+
+        .table-row-amarillo:hover {
+            background-color: #fff9c4 !important;
+        }
+
+        .table-row-rojo {
+            background-color: #ffebee !important;
+        }
+
+        .table-row-rojo:hover {
+            background-color: #ffcdd2 !important;
+        }
+
+        /* ========== ESTILOS MODERNOS PARA GESTIÓN ========== */
+        
+        /* Títulos mejorados */
+        h2, h3, h4 {
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+            color: #2c3e50;
+            position: relative;
+            padding-bottom: 10px;
+            margin-bottom: 25px;
+        }
+        
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(90deg, #175676 0%, #fe7f00 100%);
+            border-radius: 2px;
+        }
+
+        /* Tablas mejoradas */
+        .table {
+            border-collapse: separate;
+            border-spacing: 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border-radius: 8px;
+            overflow: hidden;
+            background-color: #fff;
+        }
+
+        .table thead th {
+            background: linear-gradient(135deg, #0f3d54 0%, #175676 50%, #1a6b8f 100%);
+            color: #ffffff;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.72rem;
+            letter-spacing: 1px;
+            padding: 16px 14px;
+            border: none;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+            border-bottom: 3px solid #fe7f00;
+        }
+
+        .table thead th:not(:last-child) {
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .table thead th:first-child {
+            border-top-left-radius: 8px;
+        }
+
+        .table thead th:last-child {
+            border-top-right-radius: 8px;
+        }
+
+        .table tbody tr {
+            transition: all 0.3s ease;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .table tbody tr:hover {
+            background-color: #f8f9fa;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .table tbody td {
+            padding: 12px;
+            vertical-align: middle;
+            color: #495057;
+            font-size: 0.875rem;
+        }
+
+        .table-striped tbody tr:nth-of-type(odd) {
+            background-color: #f8f9fb;
+        }
+
+        .tableFixHead {
+            overflow-y: auto;
+        }
+
+        /* Botones mejorados */
+        .btn {
+            border-radius: 6px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+
+        .btn-success:hover {
+            background: linear-gradient(135deg, #20c997 0%, #28a745 100%);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #175676 0%, #1a6b8f 100%);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #1a6b8f 0%, #175676 100%);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+            color: #fff;
+        }
+
+        .btn-warning:hover {
+            background: linear-gradient(135deg, #ff9800 0%, #ffc107 100%);
+            color: #fff;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        }
+
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #c82333 0%, #dc3545 100%);
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+        }
+
+        .btn-info:hover {
+            background: linear-gradient(135deg, #138496 0%, #17a2b8 100%);
+        }
+
+        .btn-round {
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+        }
+
+        .btn-sm {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+        }
+
+        /* Cards mejorados */
+        .card {
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            background: #ffffff;
+        }
+
+        /* Inputs y selects mejorados */
+        .form-control, .selectpicker {
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+            padding: 0.5rem 0.75rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: #175676;
+            box-shadow: 0 0 0 0.2rem rgba(23, 86, 118, 0.15);
+        }
+
+        .form-control-sm {
+            font-size: 0.85rem;
+            padding: 0.4rem 0.6rem;
+        }
+
+        /* Modales mejorados */
+        .modal-header {
+            background: linear-gradient(135deg, #175676 0%, #1a6b8f 100%);
+            color: white;
+            border-radius: 0;
+            padding: 1.2rem 1.5rem;
+        }
+
+        .modal-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: #ffffff;
+        }
+
+        .modal-header .close {
+            color: white;
+            opacity: 0.9;
+            text-shadow: none;
+        }
+
+        .modal-header .close:hover {
+            opacity: 1;
+        }
+
+        .modal-content {
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .modal-footer {
+            border-top: 1px solid #e9ecef;
+            padding: 1rem 1.5rem;
+        }
+
+        /* Badges mejorados */
+        .badge {
+            padding: 0.35rem 0.65rem;
+            border-radius: 6px;
+            font-weight: 500;
+        }
+
+        /* Scrollbar personalizado */
+        .table-responsive::-webkit-scrollbar,
+        .tableFixHead::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        .table-responsive::-webkit-scrollbar-track,
+        .tableFixHead::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .table-responsive::-webkit-scrollbar-thumb,
+        .tableFixHead::-webkit-scrollbar-thumb {
+            background: #175676;
+            border-radius: 4px;
+        }
+
+        .table-responsive::-webkit-scrollbar-thumb:hover,
+        .tableFixHead::-webkit-scrollbar-thumb:hover {
+            background: #1a6b8f;
+        }
+
+        /* Animaciones suaves */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card {
+            animation: fadeIn 0.3s ease;
+        }
+
+        /* Mejora para los filtros */
+        label {
+            font-weight: 500;
+            color: #495057;
+            font-size: 0.85rem;
+            margin-bottom: 0.3rem;
+        }
+
+        /* Acciones en tablas - grupo de botones */
+        .table tbody td:first-child {
+            width: 120px;
+        }
+
+        /* Dropdown mejorado */
+        .dropdown-menu {
+            border-radius: 8px;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            padding: 0.5rem 0;
+        }
+
+        .dropdown-item {
+            padding: 0.5rem 1.2rem;
+            transition: all 0.2s ease;
+        }
+
+        .dropdown-item:hover {
+            background-color: #f8f9fa;
+            color: #175676;
+            transform: translateX(5px);
+        }
+
+        .dropdown-divider {
+            margin: 0.5rem 0;
+        }
+
+        /* Estilos mejorados para menú */
+        #sidebar ul.components li {
+            margin-bottom: 4px;
+        }
+
+        #sidebar ul.components > li > a {
+            padding: 11px 14px;
+            border-radius: 6px;
+            transition: all 0.1s;
+            font-weight: 500;
+        }
+
+        #sidebar ul.components > li > a:hover {
+            background: rgba(255, 255, 255, 0.15);
+            padding-left: 18px;
+        }
+
+        #sidebar ul.components > li > a i {
+            margin-right: 10px;
+            width: 22px;
+            text-align: center;
+        }
+
+        /* Submenús */
+        #sidebar ul.components ul {
+            background: rgba(0, 0, 0, 0.12);
+            border-radius: 6px;
+            margin: 4px 8px 8px 8px;
+        }
+
+        #sidebar ul.components ul li {
+            margin-bottom: 0;
+        }
+
+        #sidebar ul.components ul li a {
+            padding: 7px 14px 7px 38px;
+            font-size: 0.88rem;
+            border-radius: 4px;
+            margin: 0 4px;
+            transition: all 0.1s;
+        }
+
+        #sidebar ul.components ul li a:hover {
+            background: rgba(255, 255, 255, 0.1);
+            padding-left: 42px;
+        }
+
+        #sidebar ul.components ul li a i {
+            margin-right: 8px;
+        }
+    </style>
+    {% block styles %}
+    {% endblock %}
+</head>
+
+<body>
+    <div id="preloader" class="preloader" style="display:none;">
+        <div class="divLoading"></div>
+    </div>
+    <!-- PRELOADER -->
+
+    <div id="preloaderAPP" class="preloader" style="background: rgb(244, 243, 239, .85); top: 0px;"></div>
+    <div class="wrapper d-flex align-items-stretch">
+        <nav id="sidebar" style="background-color: #175676!important;">
+            <div class="pb-0 pl-4 pr-4  pt-3">
+                <a href="/inicio" class="img logo mb-2"
+                    style="background-image: url(/img/logo2.png); background-color: inherit;"></a>
+                <ul class="list-unstyled components mb-5">
+                    {{ menu | safe }}
+                </ul>
+            </div>
+        </nav>
+        
+        <!-- Page Content  -->
+        <div id="content" class="">
+            <nav class="navbar navbar-expand-lg navbar-light bg-light">
+                <div class="container-fluid">
+                    <button type="button" id="sidebarCollapse" class="btn btn-primary"
+                        style="background-color:#175676!important">
+                        <i class="fa fa-bars"></i>
+                        <span class="sr-only">Toggle Menu</span>
+                    </button>
+                    <div>
+                        <!-- <a type="button" id="sidebarCollapse" class="btn"
+                        style="color:#000000!important; background-color: transparent; border-color: #fe7f00;" 
+                        data-toggle="tooltip" data-placement="bottom" title="Productos" href="/productos">
+                        <i class="fa fa-box"></i>
+                        </a>
+                        <a type="button" id="sidebarCollapse" class="btn"
+                        style="color:#000000!important; background-color: transparent; border-color: #fe7f00;" 
+                        data-toggle="tooltip" data-placement="bottom" title="Ventas" href="/ventas">
+                        <i class="fa fa-shopping-cart"></i>
+                        </a>
+                        <a type="button" class="btn"
+                        style="color:#000000!important; background-color: transparent; border-color: #fe7f00;" 
+                        data-toggle="tooltip" data-placement="bottom" title="Registrar Compras" href="/compras">
+                        <i class="fa fa-shopping-basket"></i>
+                        </a>
+                        <a type="button" class="btn"
+                        style="color:#000000!important; background-color: transparent; border-color: #fe7f00;" 
+                        data-toggle="tooltip" data-placement="bottom" title="Movimientos" href="/movimientos">
+                        <i class="fa fa-exchange-alt"></i>
+                        </a>
+                        <a type="button" class="btn"
+                        style="color:#000000!important; background-color: transparent; border-color: #fe7f00;" 
+                        data-toggle="tooltip" data-placement="bottom" title="Clientes" href="/clientes">
+                        <i class="fa fa-users"></i>
+                        </a>
+                        <a type="button" class="btn"
+                        style="color:#000000!important; background-color: transparent; border-color: #fe7f00;" 
+                        data-toggle="tooltip" data-placement="bottom" title="Stock" href="/reportes/reporteStock">
+                        <i class="fa fa-warehouse"></i>
+                        </a> -->
+                             
+                    </div>
+
+                    <div id="navbarSupportedContent">
+                        <ul class="nav navbar-nav ml-auto" style="color:#175676!important;">
+                            <li id="dmnu" class="nav-item dropdown dmenu"></li>
+                            <li class="nav-item dropdown" style="color:#175676!important;">
+                                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownUser" role="button"
+                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                                    style="color:#175676!important;"><i class="fa fa-user"></i>
+                                    {{user.nombre}}</a>
+                                <div class="dropdown-menu leftauto dropdown-menu-right"
+                                    aria-labelledby="navbarDropdownUser">
+                                    {% if !user.developer %}
+                                    <a class="dropdown-item" href="/changePass"><i class="fa fa-key"></i> Cambiar
+                                        clave</a>
+                                    {% endif %}
+
+                                    {% if user.developer %}
+                                    <a class="dropdown-item" href="/configRutas"><i class="fa fa-cog"></i> Configurar
+                                        menú</a>
+                                    <a class="dropdown-item" href="/configModulos"><i class="fa fa-cog"></i> Configurar
+                                        módulos</a>
+                                    {% endif %}
+                                    <div class="dropdown-divider"></div>
+                                    <a class="dropdown-item" href="/logout"><i class="fa fa-sign-out-alt"></i> Cerrar
+                                        sesión</a>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+
+            </nav>
+            <div class="section" id="index-banner">
+                <div class="container-fluid p-3">
+                    <div class="card p-3">
+                        {% block content %}
+                        {% endblock %}
+                    </div>
+                </div>
+                <div class="container-fluid">
+                    {% block contentAlertas %}
+                    {% endblock %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!--  SCRIPTS -->
+    <script src="/js/jquery.min.js"></script>
+    <!-- HIGHCHARTS -->
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script src="https://code.highcharts.com/modules/export-data.js"></script>
+    <script src="https://code.highcharts.com/modules/accessibility.js"></script>
+    <script type="text/javascript" src="/js/popper.min.js"></script>
+    <script type="text/javascript" src="/js/bootstrap.min.js"></script> 
+    <script type="text/javascript" src="/js/sweetalert2.all.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/js/all.min.js"
+        integrity="sha512-2bMhOkE/ACz21dJT8zBOMgMecNxx0d37NND803ExktKiKdSzdwn+L7i9fdccw/3V06gM/DBWKbYmQvKMdAA9Nw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <!-- EXPORTAR A PDF/IMPRIMIR -->
+    <script type="text/javascript" src="/js/printThis.js"></script>
+    <script type="text/javascript" src="/js/jspdf.min.js"></script>
+    <script type="text/javascript" src="/js/jspdf.plugin.autotable.min.js"></script>
+    <script type="text/javascript" src="/js/tableHTMLExport.js"></script>
+    <!-- EXPORTAR A XLS -->
+    <script type="text/javascript" src="/js/jquery.table2excel.js"></script>
+    <!-- DATEPICKER -->
+    <script type="text/javascript" src="/js/bootstrap-datepicker.min.js"></script>
+    <script type="text/javascript" src="/js/bootstrap-datepicker.es.min.js"></script>
+    <!-- SELECTPICKER -->
+    <script type="text/javascript" src="/js/bootstrap-select.min.js"></script>
+    <!-- SWEET ALERT -->
+    <script type="text/javascript" src="/js/sweetalert2.all.js"></script>
+    <!-- JQUERY MASK -->
+    <script type="text/javascript" src="/js/jquery.mask.min.js"></script>
+    <!-- CUSTOM JS -->
+    <script type="text/javascript" src="/js/main.js"></script>
+    <script type="text/javascript" src="/js/funcionesSelect.js"></script>
+
+    <script>
+
+        $(document).ready(function () {
+            $('.maskDNI').mask('99.999.999')
+            $('.maskCUIT').mask('99-99999999-9')
+            $('.maskDate').mask('99/99/9999')
+            $('.maskHM').mask('99:99')
+            $('.selectpicker').selectpicker(optionsSelectPicker)
+            $('.datepicker').datepicker(optionsDatePicker).on('hide', function (e) {
+                if(e.dates.length == 0 ) $(this).val(generateTodayDateDMY())
+            })
+            $('.datepickerClear').datepicker(optionsDatePickerClear)
+            $('[data-toggle="tooltip"]').tooltip()
+        })
+
+        window.addEventListener("beforeunload", () => { //ponemos el preloader justo cuando quiere irse a otra pagina
+            $(".swal2-container").addClass("hidden")
+            $(".modal").addClass("hidden")
+            $(".modal-backdrop").addClass("hidden");
+            $("#preloaderAPP").show();
+        });
+
+        window.addEventListener("unload", function () { //lo sacamos justo antes de que desaparezca la pagina porque sino cuando hacemos history back, queda visible.
+            $(".swal2-container").removeClass("hidden")
+            $(".modal").removeClass("hidden")
+            $(".modal-backdrop").removeClass("hidden");
+            $("#preloaderAPP").hide();
+        });
+
+        document.addEventListener("DOMContentLoaded", () => {
+            $("#preloaderAPP").hide();
+        });
+
+        const FiltrarTablas = (tabla, input) => {
+            $(`#${tabla} tbody tr`).each(function () {
+                if ($(this).find('td.search').text().toUpperCase().indexOf($(`#${input}`).val().toUpperCase()) > -1) {
+                    $(this).closest('tr').show()
+                } else {
+                    if ($("tr:visible").length - 1 == 0) {
+                        Swal.fire('Sin resultados', 'No se encontraron coincidencias', 'warning')
+                    } else {
+                        $(this).closest('tr').hide()
+                    }
+                }
+            })
+        }
+
+        const ExportarExcel = (tabla, nombreArchivo) => {
+            $(`#${tabla}`).table2excel({
+                exclude: ".noExl",
+                filename: `Lista de ${nombreArchivo}`,
+                fileext: ".xls",
+                // preserveColors: true
+            })
+        }
+
+        // function formatFecha(date, conHora) {
+        //     let f = new Date(date)
+        //     if (!f instanceof Date || isNaN(f.getTime())) return "fecha inválida"
+
+        //     let a = f.toISOString()
+        //     let str = a.substring(8, 10) + "/" + a.substring(5, 7) + "/" + a.substring(0, 4)
+        //     if (conHora) str += " " + a.substring(11, 16)
+
+        //     return str;
+        // }
+
+        $('.dropdown-submenu > a').on("click", function (e) {
+            var submenu = $(this);
+            $('.dropdown-submenu .dropdown-menu').removeClass('show');
+            submenu.next('.dropdown-menu').addClass('show');
+            e.stopPropagation();
+        });
+
+        $('.dropdown.mainMenu').on("hidden.bs.dropdown", function () {
+            // hide any open menus when parent closes
+            $(this).find('.dropdown-menu.show').removeClass('show');
+        });
+
+        var fullHeight = function () {
+            $('.js-fullheight').css('height', $(window).height());
+            $(window).resize(function () {
+                $('.js-fullheight').css('height', $(window).height());
+            });
+        };
+        fullHeight();
+
+        $('#sidebarCollapse').on('click', function () {
+            $('#sidebar').toggleClass('active');
+        });
+
+        // Inicializar tooltips
+        $('[data-toggle="tooltip"]').tooltip();
+
+        const Toast = Swal.mixin({
+            toast: true,
+            position: "top-end",
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.onmouseenter = Swal.stopTimer;
+                toast.onmouseleave = Swal.resumeTimer;
+            }
+        })
+        // EJEMPLO TOAST
+        // Toast.fire({
+        //     icon: "success",
+        //     title: "Signed in successfully"
+        // })
+
+    </script>
+    <script>
+    // Manejo de z-index y backdrop para modales anidados (global)
+    $(document).on('show.bs.modal', '.modal', function () {
+        var zIndex = 1040 + (10 * $('.modal:visible').length);
+        $(this).css('z-index', zIndex);
+        setTimeout(function() {
+            $('.modal-backdrop').not('.modal-stack').css('z-index', zIndex - 1).addClass('modal-stack');
+        }, 0);
+    });
+    $(document).on('hidden.bs.modal', '.modal', function () {
+        if($('.modal:visible').length > 0) {
+            setTimeout(function() {
+                $(document.body).addClass('modal-open');
+            }, 0);
+        }
+    });
+    </script>
+    {% block scripts %}
+    {% endblock %}
+</body>
+
+</html>

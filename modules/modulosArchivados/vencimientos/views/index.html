@@ -1,0 +1,467 @@
+{% extends '../../template.html' %}
+
+{% block styles %}
+<style>
+    .textAreaSize {
+        resize: vertical;
+        min-height: 48px;
+        max-height: 100px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+    <h2>{{ pagename }}</h2>
+    <div class="d-flex align-items-end mb-3" style="gap: 0.2rem;">
+        <input type="text" class="form-control" id="txtFiltro" placeholder="Buscar" style="width: 10rem;" />
+        <div>
+            <label>Activos</label>
+            <select class="form-control" id="cmbActivoFiltro" onchange="getLista()">
+                <option value="t" selected>Todos</option>
+                <option value="1">Si</option>
+                <option value="0">No</option>
+            </select>
+        </div>
+        {% if permisos.a %}
+            <button class="btn btn-round btn-success modalAccion mr-1" data-accion="a" onclick='ModalAccion("a")'>
+                <i class="fa fa-plus"></i>
+            </button>
+        {% endif %}
+    </div>
+</div>
+<div class="table-responsive" style="height: calc(100vh - 200px)" id="tablaDatos">
+    <table class="table table-sm table-fix table-hover tableFixHead">
+        <thead>
+            <tr>
+                <th>Acciones</th>
+                <th>Fecha venc.</th>
+                <th>Tipo document.</th>
+                <th>Entidad</th>
+                <th>Documentación</th>
+                <th>Obervaciones</th>
+                <th>Activo</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<!-- MODAL -->
+<div class="modal fade modal-m" data-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    aria-labelledby="staticBackdropLabel" aria-hidden="true" id="modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabel"></h5>
+                <button type="button" class="close" aria-label="Close" onclick="CerrarModal()">
+                    <span aria-hidden=" true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="form-group col-sm-12">
+                        <label for="cmbTipoDocumentacion">Tipo documentación</label>
+                        <select class="form-control form-control-sm" id="cmbTipoDocumentacion" onchange="SeleccionoTipoDocumentacion(this.value)"></select>
+                    </div>
+                    <div class="form-group col-sm-12 d-none" id="divVehiculo">
+                        <label for="cmbVehiculos">Vehículo</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbVehiculos"></select>
+                    </div>
+
+                    <div class="form-group col-sm-12 d-none" id="divEmpleado">
+                        <label for="cmbEmpleados">Empleado</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbEmpleados"></select>
+                    </div>
+                    <div class="form-group col-sm-12">
+                        <label for="cmbDocumentacion">Documentación</label>
+                        <select class="form-control form-control-sm selectpicker" disabled id="cmbDocumentacion"></select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-8">
+                        <label for="txtDescripcion">Descripción</label>
+                        <input type="text" class="form-control form-control-sm" id="txtDescripcion" maxlength="50">
+                    </div>
+                    <div class="form-group col-sm-12 col-md-4">
+                        <label for="txtFechaVencimiento">Fecha vencimiento</label>
+                        <input type="text" class="form-control form-control-sm datepicker maskDate" id="txtFechaVencimiento" onkeypress="return soloNumeros(event)">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12">
+                        <label for="txtObservaciones">Observaciones</label>
+                        <textarea class="form-control form-control-sm" id="txtObservaciones" maxlength="1000" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="dropdown-divider d-none" id="actionSeccionDivider"></div>
+                <div class="row d-none" id="actionSeccion">
+                    <div class="form-group col-12 text-center">
+                        <div class="custom-control custom-switch ml-1">
+                            <input type="checkbox" class="custom-control-input" id="chbActivo" />
+                            <label class="custom-control-label" for="chbActivo">Activo</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                    onclick="CerrarModal()">Cancelar</button>
+                <button type="button" class="btn btn-success" id="btnAccion">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL VER -->
+<div class="modal fade" id="modalVer" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Ver más información</h5>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-sm-12 col-md-6">
+                        <label for="txtTipoDocumentacionV">Tipo documentación</label>
+                        <input type="text" class="form-control form-control-sm" id="txtTipoDocumentacionV" disabled readonly>
+                    </div>
+                    <div class="col-sm-12 col-md-6">
+                        <label for="txtEntidadV">Entidad</label>
+                        <input type="text" class="form-control form-control-sm" id="txtEntidadV" disabled readonly>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12">
+                        <label for="txtDocumentacionV">Documentación</label>
+                        <input type="text" class="form-control form-control-sm" id="txtDocumentacionV" disabled readonly>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 col-md-6">
+                        <label for="txtDescripcionV">Descripción</label>
+                        <input type="text" class="form-control form-control-sm" id="txtDescripcionV" disabled readonly>
+                    </div>
+                    <div class="col-sm-12 col-md-6">
+                        <label for="txtFechaVencimientoV">Fecha vencimiento</label>
+                        <input type="text" class="form-control form-control-sm" id="txtFechaVencimientoV" disabled readonly>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12">
+                        <label for="txtObservacionesV">Observaciones</label>
+                        <textarea class="form-control form-control-sm" id="txtObservacionesV" rows="3" disabled readonly></textarea>
+                    </div>
+                </div>
+                <div class="row" id="actionSeccion">
+                    <div class="col-12 row justify-content-center pt-2">
+                        <div class="custom-control custom-switch ml-1">
+                            <input type="checkbox" class="custom-control-input" id="chbActivoV" />
+                            <label class="custom-control-label" for="chbActivo">Activo</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- MODAL VER -->
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript" src="/js/vencimientos.js"></script>
+<script>
+    $('#txtFechaVencimiento').datepicker(optionsDatePickerStart).on('hide', function (e) {
+        if (e.dates.length == 0) $(this).val(generateTodayDateDMY())
+    })
+
+    $(document).ready(async () => {
+        await ObtenerCmbTiposDocumentacion()
+        getLista()
+    })
+
+    $("#txtFiltro").keyup(async function () {
+        Filtrar();
+    });
+    
+    const ObtenerCmbCargarPara = id => {
+        if(id == 2){ //vahiculos
+            return new Promise(async (resolve, reject) => {
+                const res = await $.post('/vehiculos/getlistaSelectAjax')
+                if(!res.status) return Swal.fire(res.title, res.text, res.icon)
+                let html = '<option value="" disabled selected>Seleccione una opción...</option>'
+                if(res.data.length > 0){
+                    res.data.map(el => {
+                        html += `<option value="${el.id}" data-subtext="${el.tipoVehiculoTxt}">${el.patente}</option>`
+                    })
+                }
+                $('#divVehiculo').removeClass('d-none')
+                $('#divEmpleado').addClass('d-none')
+                $('#cmbVehiculos').html(html)
+                $('#cmbVehiculos').selectpicker('refresh')
+                resolve()
+            })
+        }else if(id == 3){ //empleados
+            return new Promise(async (resolve, reject) => {
+                const res = await $.post('/empleados/listaSelectAjax')
+                if(!res.status) return Swal.fire(res.title, res.text, res.icon)
+                let html = '<option value="" disabled selected>Seleccione una opción...</option>'
+                if(res.data.length > 0){
+                    res.data.map(el => {
+                        html += `<option value="${el.id}" data-subtext="${el.cargoTxt}">${el.apellido}, ${el.nombre}</option>`
+                    })
+                }
+                $('#divEmpleado').removeClass('d-none')
+                $('#divVehiculo').addClass('d-none')
+                $('#cmbEmpleados').html(html)
+                $('#cmbEmpleados').selectpicker('refresh')
+                resolve()
+            })
+        }else{
+            $('#divEmpleado').addClass('d-none')
+            $('#divVehiculo').addClass('d-none')
+            $('#cmbVehiculos').html('')
+            $('#cmbEmpleados').html('')
+        }
+    }
+
+    const SeleccionoTipoDocumentacion = id => {
+        return new Promise(async (resolve, reject) => {
+            const res = await $.post('/documentacion/getlistaSelectAjax', {id})
+            if(!res.status){
+                $('#cmbDocumentacion').prop('disabled', true)
+                $('#cmbDocumentacion').html('')
+                $('#cmbDocumentacion').selectpicker('refresh')
+                return Swal.fire(res.title, res.text, res.icon)
+            }
+
+            await ObtenerCmbCargarPara(id)
+
+            let html = '<option value="" disabled selected>Seleccione una opción...</option>'
+            if(res.data.length > 0){
+                res.data.map(el => {
+                    html += `<option value="${el.id}" data-subtext="Dias: ${el.dias_vigencia}">(${el.desc_corta}) ${el.descripcion}</option>`
+                })
+                $('#cmbDocumentacion').prop('disabled', false)
+            }
+            $('#cmbDocumentacion').html(html)
+            $('#cmbDocumentacion').selectpicker('refresh')
+            resolve()
+        })
+    }
+
+    const getLista = async () => {
+        $("#preloaderAPP").show();
+        let activo = $('#cmbActivoFiltro').val()
+        let res = await $.post('/vencimientos/getlistaAjax', { activo })
+        let html = ""
+        if(res.status){
+            for (let i = 0; i < res.data.length; i++) {
+                html += `
+                    <tr ${(res.data[i].paraRenovar && res.data[i].activo) ? `class="trVencimientoDanger"` : (res.data[i].paraRenovar && res.data[i].activo == 0) ? 'class="trVencimientoRenovado"' : ''}>
+                        <td>
+                            <div style="display: flex; gap: 2px;">
+                                <button class="btn btn-round btn-sm btn-info" data-accion="m"
+                                    data-toggle="tooltip" data-placement="top" title="Ver" onclick="Ver(${res.data[i].id})">
+                                    <i class="fa fa-eye"></i>
+                                </button>
+
+                                {% if permisos.m %}
+                                    <button class="btn btn-round btn-sm btn-warning" data-accion="m"
+                                        data-toggle="tooltip" data-placement="top" title="Modificar" onclick="ModalAccion('m',${res.data[i].id})">
+                                        <i class="fa fa-pen"></i>
+                                    </button>
+                                {% endif %}
+
+                                {% if permisos.b %}
+                                    <button class="btn btn-round btn-sm btn-danger" onclick="Eliminar(${res.data[i].id})"
+                                        data-toggle="tooltip" data-placement="top" title="Eliminar">
+                                        <i class="fa fa-trash-alt"></i>
+                                    </button>
+                                {% endif %}
+
+                                ${
+                                    (res.data[i].paraRenovar && res.data[i].activo) ? 
+                                        `<button type="button" class="btn btn-primary btn-sm" data-toggle="tooltip" data-placement="top" 
+                                                title="Renovar" onclick="PostAccion('r', ${res.data[i].id})">
+                                            <i class="fas fa-sync-alt"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-secondary btn-sm" data-toggle="tooltip" data-placement="top" 
+                                                title="Renovar con fecha" onclick="PostAccion('rf', ${res.data[i].id})">
+                                            <i class="fas fa-calendar-plus"></i>
+                                        </button>`
+                                    : ''
+                                }
+                            </div>
+                        </td>
+                        <td class="search">${changeDateDMY(res.data[i].fecha_vencimiento)}</td>
+                        <td class="search">${res.data[i].tipoDocumentacionTxt}</td>
+                        <td class="search">${res.data[i].id_tipodocumentacion_fk == 2 ? res.data[i].vehiculoTxt : res.data[i].id_tipodocumentacion_fk == 3 ? res.data[i].empleadoTxt : 'Empresa'}</td>
+                        <td class="search">${res.data[i].documentacionTxt}</td>
+                        <td class="search">${res.data[i].observaciones}</td>
+                        <td>${res.data[i].activo === 1 ? 'Si' : 'No'}</td>
+                    </tr>`
+            }
+        }else{
+            html = `<tr><td class="font-weight-bold" colspan="4">${res.text}</td></tr>`
+        }
+        $('#tablaDatos tbody').html(html)
+        $("#preloaderAPP").hide()
+        $('[data-toggle="tooltip"]').tooltip()
+    }
+
+    const ModalAccion = async (accion, id) => {
+        $("#preloaderAPP").show()
+        if (accion === 'a') {
+            $('#modalLabel').text('Nuevo vencimiento')
+            $('#txtFechaVencimiento').val(generateTodayDate())
+            $('#btnAccion').attr('onclick', `PostRegistro("a")`)
+            $('#btnAccion').text('Guardar')
+        }else if (accion == 'm') {
+            let res = await $.post(`/vencimientos/getByIdAjax`, {id})
+            if (res.status != 0) {
+                $('#cmbTipoDocumentacion').selectpicker('val', res.data.id_tipodocumentacion_fk)
+                await SeleccionoTipoDocumentacion(res.data.id_tipodocumentacion_fk)
+                $('#cmbDocumentacion').val(res.data.id_documentacion_fk)
+                $('.selectpicker').selectpicker('refresh')
+                
+                if(res.data.id_tipodocumentacion_fk == 2){
+                    $('#cmbVehiculos').selectpicker('val', res.data.id_vehiculo_fk)
+                    $('.selectpicker').selectpicker('refresh')
+                }else{
+                    $('#cmbEmpleados').selectpicker('val', res.data.id_empleado_fk)
+                    $('.selectpicker').selectpicker('refresh')
+                }
+
+                $('#txtDescripcion').val(res.data.descripcion)
+                $('#txtFechaVencimiento').val(changeDateDMY(res.data.fecha_vencimiento))
+                $('#txtObservaciones').val(res.data.observaciones)
+                $('#chbActivo').prop('checked', res.data.activo === 1 ? true : false)
+                $('.selectpicker').selectpicker('refresh')
+            }
+            $('#modalLabel').text('Modificar vencimiento')
+            $('#btnAccion').text('Guardar')
+            $('#btnAccion').attr('onclick', `PostRegistro("m", ${id})`)
+            $('#actionSeccion').removeClass('d-none')
+            $('#actionSeccionDivider').removeClass('d-none')
+        }
+        $("#preloaderAPP").hide()
+        $('#modal').modal('show')
+    }
+
+    const PostRegistro = async (accion, Id) => {
+        $("#preloaderAPP").show()
+        let url = '/vencimientos/alta', 
+         body = { 
+            tipoDocumentacion: $('#cmbTipoDocumentacion').val(),
+            vehiculo: $('#cmbVehiculos').val(),
+            empleado: $('#cmbEmpleados').val(),
+            documentacion: $('#cmbDocumentacion').val(),
+            descripcion: $('#txtDescripcion').val(),
+            fechaVenc: $('#txtFechaVencimiento').val(),
+            observaciones: $('#txtObservaciones').val()
+        }
+
+        if(accion === 'm'){
+            url = '/vencimientos/modificar'
+            body.activo = $('#chbActivo').prop('checked') ? 1 : 0
+            body.id = Id
+        }
+
+        const res = await $.post(url, body)
+        $("#preloaderAPP").hide()
+        Swal.fire({
+            icon: res.icon,
+            title: res.title, 
+            text: res.text, 
+            timer: 3000
+        }).then(() => {
+            if(res.status){
+                CerrarModal()
+                getLista()
+            }
+        })
+    }
+
+    const Eliminar = (id) => {
+        Swal.fire({
+            title: 'Confirmar',
+            text: "¿Desea borrar este registro?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar.',
+            cancelButtonColor: '#d33',
+            cancelButtonText: 'No, cancelar.'
+        }).then(async result => {
+            if (result.isConfirmed) {
+                $("#preloaderAPP").show();
+                let res = await $.post('/vencimientos/eliminar', { id })
+                $("#preloaderAPP").hide();
+                Swal.fire({
+                    type: res.type,
+                    icon: res.icon,
+                    title: res.title,
+                    text: res.text,
+                    timer: 2000
+                }).then(() => {
+                    if(res.status){
+                        CerrarModal()
+                        getLista()
+                    }
+                })
+            }    
+        })
+    }
+
+    const Filtrar = () => {
+        $('#tablaDatos tbody tr').each(function () {
+            if ($(this).find('td.search').text().toUpperCase().indexOf($('#txtFiltro').val().toUpperCase()) > -1)
+                $(this).closest('tr').show();
+            else
+                $(this).closest('tr').hide();
+        });
+    }
+
+    const CerrarModal = () => {
+        $('#modal').modal('hide')
+        $('#actionSeccion').addClass('d-none')
+        $('#actionSeccionDivider').addClass('d-none')
+        LimpiarCampos()
+    }
+
+    const LimpiarCampos = () => {
+        $('input[type="text"]').val('')
+        $('textarea').val('')
+        $('input[type="text"], input[type="email"], textarea').val('')
+        $('input[type="checkbox"], input[type="radio"]').prop('checked', false)
+        $('select').selectpicker('val', '')
+        $('#cmbDocumentacion').prop('disabled', true)
+        $('#divEmpleado').addClass('d-none')
+        $('#divVehiculo').addClass('d-none')
+        $('#cmbVehiculos').html('')
+        $('#cmbEmpleados').html('')
+        $('.selectpicker').selectpicker('refresh')
+        $('#cmbActivoFiltro').selectpicker('val', 't')
+    }
+
+    const Ver = id => {
+        return new Promise(async (resolve, reject) => {
+            const res = await $.post('/vencimientos/getByIdAjax', {id})
+            if(!res.status) return Swal.fire(res.title, res.text, res.icon)
+            $('#txtTipoDocumentacionV').val(res.data.tipoDocumentacionTxt)
+            $('#txtEntidadV').val(res.data.id_tipodocumentacion_fk == 2 ? res.data.vehiculoTxt : res.data.id_tipodocumentacion_fk == 3 ? res.data.empleadoTxt : 'Empresa')
+            $('#txtDocumentacionV').val(res.data.documentacionTxt)
+            $('#txtDescripcionV').val(res.data.descripcion)
+            $('#txtFechaVencimientoV').val(changeDateDMY(res.data.fecha_vencimiento))
+            $('#txtObservacionesV').val(res.data.observaciones)
+            $('#modalVer').modal('show')
+            resolve()
+        })
+    }
+
+</script>
+{% endblock %}

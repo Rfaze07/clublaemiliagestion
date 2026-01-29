@@ -1,0 +1,16 @@
+/node_modules
+.env
+uploads/temp/*
+!uploads/temp/readme.txt
+utilities/temp/*
+!utilities/temp/readme.txt
+/public/img/productos
+/public/curriculum
+.env.afuera
+.env.local
+/public/videosOfertas
+.vscode/
+utilidades/temp/
+config/*.json
+
+public/img/empresas

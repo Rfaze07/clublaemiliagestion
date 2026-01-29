@@ -1,0 +1,553 @@
+{% extends '../../template.html' %}
+
+{% block styles %}
+<style>
+    .textAreaSize {
+        resize: vertical;
+        min-height: 48px;
+        max-height: 100px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+    <h2>{{ pagename }}</h2>
+    <div class="d-flex align-items-end mb-3" style="gap: 0.2rem;">
+        <input type="text" class="form-control" id="txtFiltro" placeholder="Buscar" style="width: 10rem;" />
+        <div>
+            <label>Tipos de vechiculos </label>
+            <select class="form-control selectpicker" id="cmbFiltroTipoVehiculo" onchange="getLista()">
+                <option value="t" selected>Todos</option>
+                
+            </select>
+        </div>
+        <div>
+            <label>Activos</label>
+            <select class="form-control" id="cmbActivoFiltro" onchange="getLista()">
+                <option value="t" selected>Todos</option>
+                <option value="1">Si</option>
+                <option value="0">No</option>
+            </select>
+        </div>
+        {% if permisos.a %}
+            <button class="btn btn-round btn-success modalAccion mr-1" data-accion="a" onclick='ModalAccion("a")'>
+                <i class="fa fa-plus"></i>
+            </button>
+        {% endif %}
+    </div>
+</div>
+<div class="table-responsive" style="height: calc(100vh - 200px)" id="tablaDatos">
+    <table class="table table-sm table-fix table-hover tableFixHead">
+        <thead>
+            <tr>
+                <th>Acciones</th>
+                <th>Nro. interno</th>
+                <th>Patente</th>
+                <th>Marca</th>
+                <th>Modelo</th>
+                <th>Tipo vehículo</th>
+                <th>Activo</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<!-- MODAL ALTA/MODIFICAR -->
+<div class="modal fade modal-m" data-backdrop="static" data-keyboard="false" tabindex="-1"
+    aria-labelledby="staticBackdropLabel" aria-hidden="true" id="modal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabel"></h5>
+                <button type="button" class="close" aria-label="Close" onclick="CerrarModal()">
+                    <span aria-hidden=" true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-7 col-lg-7" id="divCmbTipoVehiculo">
+                        <label for="cmbTipoVehiculo">Tipo vehículo</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbTipoVehiculo" 
+                                onchange="SeleccionoTipoVehiculo(this.value)">
+                        </select>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-2 col-lg-2" id="divNroInterno">
+                        <label for="txtNroInterno">Nro .interno</label>
+                        <div class="form-check">
+                            <input class="form-control form-control-sm" type="text" id="txtNroInterno" maxlength="8" 
+                                   onblur="ValidarNroInterno(this.value)" onkeypress="return soloNumeros(event)" />
+                        </div>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-3 col-lg-3">
+                        <label for="txtPatente">Patente</label>
+                        <div class="form-check">
+                            <!-- <input class="form-control form-control-sm validarPatente" type="text" id="txtPatente" autocomplete="off"
+                                   onblur="ValidarPatente2(this)" oninput="ValidarPatente2(this)" style="text-transform: uppercase" /> -->
+                            <input class="form-control form-control-sm validarPatente" type="text" id="txtPatente" autocomplete="off"
+                                    onblur="ValidarPatente2(this)" style="text-transform: uppercase" />
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-6 col-lg-4">
+                        <label for="cmbMarca">Marca</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbMarca"></select>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-6 col-lg-6">
+                        <label for="txtModelo">Modelo</label>
+                        <input type="text" class="form-control form-control-sm" id="txtModelo" maxlength="50" />
+                    </div>
+                    <div class="form-group col-sm-12 col-md-2 col-lg-2">
+                        <label for="txtAnio">Año</label>
+                        <input type="text" class="form-control form-control-sm" id="txtAnio" maxlength="4" onkeypress="return soloNumeros(event)" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-5 col-lg-4">
+                        <label for="txtNroChasis">Número de chasis</label>
+                        <input type="text" class="form-control form-control-sm text-uppercase" id="txtNroChasis" maxlength="50" autocomplete="off" />
+                    </div>
+                    <div class="form-group col-sm-12 col-md-6 col-lg-4">
+                        <label for="txtNroMotor">Número de motor</label>
+                        <input type="text" class="form-control form-control-sm text-uppercase" id="txtNroMotor" maxlength="50" autocomplete="off" />
+                    </div>
+                    <div class="form-group col-sm-12 col-md-2 col-lg-2">
+                        <label for="txtEjes">Ejes</label>
+                        <input type="text" class="form-control form-control-sm" id="txtEjes" maxlength="3" onkeypress="return soloNumeros(event)" />
+                    </div>
+                    <div class="form-group col-sm-12 col-md-2 col-lg-2">
+                        <label for="txtTara">Capac. carga</label><!-- SE CAMBIO LEYENDA Tara (tons) > Capacidad de Carga (Pedido por MARTIN OFFREDI de TSL) -->
+                        <input type="text" class="form-control form-control-sm" id="txtTara" onkeypress="return ValidarEnterosYDecimales(event,this,5,4)" />
+                    </div>
+                </div>
+                <div class="row d-none" id="divTipoVehiculo">
+                    <div class="" id="divChofer">
+                        <label for="cmbChofer">Chofer</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbChofer"></select>
+                    </div>
+                    <div class="" id="divSemi">
+                        <label for="cmbSemi">Semi</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbSemi"></select>
+                    </div>
+                </div>
+                <div class="row text-center">
+                    <div class="form-group d-flex justify-content-center col-sm-12 col-md-12">
+                        <div class="custom-control custom-switch mt-2 mr-3">
+                            <input type="checkbox" class="custom-control-input" id="chbCargasPeligrosas" />
+                            <label class="custom-control-label" for="chbCargasPeligrosas">Cargas peligrosas</label>
+                        </div>
+                        <div class="custom-control custom-switch mt-2">
+                            <input type="checkbox" class="custom-control-input" id="chbHabiInterno" />
+                            <label class="custom-control-label" for="chbHabiInterno">Siac</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12">
+                        <label for="txtMasDatos">Mas Datos</label>
+                        <textarea class="form-control form-control-sm textAreaSize" id="txtMasDatos" rows="2" maxlength="1000"></textarea>
+                    </div>
+                </div>
+                <div class="row d-none" id="actionSeccion">
+                    <div class="col-sm-12 text-center pt-3">
+                        <div class="custom-control custom-switch ml-1">
+                            <input type="checkbox" class="custom-control-input" id="chbActivo" />
+                            <label class="custom-control-label" for="chbActivo">Activo</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                    onclick="CerrarModal()">Cancelar</button>
+                <button type="button" class="btn btn-success" id="btnAccion">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- MODAL ALTA/MODIFICAR -->
+
+<!-- MODAL VER -->
+<div class="modal fade modal-m" data-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    aria-labelledby="staticBackdropLabel" aria-hidden="true" id="modalVer">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Ver más información</h5>
+                <button type="button" class="close" aria-label="Close" onclick="CerrarModal()">
+                    <span aria-hidden=" true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-2 col-lg-2">
+                        <label for="txtPatenteV">Nro. interno</label>
+                        <div class="form-check form-check-inline" style="margin-bottom: 0.3rem">
+                            <input class="form-control form-control-sm disabled" disabled type="text" id="txtNroInternoV" />
+                        </div>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-4 col-lg-4">
+                        <label for="txtPatenteV">Patente</label>
+                        <div class="form-check form-check-inline" style="margin-bottom: 0.3rem">
+                            <input class="form-control form-control-sm disabled" disabled type="text" id="txtPatenteV" />
+                        </div>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-6 col-lg-6">
+                        <label for="txtMarcaV">Marca</label>
+                        <input class="form-control form-control-sm disabled" disabled type="text" id="txtMarcaV" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-5">
+                        <label for="txtTipoVehiculoV">Tipo vehículo</label>
+                        <input class="form-control form-control-sm disabled" disabled type="text" id="txtTipoVehiculoV" />
+                    </div>
+                    <div class="form-group col-sm-12 col-md-5">
+                        <label for="txtModeloV">Modelo</label>
+                        <input class="form-control form-control-sm disabled" disabled type="text" id="txtModeloV" />
+                    </div>
+                    <div class="form-group col-sm-12 col-md-2">
+                        <label for="txtAnioV">Año</label>
+                        <input class="form-control form-control-sm disabled" disabled type="text" id="txtAnioV" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-4">
+                        <label for="txtChoferV">Chofer</label>
+                        <input class="form-control form-control-sm disabled" disabled type="text" id="txtChoferV" />
+                    </div>
+                    <div class="form-group col-sm-12 col-md-4">
+                        <label for="txtCamionV">Camión</label>
+                        <input class="form-control form-control-sm disabled" disabled type="text" id="txtCamionV" />
+                    </div>
+                    <div class="form-group col-sm-12 col-md-4">
+                        <label for="txtSemiV">Semi</label>
+                        <input class="form-control form-control-sm disabled" disabled type="text" id="txtSemiV" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-2">
+                        <label for="txtEjesV">Ejes</label>
+                        <input class="form-control form-control-sm disabled" disabled type="text" id="txtEjesV" />
+                    </div>
+                    <div class="form-group col-sm-12 col-md-2">
+                        <label for="txtTaraV">Tara (tons)</label>
+                        <input class="form-control form-control-sm disabled" disabled type="text" id="txtTaraV" />
+                    </div>
+                    <div class="form-group col-sm-12 col-md-6 d-flex justify-content-center align-items-center text-center">
+                        <div class="custom-control custom-switch ml-1 mr-3">
+                            <input type="checkbox" class="custom-control-input" disabled id="chbCargasPeligrosasV" />
+                            <label class="custom-control-label" for="chbCargasPeligrosasV">Cargas peligrosas</label>
+                        </div>
+                        <div class="custom-control custom-switch ml-1">
+                            <input type="checkbox" class="custom-control-input" disabled id="chbHabiInternoV" />
+                            <label class="custom-control-label" for="chbHabiInternoV">siac</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-6">
+                        <label for="txtNroChasisV">Nº chasis</label>
+                        <input class="form-control form-control-sm disabled" disabled type="text" id="txtNroChasisV" />
+                    </div>
+                    <div class="form-group col-sm-12 col-md-6">
+                        <label for="txtNroMotorV">Nº motor</label>
+                        <input class="form-control form-control-sm disabled" disabled type="text" id="txtNroMotorV" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12">
+                        <label for="txtMasDatosV">Mas Datos</label>
+                        <textarea class="form-control form-control-sm disabled" disabled id="txtMasDatosV" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12 text-center">
+                        <div class="custom-control custom-switch ml-1">
+                            <input type="checkbox" class="custom-control-input" disabled id="chbActivoV" />
+                            <label class="custom-control-label" for="chbActivoV">Activo</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- MODAL VER -->
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let asignaSemi=null
+    $(document).ready(async () => {
+        $(".validarPatente").mask(patentesMasks[2], patentesMasksOptions)
+        await ObtenerCmbMarcas(['cmbMarca'])
+        await ObtenerCmbTipoVehiculo()
+        await ObtenerCmbTiposVehiculosS(['cmbFiltroTipoVehiculo'])
+        getLista()
+    })
+    
+    $("#txtFiltro").keyup(async function () {
+        Filtrar()
+    })
+    
+    const getLista = async () => {
+        $("#preloaderAPP").show()
+        const res = await $.post('/vehiculos/getlistaAjax', { 
+            activo: $('#cmbActivoFiltro').val(), 
+            tipoVehiculo: $('#cmbFiltroTipoVehiculo').val() 
+        })
+        let html = ""
+        if(res.status){
+            for (let i = 0; i < res.data.length; i++) {
+                html += `
+                    <tr>
+                        <td>
+                            <div style="display: flex; gap: 2px;">
+                                <button class="btn btn-round btn-sm btn-info" onclick="Ver(${res.data[i].id})"
+                                    data-toggle="tooltip" data-placement="top" title="Ver">
+                                    <i class="fa fa-eye"></i>
+                                </button>
+
+                                {% if permisos.m %}
+                                    <button class="btn btn-round btn-sm btn-warning" data-accion="m"
+                                        data-toggle="tooltip" data-placement="top" title="Modificar" onclick="ModalAccion('m',${res.data[i].id})">
+                                        <i class="fa fa-pen"></i>
+                                    </button>
+                                {% endif %}
+
+                                {% if permisos.b %}
+                                    <button class="btn btn-round btn-sm btn-danger" onclick="Eliminar(${res.data[i].id})"
+                                        data-toggle="tooltip" data-placement="top" title="Eliminar">
+                                        <i class="fa fa-trash-alt"></i>
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="search">${res.data[i].nro_interno == null ? '':res.data[i].nro_interno}</td>
+                        <td class="search">${res.data[i].patente}</td>
+                        <td class="search">${res.data[i].marcaTxt}</td>
+                        <td class="search">${res.data[i].modelo}</td>
+                        <td class="search">${res.data[i].tipoVehiculoTxt}</td>
+                        <td>${res.data[i].activo === 1 ? 'Si' : 'No'}</td>
+                    </tr>`
+            }
+        }else{
+            html = `<tr><td class="font-weight-bold" colspan="4">${res.text}</td></tr>`
+        }
+        $('#tablaDatos tbody').html(html)
+        $("#preloaderAPP").hide()
+        $('[data-toggle="tooltip"]').tooltip()
+    }
+
+    const ValidarNroInterno = nroInterno => {
+        return new Promise(async (resolve, reject) => {
+            if(nroInterno.length > 0){
+                const res = await $.post('/vehiculos/getNroInternoAjax', {nroInterno})
+                if(!res.status){
+                    $('#txtNroInterno').val('')
+                    $('#txtNroInterno').focus()
+                    return Swal.fire(res.title, res.text, res.icon)
+                }
+            }
+        })
+    }
+
+    const ModalAccion = async (accion, id) => {
+        $("#preloaderAPP").show()
+        if (accion === 'a') {
+            $('#modalLabel').text('Nuevo vehículo')
+            $('#btnAccion').attr('onclick', `PostRegistro("a")`)
+            $('#btnAccion').text('Guardar')
+        }else if (accion == 'm') {
+            let res = await $.post(`/vehiculos/getByIdAjax`, {id})
+            if (res.status != 0) {
+                $('#txtNroInterno').val(res.data.nro_interno)
+                $('#txtPatente').val(res.data.patente)
+                $('#cmbMarca').val(res.data.id_marca_fk)
+                $('#txtModelo').val(res.data.modelo)
+                $('#txtAnio').val(res.data.anio)
+                $('#cmbTipoVehiculo').selectpicker('val', res.data.id_tipovehiculo_fk)
+                await SeleccionoTipoVehiculo(res.data.id_tipovehiculo_fk)
+                $('#cmbChofer').selectpicker('val', res.data.id_chofer_fk)
+                $('#cmbSemi').selectpicker('val', res.data.id_semi_fk)
+                $('#txtEjes').val(res.data.ejes)
+                $('#txtTara').val(res.data.tara)
+                $('#txtNroChasis').val(res.data.nro_chasis)
+                $('#txtNroMotor').val(res.data.nro_motor)
+                $('#chbCargasPeligrosas').prop('checked', res.data.cargas_peligrosas === 1 ? true : false)
+                $('#chbHabiInterno').prop('checked', res.data.habilitado_interno === 1 ? true : false)
+                $('#txtMasDatos').val(res.data.mas_datos)
+                $('#chbActivo').prop('checked', res.data.activo === 1 ? true : false)
+                $('.selectpicker').selectpicker('refresh')
+            }
+
+            $('#modalLabel').text('Modificar vehículo')
+            $('#btnAccion').text('Guardar')
+            $('#btnAccion').attr('onclick', `PostRegistro("m",${id})`)
+            $('#actionSeccion').removeClass('d-none')
+            $('#actionSeccionDivider').removeClass('d-none')
+        }
+        $("#preloaderAPP").hide()
+        $('#modal').modal('show')
+    }
+
+    const PostRegistro = async (accion, Id) => {
+        $("#preloaderAPP").show()
+        let url = '/vehiculos/alta',
+         body = {
+            nroInterno: $('#txtNroInterno').val(),
+            patente: $('#txtPatente').val(),
+            marca: $('#cmbMarca').val(),
+            tipoVehiculo: $('#cmbTipoVehiculo').val(),
+            modelo: $('#txtModelo').val(),
+            anio: $('#txtAnio').val(),
+            chofer: $('#cmbChofer').val(),
+            semi: $('#cmbSemi').val(),
+            ejes: $('#txtEjes').val(),
+            tara: $('#txtTara').val(),
+            nroChasis: $('#txtNroChasis').val(),
+            nroMotor: $('#txtNroMotor').val(),
+            cargasPeligrosas: $('#chbCargasPeligrosas').is(':checked'),
+            interno: $('#chbHabiInterno').is(':checked'),
+            masDatos: $('#txtMasDatos').val()
+        }
+
+        if (accion === 'm') {
+            url = '/vehiculos/modificar'
+            body.activo = $('#chbActivo').prop('checked') ? 1 : 0
+            body.id = Id
+        }
+
+        const res = await $.post(url, body)
+        $("#preloaderAPP").hide()
+        Swal.fire({
+            icon: res.icon,
+            title: res.title, 
+            text: res.text, 
+            timer: 3000
+        }).then(() => {
+            if(res.status){
+                CerrarModal()
+                getLista()
+            }
+        })        
+    }
+
+    const Eliminar = (id) => {
+        Swal.fire({
+            title: 'Confirmar',
+            text: "¿Desea borrar este registro?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar.',
+            cancelButtonColor: '#d33',
+            cancelButtonText: 'No, cancelar.'
+        }).then(async result => {
+            if (result.isConfirmed) {
+                $("#preloaderAPP").show();
+                let res = await $.post('/vehiculos/eliminar', { id })
+                $("#preloaderAPP").hide();
+                Swal.fire({
+                    type: res.type,
+                    icon: res.icon,
+                    title: res.title,
+                    text: res.text,
+                    timer: 2000
+                }).then(() => {
+                    if(res.status){
+                        CerrarModal()
+                        getLista()
+                    }
+                })
+            }    
+        })
+    }
+
+    const Filtrar = () => {
+        $('#tablaDatos tbody tr').each(function () {
+            if ($(this).find('td.search').text().toUpperCase().indexOf($('#txtFiltro').val().toUpperCase()) > -1)
+                $(this).closest('tr').show();
+            else
+                $(this).closest('tr').hide();
+        });
+    }
+
+    const CerrarModal = () => {
+        $('#modal').modal('hide')
+        $('#actionSeccion').addClass('d-none')
+        $('#actionSeccionDivider').addClass('d-none')
+        LimpiarCampos()
+    }
+
+    const LimpiarCampos = () => {
+        $('input[type="text"]').val('')
+        $('textarea').val('')
+        $('#cmbTipoVehiculo').selectpicker('val', '')
+        $('#cmbChofer').selectpicker('val', '')
+        $('#cmbSemi').selectpicker('val', '')
+        $('.selectpicker').selectpicker('refresh')
+        $('#divTipoVehiculo').addClass('d-none')
+        $('input[type="checkbox"]').prop('checked', false)
+        $('input[type="radio"]').prop('checked', false)
+    }
+
+    const Ver = id => {
+        return new Promise(async (resolve, reject) => {
+            const res = await $.post('/vehiculos/getByIdAjax', {id})
+            if(!res.status) return Swal.fire(res.title, res.text, res.icon)
+            $('#txtNroInternoV').val(res.data.nro_interno)
+            $('#txtPatenteV').val(res.data.patente)
+            $('#txtMarcaV').val(res.data.marcaTxt)
+            $('#txtTipoVehiculoV').val(res.data.tipoVehiculoTxt)
+            $('#txtModeloV').val(res.data.modelo)
+            $('#txtAnioV').val(res.data.anio)
+            $('#divCamionVer').removeClass()
+            $('#divSemiVer').removeClass()
+            $('#divChoferVer').removeClass()
+            if(!res.data.asigna_chofer && !res.data.asigna_semi){
+                $('#divCamionVer').addClass('d-none')
+                $('#divSemiVer').addClass('d-none')
+                $('#divChoferVer').addClass('d-none')
+                $('#txtCamionV').val('')
+                $('#txtSemiV').val('')
+                $('#txtChoferV').val('')
+            }
+             if(res.data.asigna_chofer){
+                $('#divCamionVer').addClass('col-sm-6')
+                $('#divSemiVer').addClass('d-none')
+                $('#txtChoferV').val(`${res.data.nroLegajoTxt == null & res.data.choferTxt == null ? '' : `${res.data.nroLegajoTxt} - ${res.data.choferTxt}` }`)
+                $('#txtCamion').val(`${res.data.nro_interno == null & res.data.patente == null ? '' : `${res.data.nro_interno} - ${res.data.patente}` }`)
+                $('#txtSemiV').val('')
+            }
+            if(res.data.asigna_semi){
+                $('#divCamionVer').addClass('d-none')
+                $('#divSemiVer').addClass('col-sm-6')
+                $('#txtCamionV').val('')
+                // $('#txtSemiV').val(`${res.data.nroIntSemiTxt == null & res.data.patenteSemiTxt == null ? '' : `${res.data.nroIntSemiTxt} - ${res.data.patenteSemiTxt}` }`)
+                $('#txtChoferV').val(`${res.data.nroLegajoTxt == null & res.data.choferTxt == null ? '' : `${res.data.nroLegajoTxt} - ${res.data.choferTxt}` }`)
+                $('#txtSemiV').val(`${res.data.patenteSemiTxt}`)
+            }
+                    
+            $('#txtEjesV').val(res.data.ejes)
+            $('#txtTaraV').val(res.data.tara)
+            $('#txtNroChasisV').val(res.data.nro_chasis)
+            $('#txtNroMotorV').val(res.data.nro_motor)
+            $('#txtMasDatosV').val(res.data.mas_datos)
+            $('#chbCargasPeligrosasV').prop('checked', res.data.cargas_peligrosas)
+            $('#chbHabiInternoV').prop('checked', res.data.habilitado_interno)
+            $('#chbActivoV').prop('checked', res.data.activo)
+            $('#modalVer').modal('show')
+            resolve()
+        })
+    }
+
+</script>
+{% endblock %}

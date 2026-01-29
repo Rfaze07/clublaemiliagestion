@@ -1,0 +1,104 @@
+{% extends '../../template.html' %}
+
+{% block styles %}
+<style>
+    .saldos { font-weight: 700; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+    <h2>{{ pagename }}</h2>
+    <div class="d-flex align-items-end mb-3" style="gap: 0.2rem;">
+        <input type="text" class="form-control" id="txtFiltro" placeholder="Buscar" style="width: 10rem; display: none;" />
+        <div>
+            <label for="cmbEmpresa">Empresas</label>
+            <select class="form-control" id="cmbEmpresa"></select>
+        </div>
+        <div>
+            <label for="cmbCliente">Clientes</label>
+            <select class="form-control" id="cmbCliente"></select>
+        </div>
+        <div>
+            <label>Fecha hasta</label>
+            <input type="text" class="form-control datepicker" id="txtHasta" style="width: 10rem;" />
+        </div>
+        <button class="btn btn-round btn-primary" data-toggle="tooltip" data-placement="top" title="Buscar" onclick="getLista()">
+            <i class="fa fa-search"></i>
+        </button>
+        
+    </div>
+</div>
+<div class="table-responsive" style="height: calc(100vh - 245px)" id="tablaDatos">
+    <table class="table table-sm table-fix table-hover tableFixHead">
+        <thead>
+            <tr>
+                <th scope="col">Fecha</th>
+                <th scope="col">Tipo de comprob.</th>
+                <th scope="col">Desc. Compro.</th>
+                <th scope="col">Haber</th>
+                <th scope="col">Debe</th>
+                <th scope="col">Saldo</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+<div class="card">
+    <div class="card-header">
+        <div class="row justify-content-between align-items-center pr-4 pl-4">
+            <h5 class="saldos m-0">Debe: $<span class="ml-1" id="lblDebe">-</span></h5>
+            <h5 class="saldos m-0">Haber: $<span class="ml-1" id="lblHaber">-</span></h5>
+            <h5 class="saldos m-0">Saldo: $<span class="ml-1" id="lblSaldo">-</span></h5>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+
+    $(document).ready(() => {
+        $('#txtHasta').val(generateTodayDate())
+        CargarCmbEmpresas(true)
+        CargarCmbClientes(true)
+    })
+
+    const getLista = async () => {
+        $("#preloaderAPP").show()        
+        const res = await $.post('/ccclientes/listaAjax', { 
+            hasta: $('#txtHasta').val(), 
+            empresa: $('#cmbEmpresa').val(), 
+            cliente: $('#cmbCliente').val() 
+        })
+        let html = "", saldo = 0
+        if(res.status){
+            for(let i=0; i<res.datos.length; i++){
+                saldo += res.datos[i].debe - res.datos[i].haber
+                html += `
+                    <tr>
+                        <td>${changeDateDMY(res.datos[i].fecha)}</td>
+                        <td>${res.datos[i].tipo}</td>
+                        <td>${res.datos[i].puntoVenta}-${res.datos[i].numeroTxt}</td>
+                        <td>$ ${formatCurrency(res.datos[i].debe)}</td>
+                        <td>$ ${formatCurrency(res.datos[i].haber)}</td>
+                        <td>$ ${formatCurrency(saldo)}</td><
+                    </tr>`
+            }
+            $('#lblDebe').text(formatCurrency(res.debe))
+            $('#lblHaber').text(formatCurrency(res.haber))
+            $('#lblSaldo').text(formatCurrency(res.saldo))
+        }else{
+            html = `<tr><td class="font-weight-bold" colspan="15">${res.text}</td></tr>`
+            $('#lblDebe').text('-')
+            $('#lblHaber').text('-')
+            $('#lblSaldo').text('-')
+        }
+
+        $('#tablaDatos tbody').html(html)
+        $('[data-toggle="tooltip"]').tooltip()
+        $("#preloaderAPP").hide()
+    }
+
+</script>
+{% endblock %}

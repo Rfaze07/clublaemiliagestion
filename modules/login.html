@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <title>Ingreso al sistema</title>
+        <link rel="apple-touch-icon" sizes="180x180" href="img/favicon/apple-touch-icon.png">
+        <link rel="icon" type="image/png" sizes="32x32" href="img/favicon/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="img/favicon/favicon-16x16.png">
+        <link rel="manifest" href="img/favicon/site.webmanifest">
+        <link rel="stylesheet" href="fonts/Karla.css">
+        <link rel="stylesheet" href="css/bootstrap.min.css">
+		<link rel="stylesheet" href="css/sweetalert2.min.css">
+        <link rel="stylesheet" href="css/login.css">
+    </head>
+    <body id="bgLogin">
+        <main class="d-flex align-items-center min-vh-100">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-lg-12 px-0">
+                        <div class="login-container">
+                            <div class="row no-gutters">
+                                <!-- Panel Izquierdo -->
+                                <div class="col-md-5 login-left-panel">
+                                    <div class="left-content">
+                                        <div class="company-logo-wrapper">
+                                            <img src="img/logo-empresa.png" alt="Logo Empresa" class="company-logo">
+                                        </div>
+                                        <h1 class="company-title">Potencia tu gestión empresarial.</h1>
+                                        <p class="company-subtitle">Confianza, Versatilidad y Evolución</p>
+                                    </div>
+                                </div>
+                                
+                                <!-- Panel Derecho -->
+                                <div class="col-md-7 login-right-panel">
+                                    <div class="right-content">
+                                        <div class="system-logo-wrapper">
+                                            <img src="img/logo.png" alt="Logo Sistema" class="system-logo">
+                                        </div>
+                                        <h2 class="welcome-title">Bienvenido, Chama</h2>
+                                        <p class="welcome-subtitle">Por favor, ingresa tus datos para acceder</p>
+                                        
+                                        <form action="" class="login-form">
+                                            <div class="form-group">
+                                                <label for="txtUser" class="form-label">Correo Electrónico</label>
+                                                <div class="input-icon">
+                                                    <i class="icon-mail"></i>
+                                                    <input type="text" id="txtUser" class="form-control" placeholder="usuario@ejemplo.com">
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="txtPass" class="form-label">Contraseña</label>
+                                                <div class="input-icon">
+                                                    <i class="icon-lock"></i>
+                                                    <input type="password" id="txtPass" class="form-control" placeholder="••••••">
+                                                </div>
+                                            </div>
+                                            <button type="button" class="btn btn-ingreso btn-block" id="btnIngresar" onclick="Login()">
+                                                Iniciar Sesión →
+                                            </button>
+                                        </form>
+                                        
+                                        <p class="help-text">¿Problemas para ingresar? Contacta soporte</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <script type="text/javascript" src="js/jquery.min.js"></script>
+        <script type="text/javascript" src="js/popper.min.js"></script>
+        <script type="text/javascript" src="js/bootstrap.min.js"></script>
+        <script type="text/javascript" src="js/sweetalert2.all.js"></script>
+        <script type="text/javascript">
+            $(document).on('keydown', function(e) {
+                if (e.which == 13) {
+                    Login()
+                    e.preventDefault()
+                }
+            })
+
+            const Login = async () => {
+				$('#btnIngresar').attr('disabled', true)
+				$('#btnIngresar').html(`<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Ingresando...`)
+				let res = await $.post('/login', {user: $('#txtUser').val(), pass: $('#txtPass').val()})
+				console.log(res)
+				if(res.status){
+					window.location = 'inicio'
+				}else{
+					$('#btnIngresar').attr('disabled', false)
+					$('#btnIngresar').html(`Iniciar Sesión →`)
+					Swal.fire(res.title, res.text, res.icon)
+				}
+            }
+
+        </script>
+    </body>
+</html>

@@ -1,0 +1,196 @@
+{% extends '../../template.html' %}
+
+{% block styles %}
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col"><h3>Desarrollador: Listado de módulos</h3></div>
+        <div class="col text-right">
+            <button class="btn btn-sm btn-success" id="btn_nuevo">Nuevo</button>
+        </div>
+    </div>
+    <table class="table">
+        <thead>
+           <th>ID</th>
+           <th>Título</th>
+           <th>Ayuda</th>
+           <th>Ruta principal</th>
+           <th>Nivel requerido</th>
+           <th>Opciones</th>
+        </thead>
+        <tbody>
+            {% for m in modulos %}
+                <tr>
+                    <td>{{m.id}}</td>
+                    <td>{{m.titulo}}</td>
+                    <td style="max-width:100px;overflow: hidden;white-space: nowrap;text-overflow:ellipsis">{{m.ayuda}}</td>
+                    <td>{{m.ruta}}</td>
+                    <td>{{m.nivel}}</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning btn_editar" data-id="{{m.id}}">Editar</button>
+                        <button class="btn btn-sm btn-danger btn_eliminar" data-id="{{m.id}}">Borrar</button>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+
+    <!-- MODAL -->
+
+    <div class="modal fade modal-m" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+        aria-labelledby="staticBackdropLabel" aria-hidden="true" id="modalConfigModulo">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalLabel">Configurar módulo</h5>
+                    <button type="button" class="close" aria-label="Close" onclick="CerrarModal()">
+                        <span aria-hidden=" true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" id="id_modulo" hidden>
+                    <label for="">Título</label>
+                    <input type="text" class="form-control form-control-sm" id="titulo_modulo"/>
+                    <br>
+                    <label for="">Ayuda (opcional)</label>
+                    <textarea class="form-control form-control-sm" id="ayuda_modulo"></textarea>
+                    <br>
+                    <label for="">Ruta principal</label>
+                    <input type="text" class="form-control form-control-sm" id="ruta_modulo"/>
+                    <small>Usada para el menú lateral</small>
+                    <br>
+                    <label for="">Nivel requerido</label>
+                    <select class="form-control form-control-sm" name="" id="nivel_modulo">
+                        <option value="Lista">Lista</option>
+                        <option value="Administrador">Administrador</option>
+                    </select>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                        onclick="CerrarModal()">Cancelar</button>
+                    <button type="button" class="btn btn-success" id="btnGuardar">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        $(document).ready(function(){
+            $("#btn_nuevo").click(function(){
+                $("#id_modulo").val("")
+             
+                $("#titulo_modulo").val("")
+                $("#ayuda_modulo").val("")
+                $("#ruta_modulo").val("")
+                $("#nivel_modulo").val("Lista")
+                $("#modalConfigModulo").modal("show");
+            })
+
+
+            $(".btn_editar").click(function(){
+                let id = $(this).data('id')
+                $("#id_modulo").val(id)
+
+                $.ajax({
+                    method : 'get',
+                    url : '/modulo/' + id,
+                    success: function(res){
+                        if(res){
+                           
+                            $("#titulo_modulo").val(res.titulo)
+                            $("#ayuda_modulo").val(res.ayuda)
+                            $("#ruta_modulo").val(res.ruta)
+                            $("#nivel_modulo").val(res.nivel)
+                            $("#modalConfigModulo").modal("show");
+                        }
+                        else{
+                            alert('error')
+                        }
+                    },
+                    error(er){
+                        console.error(er)
+                    }
+                })
+            })
+
+            $("#btnGuardar").click(function(){
+
+                let id = $("#id_modulo").val()
+                if(id == "") id = null
+
+                let data = {
+                    id : id,
+                    titulo : $("#titulo_modulo").val(),
+                    ayuda : $("#ayuda_modulo").val(),
+                    ruta : $("#ruta_modulo").val(),
+                    nivel : $("#nivel_modulo").val()
+                }
+
+
+                $.ajax({
+                    method : 'POST',
+                    url : '/configModulos',
+                    data : data,
+                    success : function(res) {
+                        if(res == 'done'){
+                            Swal.fire('Éxito', 'Módulo actualizado', 'success')
+                            .then(_=>{
+                                window.location.reload()
+                            })
+                        }
+                        else
+                            Swal.fire('Error', res, 'error')
+                    },
+                    error : function(er){
+                        Swal.fire('Error', er.toString(), 'error')
+                    }
+                })
+
+                
+            })
+
+            $(".btn_eliminar").click(function(){
+                let id = $(this).data('id')
+                
+                Swal.fire({
+                    title: 'Advertencia',
+                    text: "¿Desea borrar este elemento?",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    confirmButtonText: 'Sí, eliminar.',
+                    cancelButtonColor: '#d33',
+                    cancelButtonText: 'No, cancelar.'
+                }).then(async result => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            method : 'DELETE',
+                            url : '/modulo/'+id,
+                            success : function(){
+                                Swal.fire('Éxito', 'Item borrado', 'success')
+                                .then(_=>{
+                                    window.location.reload()
+                                })
+                            },
+                            error : function(er){
+                                console.error(er)
+                            }
+                        })
+                    } 
+                })
+
+               
+            })
+        })
+
+        function CerrarModal(){
+            $("#modalConfigModulo").modal("hide");
+        }
+    </script>
+{% endblock %}

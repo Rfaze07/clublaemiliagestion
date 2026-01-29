@@ -1,0 +1,33 @@
+{
+  "name": "chamaestudio",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon app.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "binary-reader": "^0.1.2",
+    "cloudinary": "^2.9.0",
+    "compression": "^1.7.4",
+    "connect-redis": "^7.1.1",
+    "consolidate": "^1.0.4",
+    "dotenv": "^16.6.1",
+    "express": "^4.19.2",
+    "express-session": "^1.18.0",
+    "fs": "^0.0.1-security",
+    "mssql": "^11.0.1",
+    "multer": "^1.4.5-lts.1",
+    "mysql2": "^3.10.2",
+    "mysqldump": "^3.2.0",
+    "node-schedule": "^2.1.1",
+    "redis": "^4.6.15",
+    "request": "^2.88.2",
+    "swig": "^1.4.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  }
+}

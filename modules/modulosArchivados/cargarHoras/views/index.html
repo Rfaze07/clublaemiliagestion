@@ -1,0 +1,386 @@
+{% extends '../../template.html' %}
+
+{% block styles %}
+<style>
+    .textAreaSize {
+        resize: vertical;
+        min-height: 48px;
+        max-height: 100px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+    <h2>{{ pagename }}</h2>
+    <div class="d-flex align-items-end mb-3" style="gap: 0.2rem;">
+        <input type="text" class="form-control" id="txtFiltro" placeholder="Buscar" style="width: 10rem;" />
+        <div>
+            <label>Fecha desde</label>
+            <input type="text" class="form-control datepicker" id="txtDesde" style="width: 7rem;" autocomplete="off" />
+        </div>
+        <div>
+            <label>Fecha hasta</label>
+            <input type="text" class="form-control datepicker" id="txtHasta" style="width: 7rem;" autocomplete="off" />
+        </div>
+        <button class="btn btn-round btn-primary mr-2" onclick="getLista()">
+            <i class="fa fa-search"></i>
+        </button>
+        {% if permisos.a %}
+        <button class="btn btn-round btn-success modalAccion mr-1" data-accion="a" onclick='ModalAccion("a")'>
+            <i class="fa fa-plus"></i>
+        </button>
+        {% endif %}
+    </div>
+</div>
+<div class="table-responsive" style="height: calc(100vh - 200px)" id="tablaDatos">
+    <table class="table table-sm table-fix table-hover tableFixHead">
+        <thead>
+            <tr>
+                <th scope="col">Acciones</th>
+                <th scope="col">Horas</th>
+                <th scope="col">Descripción</th>
+                <th scope="col">Cliente</th>
+                <th scope="col">Proyecto</th>
+                <th scope="col">Estado</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<!-- MODAL ALTA HORAS -->
+<div class="modal fade modal-m" data-backdrop="static" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true" id="modal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabel"></h5>
+                <button type="button" class="close" aria-label="Close" onclick="CerrarModal()">
+                    <span aria-hidden=" true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-sm-12 col-md-8 mb-2">
+                        <label for="cmbCliente">Cliente</label>
+                        <select class="form-control form-control-sm" id="cmbCliente" onchange="ObtenerProyectos(this.value)"></select>
+                    </div>
+                    <div class="col-sm-12 col-md-2">
+                        <label for="txtFecha">Fecha</label>
+                        <input type="text" class="form-control form-control-sm datepicker" id="txtFecha" style="width: 6rem;" autocomplete="off" />
+                    </div>
+                    <div class="col-sm-12 col-md-2">
+                        <label for="txtHoras">Horas</label>
+                        <input type="text" class="form-control form-control-sm" id="txtHoras" style="width: 6rem;" autocomplete="off" onkeypress="return ValidarEnterosYDecimales(event,this,2,2)" />
+                    </div>
+                    <div class="col-sm-12 col-md-6 mb-2">
+                        <label for="cmbProyecto">Proyecto</label>
+                        <select class="form-control form-control-sm" id="cmbProyecto" disabled onchange="ObtenerTareas(this.value)"></select>
+                    </div>
+                    <div class="col-sm-12 col-md-6 mb-2">
+                        <label for="cmbTarea">Tarea</label>
+                        <select class="form-control form-control-sm" id="cmbTarea" disabled></select>
+                    </div>
+                    <div class="col-sm-12">
+                        <label for="txtDescripcion">Descripción de lo realizado</label>
+                        <textarea class="form-control form-control-sm" id="txtDescripcion" maxlength="1000" rows="5"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                    onclick="CerrarModal()">Cancelar</button>
+                <button type="button" class="btn btn-success" id="btnAccion">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- MODAL ALTA HORAS -->
+
+<!-- MODAL VER HORAS -->
+<div class="modal fade modal-m" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true" id="modalVer">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Ver más información</h5>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-sm-12 col-md-6 mb-2">
+                        <label for="txtClienteV">Cliente</label>
+                        <input type="text" class="form-control form-control-sm disabled" id="txtClienteV" disabled readonly />
+                    </div>
+                    <div class="col-sm-12 col-md-2">
+                        <label for="txtFechaV">Fecha</label>
+                        <input type="text" class="form-control form-control-sm disabled" id="txtFechaV" disabled readonly />
+                    </div>
+                    <div class="col-sm-12 col-md-2">
+                        <label for="txtHorasV">Horas</label>
+                        <input type="text" class="form-control form-control-sm disabled" id="txtHorasV" disabled readonly />
+                    </div>
+                    <div class="col-sm-12 col-md-2">
+                        <label for="txtEstadoV">Estado</label>
+                        <input type="text" class="form-control form-control-sm disabled" id="txtEstadoV" disabled readonly />
+                    </div>
+                    <div class="col-sm-12 col-md-6 mb-2">
+                        <label for="txtProyectoV">Proyecto</label>
+                        <input type="text" class="form-control form-control-sm disabled" id="txtProyectoV" disabled readonly />
+                    </div>
+                    <div class="col-sm-12 col-md-6 mb-2">
+                        <label for="txtTareaV">Tarea</label>
+                        <input type="text" class="form-control form-control-sm disabled" id="txtTareaV" disabled readonly />
+                    </div>
+                    <div class="col-sm-12">
+                        <label for="txtDescripcionV">Descripción de lo realizado</label>
+                        <textarea class="form-control form-control-sm disabled" id="txtDescripcionV" rows="5" disabled readonly ></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- MODAL VER HORAS -->
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript" src="/js/jquery.mask.min.js"></script>
+<script>
+    $('#txtDesde').val(generateFirstDateActualMonth())
+    $('#txtHasta').val(generateTodayDate())
+    $('.selectpicker').selectpicker(optionsSelectPicker)        
+    $('.selectpicker').attr('title', 'Seleccione una opción...')
+    $('.selectpicker').selectpicker('refresh')
+
+    $(document).ready(async () => {
+        await getLista()
+    })
+
+    const CargarCmbClientes = () => {
+        return new Promise(async (resolve, reject) => {
+            const res = await $.post('/clientes/listaActivosAjaxSelect')
+            let htmlOp = '<option value="" selected disabled>Seleccione un cliente...</option>'
+            console.log(res)
+            if(res.status){
+                res.data.map(el => {
+                    htmlOp += `<option value="${el.id}">(${el.cuit}) - ${el.razon_social}</option>`
+                })
+                $('#cmbCliente').html(htmlOp)
+            }else{
+                $('#cmbCliente').html(htmlOp)
+            }
+            resolve()
+        })
+    }
+
+    const ObtenerProyectos = cliente => {
+        return new Promise(async (resolve, reject) => {
+            const res = await $.post('/proyectos/getProyectoByClienteSelect', {cliente})
+            let htmlOp = '<option value="" selected disabled>Seleccione un proyecto...</option>'
+
+            if(res.status){
+                res.data.map(el => {
+                    htmlOp += `<option value="${el.id}">(${el.desc_corta}) - ${el.descripcion}</option>`
+                })
+                $('#cmbProyecto').html(htmlOp)
+                $('#cmbProyecto').attr('disabled', false)
+                $('#cmbProyecto').removeClass('d-none')
+            }else{
+                $('#cmbProyecto').html(htmlOp)
+                $('#cmbProyecto').attr('disabled', true)
+                $('#cmbProyecto').addClass('d-none')
+            }
+        })
+    }
+
+    const ObtenerTareas = id => {
+        return new Promise(async (resolve, reject) => {
+            const res = await $.post('/proyectos/getTareasProyectoByClienteSelect', {idProyectoTitulo: id})
+            let htmlOp = '<option value="" selected disabled>Seleccione una tarea...</option>'
+
+            if(res.status){
+                res.data.map(el => {
+                    htmlOp += `<option value="${el.id}">${el.tarea}</option>`
+                })
+                $('#cmbTarea').html(htmlOp)
+                $('#cmbTarea').attr('disabled', false)
+                $('#cmbTarea').removeClass('d-none')
+            }else{
+                $('#cmbTarea').html(htmlOp)
+                $('#cmbTarea').attr('disabled', true)
+                $('#cmbTarea').addClass('d-none')
+            }
+        })
+    }
+
+    $("#txtFiltro").keyup(async function () {
+        Filtrar()
+    })
+    
+    const getLista = () => {
+        return new Promise(async (resolve, reject) => {
+            $("#preloaderAPP").show()
+            let activo = $('#cmbActivoFiltro').val()
+            let res = await $.post('/cargarHoras/getlistaAjax', { desde: $('#txtDesde').val(), hasta: $('#txtHasta').val() })
+            let html = ""
+            if(res.status){
+                for (let i = 0; i < res.data.length; i++) {
+                    html += `
+                        <tr>
+                            <td>
+                                <div style="display: flex; gap: 2px;">
+                                    <button class="btn btn-round btn-sm btn-info" data-toggle="tooltip" data-placement="top" 
+                                                title="Ver" onclick="Ver(${res.data[i].id})">
+                                        <i class="fa fa-eye"></i>
+                                    </button>
+                                </div>
+                            </td>
+                            <td class="search">${res.data[i].horas}</td>
+                            <td class="search">${res.data[i].descripcion}</td>
+                            <td class="search">(${res.data[i].cuit}) - ${res.data[i].clienteTxt}</td>
+                            <td class="search">${res.data[i].proyectoTxt}</td>
+                            <td class="search">${res.data[i].estadoTxt}</td>
+                        </tr>`
+                }
+            }else{
+                html = `<tr><td class="font-weight-bold" colspan="10">${res.text}</td></tr>`
+            }
+            $('#tablaDatos tbody').html(html)
+            $("#preloaderAPP").hide()
+        })
+    }
+
+    const ModalAccion = async (accion, id) => {
+        $("#preloaderAPP").show();
+        if (accion === 'a') {
+            await CargarCmbClientes()
+            $('#txtFecha').val(generateTodayDate())
+            $('#modalLabel').text('Cargar horas')
+            $('#btnAccion').attr('onclick', `PostRegistro("a")`)
+            $('#btnAccion').text('Guardar')
+        }
+        if (accion == 'm') {
+            let res = await $.post(`/cargarHoras/getByIdAjax`,{id})
+            if (res.status != 0) {
+                $('#descripcion').val(res.data.descripcion)
+                $('#desc_corta').val(res.data.desc_corta)
+                $('#chbActivo').prop('checked', res.data.activo === 1 ? true : false);
+            }
+            $('#modalLabel').text('Modificar horas')
+            $('#btnAccion').text('Guardar')
+            $('#btnAccion').attr('onclick', `PostRegistro("m",${id})`)
+            $('#actionSeccion').removeClass('d-none')
+            $('#actionSeccionDivider').removeClass('d-none')
+        }
+        $("#preloaderAPP").hide();
+        $('#modal').modal('show')
+    }
+
+    const PostRegistro = async (accion, Id) => {
+        $("#preloaderAPP").show()
+        let url = '/cargarHoras/alta', res,
+            body = {
+                cliente: $('#cmbCliente').val(),
+                fecha: $('#txtFecha').val(),
+                horas: $('#txtHoras').val(),
+                proyecto: $('#cmbProyecto').val(),
+                tarea: $('#cmbTarea').val(),
+                descripcion: $('#txtDescripcion').val()
+            }
+
+        if (accion === 'm') {
+            url = '/cargarHoras/modificar'
+            body.activo = $('#chbActivo').prop('checked') ? 1 : 0
+            body.id = Id
+        }
+
+        res = await $.post(url, body)
+        $("#preloaderAPP").hide()
+        Swal.fire({
+            icon: res.type,
+            title: res.title, 
+            text: res.text, 
+            timer: 2000
+        }).then(async () => {
+            if(res.status){
+                CerrarModal()
+                await getLista()
+            }
+        })        
+    }
+
+    // const Eliminar = id => {
+    //     Swal.fire({
+    //         title: 'Confirmar',
+    //         text: "¿Desea borrar este registro?",
+    //         icon: 'warning',
+    //         showCancelButton: true,
+    //         confirmButtonColor: '#3085d6',
+    //         confirmButtonText: 'Sí, eliminar.',
+    //         cancelButtonColor: '#d33',
+    //         cancelButtonText: 'No, cancelar.'
+    //     }).then(async result => {
+    //         if(result.isConfirmed){
+    //             $("#preloaderAPP").show();
+    //             let res = await $.post('/rubros/eliminar', { id })
+    //             $("#preloaderAPP").hide();
+    //             Swal.fire({
+    //                 type: res.type,
+    //                 icon: res.icon,
+    //                 title: res.title,
+    //                 text: res.text,
+    //                 timer: 2000
+    //             }).then(async () => {
+    //                 if(res.status){
+    //                     CerrarModal()
+    //                     await getLista()
+    //                 }
+    //             })
+    //         }    
+    //     })
+    // }
+
+    const Filtrar = () => {
+        $('#tablaDatos tbody tr').each(function () {
+            if ($(this).find('td.search').text().toUpperCase().indexOf($('#txtFiltro').val().toUpperCase()) > -1)
+                $(this).closest('tr').show();
+            else
+                $(this).closest('tr').hide();
+        });
+    }
+
+    const CerrarModal = () => {
+        $('#modal').modal('hide')
+        $('#actionSeccion').addClass('d-none')
+        $('#actionSeccionDivider').addClass('d-none')
+        LimpiarCampos()
+    }
+
+    const LimpiarCampos = () => {
+        $('input[type="text"]').val('')
+        $('textarea').val('')
+        $('input[type="checkbox"]').prop('checked', false)
+        $('input[type="radio"]').prop('checked', false)
+        $('#txtDesde').val(generateFirstDateActualMonth())
+        $('#txtHasta').val(generateTodayDate())
+    }
+
+    const Ver = async id => {
+        $("#preloaderAPP").show()
+        let res = await $.post('/cargarHoras/getByIdAjax', { id })
+        if(!res.status) return Swal.fire(res.title, res.text, res.icon)
+        $('#txtClienteV').val(res.data.clienteTxt)
+        $('#txtFechaV').val(changeDateDMY(res.data.fecha))
+        $('#txtHorasV').val(res.data.horas)
+        $('#txtEstadoV').val(res.data.estadoTxt)
+        $('#txtProyectoV').val(res.data.proyectoTxt)
+        $('#txtTareaV').val(res.data.tareaTxt)
+        $('#txtDescripcionV').val(res.data.descripcion)
+        $("#preloaderAPP").hide()
+        $('#modalVer').modal('show')
+    }
+
+</script>
+{% endblock %}

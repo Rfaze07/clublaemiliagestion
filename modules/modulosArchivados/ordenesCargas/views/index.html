@@ -1,0 +1,1352 @@
+{% extends '../../template.html' %}
+
+{% block styles %}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+    <h2>{{ pagename }}</h2>
+    <div class="d-flex align-items-end mb-3" style="gap: 0.2rem;">
+        <input type="text" class="form-control form-control-sm" id="txtFiltro" placeholder="Buscar" style="width: 10rem;" />
+        <div>
+            <label>Activos</label>
+            <select class="form-control form-control-sm" id="cmbActivoFiltro" onchange="getLista()">
+                <option value="t" selected>Todos</option>
+                <option value="1">Si</option>
+                <option value="0">No</option>
+            </select>
+        </div>
+        {% if permisos.a %}
+            <button class="btn btn-round btn-sm btn-success modalAccion mr-1" onclick='ModalAccion1("a")'>
+                <i class="fa fa-plus"></i>
+            </button>
+        {% endif %}
+    </div>
+</div>
+<div class="table-responsive" style="height: calc(100vh - 200px)" id="tablaDatos">
+    <table class="table table-sm table-fix table-hover tableFixHead">
+        <thead>
+            <tr>
+                <th>Acciones</th>
+                <th>Fecha</th>
+                <th>Estado</th>
+                <th>Cliente</th>
+                <th>Origen</th>
+                <th>Destino</th>
+                <th>Chofer</th>
+                <th>Camion</th>
+                <th>Semi</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<!-- MODAL 1 -->
+<div class="modal fade modal-m" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true" id="modal1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabel"></h5>
+                <button type="button" class="close" aria-label="Close" onclick="CerrarModal1()">
+                    <span aria-hidden=" true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-3">
+                        <label for="txtFechaCarga">Fecha y hora de carga</label>
+                        <div class="d-flex">
+                            <input type="text" style="width: 6rem;" class="form-control form-control-sm datepicker" id="txtFechaCarga" autocomplete="off">
+                            <input type="text" style="width: 4.05rem;" class="form-control form-control-sm ml-1 maskHM" id="txtHoraCarga" placeholder="HH:MM" onblur="ValidarHoraHM(this.value, this.id)" autocomplete="off">
+                        </div>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-6">
+                        <label for="cmbCliente">Cliente</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbCliente"></select>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-3">
+                        <label for="txtIdEnvio">ID de envío</label>
+                        <input type="text" class="form-control form-control-sm" id="txtIdEnvio" maxlength="15">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-5">
+                        <label for="cmbProvinciaOrigen">Provincia origen</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbProvinciaOrigen" onchange="ObtenerCmbLocalidadesProvincia(this.value, 'cmbLocalidadOrigen', 'txtCPOrigen')"></select>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-5">
+                        <label for="cmbLocalidadOrigen">Localidad origen</label>
+                        <select class="form-control form-control-sm selectpicker disabled" disabled id="cmbLocalidadOrigen" onchange="CargarCPSeleccionado(this, 'txtCPOrigen')"></select>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-2">
+                        <label for="txtCPOrigen">CP. origen</label>
+                        <input type="text" class="form-control form-control-sm" id="txtCPOrigen" maxlength="4" disabled readonly>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-5">
+                        <label for="cmbProvinciaDestino">Provincia destino</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbProvinciaDestino" onchange="ObtenerCmbLocalidadesProvincia(this.value, 'cmbLocalidadDestino', 'txtCPDestino')"></select>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-5">
+                        <label for="cmbLocalidadDestino">Localidad destino</label>
+                        <select class="form-control form-control-sm selectpicker disabled" disabled id="cmbLocalidadDestino" onchange="CargarCPSeleccionado(this, 'txtCPDestino')"></select>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-2">
+                        <label for="txtCPDestino">CP. destino</label>
+                        <input type="text" class="form-control form-control-sm" id="txtCPDestino" maxlength="4" disabled readonly>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12">
+                        <label for="txtObservaciones">Observaciones</label>
+                        <textarea class="form-control form-control-sm" id="txtObservaciones" rows="2" maxlength="3000"></textarea>
+                    </div>
+                </div>
+                <div class="row d-none" id="actionSeccion">
+                    <div class="col-12 text-center">
+                        <div class="custom-control custom-switch ml-1">
+                            <input type="checkbox" class="custom-control-input" id="chbActivo" />
+                            <label class="custom-control-label" for="chbActivo">Activo</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="CerrarModal1()">Cerrar</button>
+                <button type="button" class="btn btn-info" id="btnAccionC1">Continuar <i class="fas fa-arrow-right"></i></button>
+                <button type="button" class="btn btn-success" id="btnAccionG1">Guardar y cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- MODAL 1 -->
+
+
+<!-- MODAL 2 -->
+<div class="modal fade modal-m" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true" id="modal2">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabel2"></h5>
+                <button type="button" class="close" aria-label="Close" onclick="CerrarModal2()">
+                    <span aria-hidden=" true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="d-flex justify-content-end align-items-center p-2">
+                    <input type="text" class="form-control form-control-sm mr-3" id="txtFiltroProductos" placeholder="Buscar" style="width: 10rem;" oninput="FiltrarProductos()" />
+                    <button class="btn btn-round btn-sm btn-success" data-toggle="modal" data-target="#modal2Producto">
+                        <i class="fa fa-plus mr-1"></i> Agregar producto
+                    </button>
+                </div>
+                <table class="table table-sm table-fix table-hover tableFixHead" id="tablaProductos">
+                    <thead>
+                        <tr>
+                            <th class="text-center">Acciones</th>
+                            <th class="text-center" style="width: 100px;">Cantidad</th>
+                            <th style="width: 180px;">Uni. de medida</th>
+                            <th>Producto</th>
+                            <th>Observaciones</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="CerrarModal2()">Cerrar</button>
+                <button type="button" class="btn btn-info" id="btnAccionC2">Continuar <i class="fas fa-arrow-right"></i></button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- MODAL 2 -->
+
+<!-- MODAL 2 ALTA -->
+<div class="modal fade modal-m" data-backdrop="static" data-keyboard="false" tabindex="2" aria-labelledby="staticBackdropLabel" aria-hidden="true" id="modal2Producto">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Alta de producto</h5>
+                <button type="button" class="close" aria-label="Close" onclick="CerrarModalAlta2()">
+                    <span aria-hidden=" true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-3">
+                        <label for="txtCantidad">Cantidad</label>
+                        <input type="text" class="form-control form-control-sm" id="txtCantidadP" maxlength="4" onkeypress="return soloNumeros(event)">
+                    </div>
+                    <div class="form-group col-sm-12 col-md-9">
+                        <label for="cmbProducto">Prodcuto</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbProductoP"></select>
+                    </div>
+                    <div class="form-group col-sm-12">
+                        <label for="cmbUniMed">Uni. de medida</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbUniMedP"></select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12">
+                        <label for="txtObservaciones">Observaciones</label>
+                        <textarea class="form-control form-control-sm" id="txtObservacionesP" rows="2" maxlength="3000"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="CerrarModalAlta2()">Cerrar</button>
+                <button type="button" class="btn btn-success" id="btnAccionProductos">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- MODAL 2 ALTA -->
+
+
+<!-- MODAL 3 -->
+<div class="modal fade modal-m" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true" id="modal3">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabel3"></h5>
+                <button type="button" class="close" aria-label="Close" onclick="CerrarModal3()">
+                    <span aria-hidden=" true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="d-flex justify-content-end align-items-center p-2">
+                    <input type="text" class="form-control form-control-sm mr-3" id="txtFiltroRepartos" placeholder="Buscar" style="width: 10rem;" oninput="FiltrarRepartos()" />
+                    <button class="btn btn-round btn-sm btn-success" data-toggle="modal" data-target="#modal3Reparto">
+                        <i class="fa fa-plus mr-1"></i> Agregar reparto
+                    </button>
+                </div>
+                <table class="table table-sm table-fix table-hover tableFixHead" id="tablaRepartos">
+                    <thead>
+                        <tr>
+                            <th class="text-center">Acciones</th>
+                            <th class="text-center" style="width: 90px;">Orden</th>
+                            <th>Provincia</th>
+                            <th>Localidad</th>
+                            <th>Cod. postal</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="CerrarModal3()">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- MODAL 3 -->
+
+<!-- MODAL 3 ALTA -->
+<div class="modal fade modal-m" data-backdrop="static" data-keyboard="false" tabindex="2" aria-labelledby="staticBackdropLabel" aria-hidden="true" id="modal3Reparto">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Alta de reparto</h5>
+                <button type="button" class="close" aria-label="Close" onclick="CerrarModalAlta3()">
+                    <span aria-hidden=" true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-2">
+                        <label for="txtOrdenReparto">Orden</label>
+                        <input type="text" class="form-control form-control-sm" id="txtOrdenReparto" maxlength="3" onkeypress="return soloNumeros(event)" />
+                    </div>
+                    <div class="form-group col-sm-12 col-md-4">
+                        <label for="cmbProvinciaReparto">Provincia origen</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbProvinciaReparto" onchange="ObtenerCmbLocalidadesProvincia(this.value, 'cmbLocalidadReparto', 'txtCPReparto')"></select>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-4">
+                        <label for="cmbLocalidadReparto">Localidad origen</label>
+                        <select class="form-control form-control-sm selectpicker disabled" disabled id="cmbLocalidadReparto" onchange="CargarCPSeleccionado(this, 'txtCPReparto')"></select>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-2">
+                        <label for="txtCPReparto">CP. origen</label>
+                        <input type="text" class="form-control form-control-sm" id="txtCPReparto" maxlength="4" disabled readonly>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12">
+                        <label for="txtObservaciones">Observaciones</label>
+                        <textarea class="form-control form-control-sm" id="txtObservacionesR" rows="2" maxlength="3000"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="CerrarModalAlta3()">Cerrar</button>
+                <button type="button" class="btn btn-success" id="btnAccionRepartos">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- MODAL 3 ALTA -->
+
+
+<!-- MODAL 4 -->
+<div class="modal fade modal-m" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true" id="modal4">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabel"></h5>
+                <button type="button" class="close" aria-label="Close" onclick="CerrarModal()">
+                    <span aria-hidden=" true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-4">
+                        <label for="cmbChofer">Chofer</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbChofer"></select>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-4">
+                        <label for="cmbCamion">Camión</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbCamion"></select>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-4">
+                        <label for="cmbSemi">Semi</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbSemi"></select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                    onclick="CerrarModal()">Cancelar</button>
+                <button type="button" class="btn btn-success" id="btnAccion">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- MODAL 4 -->
+
+
+<!-- MODAL 5 -->
+<div class="modal fade modal-m" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true" id="modal5">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabel"></h5>
+                <button type="button" class="close" aria-label="Close" onclick="CerrarModal()">
+                    <span aria-hidden=" true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-4">
+                        <label for="cmbChofer">Chofer</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbChofer"></select>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-4">
+                        <label for="cmbCamion">Camión</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbCamion"></select>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-4">
+                        <label for="cmbSemi">Semi</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbSemi"></select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                    onclick="CerrarModal()">Cancelar</button>
+                <button type="button" class="btn btn-success" id="btnAccion">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- MODAL 5 -->
+
+
+
+<!-- MODAL VER -->
+<div class="modal fade modal-m" data-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    aria-labelledby="staticBackdropLabel" aria-hidden="true" id="modalVer">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabelV"></h5>
+                <button type="button" class="close" aria-label="Close" onclick="CerrarModal()">
+                    <span aria-hidden=" true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-2">
+                        <label for="txtFecha">Fecha</label>
+                        <input type="text" class="form-control form-control-sm" id="txtFechaV" disabled readonly>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-7">
+                        <label for="txtClienteV">Cliente</label>
+                        <input type="text" class="form-control form-control-sm" id="txtClienteV" disabled readonly>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-3">
+                        <label for="txtNroClienteV">Nro. cliente</label>
+                        <input type="text" class="form-control form-control-sm" id="txtNroClienteV" disabled readonly>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-5">
+                        <label for="txtProvinciaOrigenV">Provincia origen</label>
+                        <input type="text" class="form-control form-control-sm" id="txtProvinciaOrigenV" disabled readonly>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-5">
+                        <label for="txtLocalidadOrigenV">Localidad origen</label>
+                        <input type="text" class="form-control form-control-sm" id="txtLocalidadOrigenV" disabled readonly>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-2">
+                        <label for="txtCPOrigenV">CP. origen</label>
+                        <input type="text" class="form-control form-control-sm" id="txtCPOrigenV" disabled readonly>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-5">
+                        <label for="txtProvinciaDestinoV">Provincia destino</label>
+                        <input type="text" class="form-control form-control-sm" id="txtProvinciaDestinoV" disabled readonly>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-5">
+                        <label for="txtLocalidadDestinoV">Localidad destino</label>
+                        <input type="text" class="form-control form-control-sm" id="txtLocalidadDestinoV" disabled readonly>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-2">
+                        <label for="txtCPDestinoV">CP. destino</label>
+                        <input type="text" class="form-control form-control-sm" id="txtCPDestinoV" disabled readonly>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-2">
+                        <label for="txtCantidadV">Cantidad</label>
+                        <input type="text" class="form-control form-control-sm" id="txtCantidadV" disabled readonly>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-6">
+                        <label for="txtProductoV">Prodcuto</label>
+                        <input type="text" class="form-control form-control-sm" id="txtProductoV" disabled readonly>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-4">
+                        <label for="txtUniMedV">Uni. de medida</label>
+                        <input type="text" class="form-control form-control-sm" id="txtUniMedV" disabled readonly>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-4">
+                        <label for="txtChoferV">Chofer</label>
+                        <input type="text" class="form-control form-control-sm" id="txtChoferV" disabled readonly>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-4">
+                        <label for="txtCamionV">Camión</label>
+                        <input type="text" class="form-control form-control-sm" id="txtCamionV" disabled readonly>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-4">
+                        <label for="txtSemiV">Semi</label>
+                        <input type="text" class="form-control form-control-sm" id="txtSemiV" disabled readonly>
+
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12">
+                        <label for="txtObservaciones">Observaciones</label>
+                        <textarea class="form-control form-control-sm" id="txtObservacionesV" rows="2" disabled readonly></textarea>
+                    </div>
+                </div>
+                <div class="row" id="actionSeccion">
+                    <div class="col-12 text-center">
+                        <div class="custom-control custom-switch ml-1">
+                            <input type="checkbox" class="custom-control-input" id="chbActivoV" disabled readonly />
+                            <label class="custom-control-label" for="chbActivo">Activo</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- MODAL -->
+<div class="modal fade modal-m" data-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    aria-labelledby="staticBackdropLabel" aria-hidden="true" id="modalAgregarChofer">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabelAgregarChofer"></h5>
+                <button type="button" class="close" aria-label="Close" onclick="CerrarModalAgregar()">
+                    <span aria-hidden=" true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-4">
+                        <label for="cmbChoferA">Chofer</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbChoferA"></select>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-4">
+                        <label for="cmbCamionA">Camión</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbCamionA"></select>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-4">
+                        <label for="cmbSemiA">Semi</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbSemiA"></select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="CerrarModalAgregar()">Cancelar</button>
+                <button type="button" class="btn btn-success" onclick="AgregarChofer()">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let _idOrdenCarga=null
+
+    $(document).ready(async () => {
+        await ObtenerCmbClientes()
+        await ObtenerCmbProvincias(['cmbProvinciaOrigen', 'cmbProvinciaDestino'])
+        await ObtenerCmbChoferes()
+        await ObtenerCmbCamiones()
+        await ObtenerCmbSemis()
+        getLista()
+    })
+
+    const getLista = async () => {
+        $("#preloaderAPP").show();
+        let activo = $('#cmbActivoFiltro').val()
+        let res = await $.post('/ordenesCargas/getlistaAjax', { activo })
+        let html = ""
+        if(res.status){
+            for (let i = 0; i < res.data.length; i++) {
+                html += `
+                    <tr>
+                        <td>
+                            <div style="display: flex; gap: 2px;">
+                                <button class="btn btn-round btn-sm btn-info"
+                                    data-toggle="tooltip" data-placement="top" title="Ver" onclick="ModalAccion('v', ${res.data[i].id})">
+                                    <i class="fa fa-eye"></i>
+                                </button>
+
+                                {% if permisos.m %}
+
+                                    <div class="btn-group" role="group" aria-label="First group">
+                                        <button type="button" class="btn btn-warning font-weight-bold" onclick="ModalAccion1('m', ${res.data[i].id})" data-toggle="tooltip" data-placement="top" title="Órden de carga">1</button>
+                                        <button type="button" class="btn btn-warning font-weight-bold" onclick="ModalAccion2('m', ${res.data[i].id})" data-toggle="tooltip" data-placement="top" title="Productos">2</button>
+                                        <button type="button" class="btn btn-warning font-weight-bold" onclick="ModalAccion3('m', ${res.data[i].id})" data-toggle="tooltip" data-placement="top" title="Repartos">3</button>
+                                        <button type="button" class="btn btn-warning font-weight-bold" onclick="ModalAccion4('m', ${res.data[i].id})" data-toggle="tooltip" data-placement="top" title="Logística">4</button>
+                                        <button type="button" class="btn btn-warning font-weight-bold" onclick="ModalAccion5('m', ${res.data[i].id})" data-toggle="tooltip" data-placement="top" title="Liquidación">5</button>
+                                    </div>
+
+                                    ${
+                                        res.data[i].chofer != null ? 
+                                        `<button class="btn btn-round btn-sm" data-toggle="tooltip" data-placement="top" style="background-color: #8335dc; color: #fff;"
+                                                    title="Agregar chofer" onclick="ModalAgregarChofer(${res.data[i].id})">
+                                            <i class="fas fa-truck"></i>
+                                        </button>`
+                                        :
+                                        ''
+                                    }
+
+                                    <!--
+                                    <button class="btn btn-round btn-sm btn-warning" data-accion="m"
+                                                data-toggle="tooltip" data-placement="top" title="Modificar" onclick="ModalAccion('m',${res.data[i].id})">
+                                        <i class="fa fa-pen"></i>
+                                    </button>
+                                    -->
+
+                                    <button class="btn btn-round btn-sm btn-secondary" data-toggle="tooltip" data-placement="top" 
+                                                title="Actualizar estado" onclick="ActualizarEstado(${res.data[i].id})">
+                                        <i class="fa fa-sync"></i>
+                                    </button>
+                                {% endif %}
+
+                                {% if permisos.b %}
+                                    <button class="btn btn-round btn-sm btn-danger" onclick="Eliminar(${res.data[i].id})" data-toggle="tooltip" data-placement="top" 
+                                                title="Eliminar">
+                                        <i class="fa fa-trash-alt"></i>
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="search">${changeDateDMY(res.data[i].fecha_carga)} ${res.data[i].hora_carga}</td>
+                        <td class="search">${res.data[i].estadoTxt}</td>
+                        <td class="search">${res.data[i].cliente}</td>
+                        <td class="search">${res.data[i].provincia_origen} - ${res.data[i].localidad_origen} (${res.data[i].localidad_origen_cp})</td>
+                        <td class="search">${res.data[i].provincia_destino} - ${res.data[i].localidad_destino} (${res.data[i].localidad_destino_cp})</td>
+                        <td class="search">${res.data[i].chofer == null ? '' : res.data[i].chofer}</td>
+                        <td class="search">${res.data[i].camion == null ? '' : res.data[i].camion}</td>
+                        <td class="search">${res.data[i].semi == null ? '' : res.data[i].semi}</td>
+                    </tr>`
+            }
+        }else{
+            html = `<tr><td class="font-weight-bold" colspan="4">${res.text}</td></tr>`
+        }
+        $('#tablaDatos tbody').html(html)
+        $("#preloaderAPP").hide()
+        $('[data-toggle="tooltip"]').tooltip()
+    }
+
+
+
+    // =======================
+    //      PASO 1
+    // =======================
+
+    const ModalAccion1 = async (accion, id) => {
+        $("#preloaderAPP").show()
+        if (accion === 'a') {
+            $('#modalLabel').text('Nueva órden de carga')
+            $('#btnAccionC1').attr('onclick', `PostRegistro1("a", "true")`)
+            $('#btnAccionC1').html('Continuar <i class="fas fa-arrow-right"></i>')
+            $('#btnAccionG1').attr('onclick', `PostRegistro1("a", "false")`)
+            $('#btnAccionG1').html('Guardar y cerrar')
+            $('#txtFechaCarga').val(generateTodayDateDMY())
+            $("#preloaderAPP").hide()
+            $('#modal1').modal('show')
+        }else if (accion == 'm') {
+            let res = await $.post(`/ordenesCargas/getByIdAjax`, {id})
+            if (res.status != 0) {
+                $('#txtFechaCarga').val(changeDateDMY(res.data.fecha_carga))
+                $('#txtHoraCarga').val(res.data.hora_carga)
+                $('#cmbCliente').selectpicker('val', res.data.id_cliente_fk)
+                $('#cmbCliente').selectpicker('refresh')
+                $('#txtIdEnvio').val(res.data.id_envio)
+                $('#cmbProvinciaOrigen').val(res.data.id_provincia_origen_fk)
+                $('#cmbProvinciaOrigen').selectpicker('refresh')
+                await ObtenerCmbLocalidadesProvincia(res.data.id_provincia_origen_fk, 'cmbLocalidadOrigen', false)
+                $('#cmbLocalidadOrigen').val(res.data.id_localidad_origen_fk)
+                $('#cmbLocalidadOrigen').selectpicker('refresh')
+                $('#txtCPOrigen').val(res.data.localidad_origen_cp)
+                $('#cmbProvinciaDestino').val(res.data.id_provincia_destino_fk)
+                $('#cmbProvinciaDestino').selectpicker('refresh')
+                await ObtenerCmbLocalidadesProvincia(res.data.id_provincia_destino_fk, 'cmbLocalidadDestino', false)
+                $('#cmbLocalidadDestino').val(res.data.id_localidad_destino_fk)
+                $('#cmbLocalidadDestino').selectpicker('refresh')
+                $('.selectpicker').selectpicker('refresh')
+                $('#txtCPDestino').val(res.data.localidad_destino_cp)
+                $('#txtObservaciones').val(res.data.observaciones)
+                $('#chbActivo').prop('checked', res.data.activo === 1 ? true : false)
+            }
+            $('#modalLabel').text('Modificar órden de carga')
+            $('#btnAccion1').text('Guardar y cerrar')
+            $('#btnAccion1').attr('onclick', `PostRegistro1("m", ${id})`)
+            $('#actionSeccion').removeClass('d-none')
+            $('#actionSeccionDivider').removeClass('d-none')
+            $("#preloaderAPP").hide()
+            $('#modal1').modal('show')
+        }
+    }
+
+    const PostRegistro1 = async (accion, continuo, Id) => {
+        $("#preloaderAPP").show()
+        let url = '/ordenesCargas/alta1', 
+            body = {
+                fechaCarga: $('#txtFechaCarga').val(),
+                horaCarga: $('#txtHoraCarga').val(),
+                cliente: $('#cmbCliente').val(),
+                idEnvio: $('#txtIdEnvio').val(),
+                provinciaO: $('#cmbProvinciaOrigen').val(),
+                localidadO: $('#cmbLocalidadOrigen').val(),
+                provinciaD: $('#cmbProvinciaDestino').val(),
+                localidadD: $('#cmbLocalidadDestino').val(),
+                observaciones: $('#txtObservaciones').val()
+            }
+
+        if (accion === 'm') {
+            url = '/ordenesCargas/modificar1'
+            body.activo = $('#chbActivo').prop('checked') ? 1 : 0
+            body.id = Id
+        }
+
+        const res = await $.post(url, body)
+        console.log(res)
+        $("#preloaderAPP").hide()
+        if(res.status){
+            if(continuo == 'true'){
+                _idOrdenCarga=res.idOrdenCarga
+                CerrarModal1()
+                Toast.fire({ icon: res.icon, title: res.text })
+                ModalAccion2('a', _idOrdenCarga)
+            }else{
+                Swal.fire({
+                    icon: res.icon,
+                    title: res.title, 
+                    text: res.text,
+                    timer: 2500
+                }).then(() => {
+                    CerrarModal1()
+                    getLista()
+                })
+            }
+        }else{
+            Swal.fire({
+                icon: res.icon,
+                title: res.title, 
+                text: res.text
+            })
+        }
+    }
+
+    const CerrarModal1 = () => {
+        $('#modal1').modal('hide')
+        $('#actionSeccion').addClass('d-none')
+        $('#actionSeccionDivider').addClass('d-none')
+        LimpiarCampos1()
+    }
+
+    const LimpiarCampos1 = () => {
+        $('txtFechaCarga').val('')
+        $('#txtHoraCarga').val('')
+        $('#cmbCliente').val('')
+        $('#txtIdEnvio').val('')
+        $('#cmbProvinciaOrigen').val('')
+        $('#cmbLocalidadOrigen').val('')
+        $('#cmbProvinciaDestino').val('')
+        $('#cmbLocalidadDestino').val('')
+        $('#txtObservaciones').val('')
+    }
+
+
+
+    // =======================
+    //      PASO 2
+    // =======================
+
+    const ObtenerListaProductos = idOrdenCarga => {
+        return new Promise(async (resolve, reject) => {
+            $("#preloaderAPP").show()
+            const res = await $.post('/ordenesCargas/getListaProductosAjax', {idOrdenCarga})
+            if(!res.status){
+                $("#preloaderAPP").hide()
+                Swal.fire(res.title, res.text, res.icon)
+                resolve()
+            }
+            let html='<tr><td colspan="6">Sin productos agregados.</td></tr>'
+            if(res.data.length > 0){
+                html=''
+                res.data.map(el => html += `
+                    <tr>
+                        <td style="width: 100px; text-align: center;">
+                            <button class="btn btn-round btn-sm btn-warning" data-toggle="tooltip" data-placement="top" title="Modificar" onclick='ModificarProducto(${el.id})'>
+                                <i class="fa fa-pen"></i>
+                            </button>
+                            <button class="btn btn-round btn-sm btn-danger" data-toggle="tooltip" data-placement="top" title="Eliminar" onclick='EliminarProducto(${el.id})'>
+                                <i class="fa fa-trash"></i>
+                            </button>
+                        </td>
+                        <td class="text-center">${el.cantidad}</td>
+                        <td class="search">${el.uniMedTxt}</td>
+                        <td class="search">${el.producto}</td>
+                        <td class="search">${el.observaciones}</td>
+                    </tr>
+                `)
+
+            }
+            $('#tablaProductos tbody').html(html)
+            $('[data-toggle="tooltip"]').tooltip()
+            $("#preloaderAPP").hide()
+            resolve()
+        })
+    }
+
+    const ModalAccion2 = async (accion, id) => {
+        $("#preloaderAPP").show()
+        _idOrdenCarga=id
+        await ObtenerListaProductos(id)
+        await ObtenerCmbProductos('cmbProductoP')
+        await ObtenerCmbUnidadesMedidas('cmbUniMedP')
+        $('#modalLabel2').text(`Órden de carga - Lista de productos`)
+        $('#btnAccionProductos').attr('onclick', `PostRegistro2("a", ${id})`)
+        $('#btnAccionProductos').html('Guardar')
+        $("#preloaderAPP").hide()
+        $('#modal2').modal('show')
+    }
+
+    const PostRegistro2 = async (accion, Id) => {
+        $("#preloaderAPP").show()
+        let url = '/ordenesCargas/alta2', 
+            body = {
+                idOrdenCarga: Id,
+                cantidad: $('#txtCantidadP').val(),
+                producto: $('#cmbProductoP').val(),
+                uniMed: $('#cmbUniMedP').val(),
+                observaciones: $('#txtObservacionesP').val()
+            }
+
+        if (accion === 'm') {
+            url = '/ordenesCargas/modificar2'
+            body.activo = $('#chbActivo').prop('checked') ? 1 : 0
+            body.id = Id
+        }
+
+        const res = await $.post(url, body)
+        $("#preloaderAPP").hide()
+        if(res.status){
+            _idOrdenCarga=res.idOrdenCarga
+            CerrarModalAlta2()
+            await ObtenerListaProductos(_idOrdenCarga)
+            Toast.fire({ icon: res.icon, title: res.text })
+            ModalAccion3('a', _idOrdenCarga)
+        }else{
+            Swal.fire({
+                icon: res.icon,
+                title: res.title, 
+                text: res.text
+            })
+        }
+    }
+
+    const ModificarProducto = async id => {
+        $('[data-toggle="tooltip"]').tooltip('hide')
+        await ObtenerListaProductos(id)
+        await ObtenerCmbProductos('cmbProductoP')
+        await ObtenerCmbUnidadesMedidas('cmbUniMedP')
+        const res = await $.post('/ordenesCargas/getModificar2Ajax', {id})
+        if(!res.status) return Swal.fire({ icon: res.icon, title: res.title, text: res.text })
+        $('#txtCantidadP').val(res.data.cantidad)
+        $('#cmbProductoP').selectpicker('val', res.data.id_producto_fk)
+        $('#cmbProductoP').selectpicker('refresh')
+        $('#cmbUniMedP').selectpicker('val', res.data.id_unmed_fk)
+        $('#cmbUniMedP').selectpicker('refresh')
+        $('#txtObservacionesP').val(res.data.observaciones)
+        $('#modalLabel2').text(`Órden de carga - Alta de productos`)
+        $('#btnAccionProductos').attr('onclick', `PostRegistro2("a", ${id})`)
+        $('#btnAccionProductos').html('Guardar')
+        $("#preloaderAPP").hide()
+        $('#modal2Producto').modal('show')
+    }
+
+    const CerrarModal2 = () => {
+        _idOrdenCarga=null
+        $('#modal2').modal('hide')
+    }
+
+    const LimpiarCampos2 = () => {
+        $('#txtCantidadP').val('')
+        $('#cmbProductoP').selectpicker('val', '')
+        $('#cmbProductoP').selectpicker('refresh')
+        $('#cmbUniMedP').selectpicker('val', '')
+        $('#cmbUniMedP').selectpicker('refresh')
+        $('#txtObservacionesP').val('')
+    }
+
+    const CerrarModalAlta2 = () => {
+        $('#modal2Producto').modal('hide')
+        LimpiarCampos2()
+    }
+ 
+    const FiltrarProductos = () => {
+        $('#tablaProductos tbody tr').each(function () {
+            if ($(this).find('td.search').text().toUpperCase().indexOf($('#txtFiltroProductos').val().toUpperCase()) > -1)
+                $(this).closest('tr').show();
+            else
+                $(this).closest('tr').hide();
+        })
+    }
+
+
+
+    // =======================
+    //      PASO 3
+    // =======================
+
+    const ObtenerListaRepartos = idOrdenCarga => {
+        return new Promise(async (resolve, reject) => {
+            $("#preloaderAPP").show()
+            const res = await $.post('/ordenesCargas/getListaRepartosAjax', {idOrdenCarga})
+            if(!res.status){
+                $("#preloaderAPP").hide()
+                Swal.fire(res.title, res.text, res.icon)
+                resolve()
+            }
+            let html='<tr><td colspan="6">Sin repartos agregados.</td></tr>'
+            if(res.data.length > 0){
+                html=''
+                res.data.map(el => html += `
+                    <tr>
+                        <td style="width: 100px; text-align: center;">
+                            <button class="btn btn-round btn-sm btn-warning" data-toggle="tooltip" data-placement="top" title="Modificar" onclick='ModificarReparto(${el.id})'>
+                                <i class="fa fa-pen"></i>
+                            </button>
+                            <button class="btn btn-round btn-sm btn-danger" data-toggle="tooltip" data-placement="top" title="Eliminar" onclick='EliminarReparto(${el.id})'>
+                                <i class="fa fa-trash"></i>
+                            </button>
+                        </td>
+                        <td class="text-center">${el.orden}</td>
+                        <td class="search">${el.provinciaTxt}</td>
+                        <td class="search">${el.localidadTxt}</td>
+                        <td class="search">${el.cp}</td>
+                    </tr>
+                `)
+
+            }
+            $('#tablaRepartos tbody').html(html)
+            $('[data-toggle="tooltip"]').tooltip()
+            $("#preloaderAPP").hide()
+            resolve()
+        })
+    }
+
+    $('#modal3Reparto').on('show.bs.modal', async function () {
+        const res = await $.post('/ordenesCargas/ultimoOrden3', {id:_idOrdenCarga})
+        if(!res.status) return Swal.fire({ icon: res.icon, title: res.title, text: res.text })
+        $('#txtOrdenReparto').val(res.data)
+    })
+
+    const ModalAccion3 = async (accion, id) => {
+        $("#preloaderAPP").show()
+        _idOrdenCarga=id
+        await ObtenerListaRepartos(id)
+        await ObtenerCmbProvincias(['cmbProvinciaReparto'])
+        $('#modalLabel3').text(`Órden de carga - Lista de repartos`)
+        $('#btnAccionRepartos').attr('onclick', `PostRegistro3("a", ${id})`)
+        $('#btnAccionRepartos').html('Guardar')
+        $("#preloaderAPP").hide()
+        $('#modal3').modal('show')
+    }
+
+    const PostRegistro3 = async (accion, Id) => {
+        $("#preloaderAPP").show()
+        let url = '/ordenesCargas/alta3', 
+            body = {
+                idOrdenCarga: Id,
+                orden: $('#txtOrdenReparto').val(),
+                provincia: $('#cmbProvinciaReparto').val(),
+                localidad: $('#cmbLocalidadReparto').val(),
+                observaciones: $('#txtObservacionesR').val()
+            }
+
+        if (accion === 'm') {
+            url = '/ordenesCargas/modificar3'
+            body.activo = $('#chbActivo').prop('checked') ? 1 : 0
+            body.id = Id
+        }
+
+        const res = await $.post(url, body)
+        $("#preloaderAPP").hide()
+        if(res.status){
+            CerrarModalAlta3()
+            await ObtenerListaRepartos(Id)
+            Toast.fire({ icon: res.icon, title: res.text })
+        }else{
+            Swal.fire({
+                icon: res.icon,
+                title: res.title, 
+                text: res.text
+            })
+        }
+    }
+
+    const ModificarReparto = async id => {
+        $('[data-toggle="tooltip"]').tooltip('hide')
+        const res = await $.post('/ordenesCargas/getModificar3Ajax', {id})
+        if(!res.status) return Swal.fire({ icon: res.icon, title: res.title, text: res.text })
+        $('#txtOrdenReparto').val(res.data.orden)
+        await ObtenerCmbProvincias(['cmbProvinciaReparto'])
+        $('#cmbProvinciaReparto').selectpicker('val', res.data.id_provincia_fk)
+        $('#cmbProvinciaReparto').selectpicker('refresh')
+        await ObtenerCmbLocalidadesProvincia(res.data.id_provincia_fk, 'cmbLocalidadReparto', 'txtCPReparto')
+        $('#cmbLocalidadReparto').selectpicker('val', res.data.id_localidad_fk)
+        $('#cmbLocalidadReparto').selectpicker('refresh')
+        $('#txtCPReparto').val($('#cmbLocalidadReparto option:selected').data('cp'))
+        $('#txtObservacionesR').val(res.data.observaciones)
+        $('#modalLabel3').text(`Órden de carga - Alta de productos`)
+        $('#btnAccionRepartos').attr('onclick', `PostRegistro3("m", ${id})`)
+        $('#btnAccionRepartos').html('Guardar')
+        $("#preloaderAPP").hide()
+        $('#modal3Reparto').modal('show')
+    }
+
+    const EliminarReparto = async id => {
+        Swal.fire({
+            title: 'Confirmar',
+            text: "¿Desea eliminar el item?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonColor: '#d33',
+            cancelButtonText: 'No, cancelar'
+        }).then(async result => {
+            if (result.isConfirmed) {
+                $("#preloaderAPP").show()
+                const res = await $.post('/ordenesCargas/eliminar3', {id})
+                $("#preloaderAPP").hide()
+                Swal.fire({
+                    icon: res.icon,
+                    title: res.title,
+                    text: res.text,
+                    timer: 2500
+                }).then(async () => {
+                    if(res.status) await ObtenerListaRepartos(_idOrdenCarga)
+                })
+            }
+        })
+    }
+
+    const CerrarModal3 = () => {
+        _idOrdenCarga=null
+        $('#modal3').modal('hide')
+    }
+
+    const LimpiarCampos3 = () => {
+        $('#txtOrdenReparto').val('')
+        $('#cmbProvinciaReparto').selectpicker('val', '')
+        $('#cmbProvinciaReparto').selectpicker('refresh')
+        $('#cmbLocalidadReparto').selectpicker('val', '')
+        $('#cmbLocalidadReparto').prop('disabled', true)
+        $('#cmbLocalidadReparto').html('')
+        $('#cmbLocalidadReparto').selectpicker('refresh')
+        $('#txtCPReparto').val('')
+        $('#txtObservacionesR').val('')
+    }
+
+    const CerrarModalAlta3 = () => {
+        $('#modal3Reparto').modal('hide')
+        LimpiarCampos3()
+    }
+ 
+    const FiltrarRepartos = () => {
+        $('#tablaRepartos tbody tr').each(function () {
+            if ($(this).find('td.search').text().toUpperCase().indexOf($('#txtFiltroRepartos').val().toUpperCase()) > -1)
+                $(this).closest('tr').show();
+            else
+                $(this).closest('tr').hide();
+        })
+    }
+
+
+
+    // =======================
+    //      PASO 4
+    // =======================
+
+    const ObtenerListaLiquidacion = idOrdenCarga => {
+        return new Promise(async (resolve, reject) => {
+            $("#preloaderAPP").show()
+            const res = await $.post('/ordenesCargas/getListaRepartosAjax', {idOrdenCarga})
+            if(!res.status){
+                $("#preloaderAPP").hide()
+                Swal.fire(res.title, res.text, res.icon)
+                resolve()
+            }
+            let html='<tr><td colspan="6">Sin repartos agregados.</td></tr>'
+            if(res.data.length > 0){
+                html=''
+                res.data.map(el => html += `
+                    <tr>
+                        <td style="width: 100px; text-align: center;">
+                            <button class="btn btn-round btn-sm btn-warning" data-toggle="tooltip" data-placement="top" title="Modificar" onclick='ModificarReparto(${el.id})'>
+                                <i class="fa fa-pen"></i>
+                            </button>
+                            <button class="btn btn-round btn-sm btn-danger" data-toggle="tooltip" data-placement="top" title="Eliminar" onclick='EliminarReparto(${el.id})'>
+                                <i class="fa fa-trash"></i>
+                            </button>
+                        </td>
+                        <td class="text-center">${el.orden}</td>
+                        <td class="search">${el.provinciaTxt}</td>
+                        <td class="search">${el.localidadTxt}</td>
+                        <td class="search">${el.cp}</td>
+                    </tr>
+                `)
+
+            }
+            $('#tablaRepartos tbody').html(html)
+            $('[data-toggle="tooltip"]').tooltip()
+            $("#preloaderAPP").hide()
+            resolve()
+        })
+    }
+
+    const ModalAccion4 = async (accion, id) => {
+        $("#preloaderAPP").show()
+        _idOrdenCarga=id
+        await ObtenerListaRepartos(id)
+        await ObtenerCmbProvincias(['cmbProvinciaReparto'])
+        $('#modalLabel3').text(`Órden de carga - Lista de repartos`)
+        $('#btnAccionRepartos').attr('onclick', `PostRegistro3("a", ${id})`)
+        $('#btnAccionRepartos').html('Guardar')
+        $("#preloaderAPP").hide()
+        $('#modal3').modal('show')
+    }
+
+    const PostRegistro4 = async (accion, Id) => {
+        $("#preloaderAPP").show()
+        let url = '/ordenesCargas/alta3', 
+            body = {
+                idOrdenCarga: Id,
+                orden: $('#txtOrdenReparto').val(),
+                provincia: $('#cmbProvinciaReparto').val(),
+                localidad: $('#cmbLocalidadReparto').val(),
+                observaciones: $('#txtObservacionesR').val()
+            }
+
+        if (accion === 'm') {
+            url = '/ordenesCargas/modificar3'
+            body.activo = $('#chbActivo').prop('checked') ? 1 : 0
+            body.id = Id
+        }
+
+        const res = await $.post(url, body)
+        $("#preloaderAPP").hide()
+        if(res.status){
+            // _idOrdenCarga=res.idOrdenCarga
+            CerrarModalAlta3()
+            await ObtenerListaRepartos(_idOrdenCarga)
+            Toast.fire({ icon: res.icon, title: res.text })
+            ModalAccion4('a', _idOrdenCarga)
+        }else{
+            Swal.fire({
+                icon: res.icon,
+                title: res.title, 
+                text: res.text
+            })
+        }
+    }
+
+    const ModificarLiquidacion = async id => {
+        $('[data-toggle="tooltip"]').tooltip('hide')
+        const res = await $.post('/ordenesCargas/getModificar3Ajax', {id})
+        if(!res.status) return Swal.fire({ icon: res.icon, title: res.title, text: res.text })
+
+        $('#txtOrdenReparto').val(res.data.orden)
+        await ObtenerCmbProvincias(['cmbProvinciaReparto'])
+        $('#cmbProvinciaReparto').selectpicker('val', res.data.id_provincia_fk)
+        $('#cmbProvinciaReparto').selectpicker('refresh')
+        await ObtenerCmbLocalidadesProvincia(res.data.id_provincia_fk, 'cmbLocalidadReparto', 'txtCPReparto')
+        $('#cmbLocalidadReparto').selectpicker('val', res.data.id_localidad_fk)
+        $('#cmbLocalidadReparto').selectpicker('refresh')
+        $('#txtCPReparto').val($('#cmbLocalidadReparto option:selected').data('cp'))
+        $('#txtObservacionesR').val(res.data.observaciones)
+        $('#modalLabel3').text(`Órden de carga - Alta de productos`)
+        $('#btnAccionRepartos').attr('onclick', `PostRegistro3("m", ${id})`)
+        $('#btnAccionRepartos').html('Guardar')
+        $("#preloaderAPP").hide()
+        $('#modal3Reparto').modal('show')
+    }
+
+    const CerrarModal4 = () => {
+        _idOrdenCarga=null
+        $('#modal3').modal('hide')
+    }
+
+    const LimpiarCampos4 = () => {
+        $('#cmbProvinciaReparto').selectpicker('val', '')
+        $('#cmbProvinciaReparto').selectpicker('refresh')
+        $('#cmbLocalidadReparto').selectpicker('val', '')
+        $('#cmbLocalidadReparto').prop('disabled', true)
+        $('#cmbLocalidadReparto').html('')
+        $('#cmbLocalidadReparto').selectpicker('refresh')
+        $('#txtCPReparto').val('')
+        $('#txtObservacionesR').val('')
+    }
+
+    const CerrarModalAlta4 = () => {
+        $('#modal3Reparto').modal('hide')
+        LimpiarCampos3()
+    }
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // $("#txtFiltro").keyup(async function () {
+    //     Filtrar()
+    // })
+    
+    // const PostRegistro = async (accion, Id) => {
+    //     $("#preloaderAPP").show()
+    //     let url = '/ordenesCargas/alta', 
+    //         body = {
+    //             fecha: $('#txtFecha').val(),
+    //             cliente: $('#cmbCliente').val(),
+    //             nroCliente: $('#txtNroCliente').val(),
+    //             provinciaO: $('#cmbProvinciaOrigen').val(),
+    //             localidadO: $('#cmbLocalidadOrigen').val(),
+    //             provinciaD: $('#cmbProvinciaDestino').val(),
+    //             localidadD: $('#cmbLocalidadDestino').val(),
+    //             cantidad: $('#txtCantidad').val(),
+    //             producto: $('#cmbProducto').val(),
+    //             uniMed: $('#cmbUniMed').val(),
+    //             chofer: $('#cmbChofer').val(),
+    //             camion: $('#cmbCamion').val(),
+    //             semi: $('#cmbSemi').val(),
+    //             observaciones: $('#txtObservaciones').val()
+    //         }
+
+    //     if (accion === 'm') {
+    //         url = '/ordenesCargas/modificar'
+    //         body.activo = $('#chbActivo').prop('checked') ? 1 : 0
+    //         body.id = Id
+    //     }
+
+    //     const res = await $.post(url, body)
+    //     $("#preloaderAPP").hide()
+    //     Swal.fire({
+    //         icon: res.icon,
+    //         title: res.title, 
+    //         text: res.text, 
+    //         timer: 3000
+    //     }).then(() => {
+    //         if(res.status){
+    //             CerrarModal()
+    //             getLista()
+    //         }
+    //     })        
+    // }
+
+    // const ObtenerCmbEstados = id => {
+    //     return new Promise(async (resolve, reject) => {
+    //         const estados = await $.post('/ordenesCargas/obtenerEstados', { id })
+    //         if(!estados.status) return Swal.fire({ icon: res.icon, title: res.title, text: res.text})
+    //         let htmlOP=''
+    //         estados.data.map(el => {
+    //             htmlOP += `<option value="${el.id}">${el.descripcion}</option>`
+    //         })
+    //         resolve(htmlOP)
+    //     })
+    // }
+
+    // const ActualizarEstado = async id => {
+    //     const htmlOP = await ObtenerCmbEstados(id)
+    //     Swal.fire({
+    //         title: 'Seleccione el estado actual de la órden',
+    //         html: `
+    //             <div class="row">
+    //                 <div class="col-sm-12">
+    //                     <select class="form-control selectpicker" id="cmbEstadoOrden">${htmlOP}</select>
+    //                 </div>
+    //             </div>
+    //         `,
+    //         didOpen: () => {
+    //             $(`#cmbEstadoOrden`).selectpicker({container: 'body'})
+    //             $(`#cmbEstadoOrden`).selectpicker('refresh')
+    //         },
+    //         icon: 'warning',
+    //         showCancelButton: true,
+    //         confirmButtonColor: '#3085d6',
+    //         confirmButtonText: 'Sí, actualizar.',
+    //         cancelButtonColor: '#d33',
+    //         cancelButtonText: 'No, cancelar.'
+    //     }).then(async result => {
+    //         if (result.isConfirmed) {
+    //             $("#preloaderAPP").show()
+    //             let res = await $.post('/ordenesCargas/actualizarEstado', { id, estado: $('#cmbEstadoOrden').val() })
+    //             $("#preloaderAPP").hide()
+    //             Swal.fire({
+    //                 type: res.type,
+    //                 icon: res.icon,
+    //                 title: res.title,
+    //                 text: res.text,
+    //                 timer: 2000
+    //             }).then(() => {
+    //                 if(res.status){
+    //                     getLista()
+    //                 }
+    //             })
+    //         }    
+    //     })
+    // }
+
+    // const ModalAgregarChofer = async id => {
+    //     $("#preloaderAPP").show()
+    //     $('#modalLabelAgregarChofer').text('Agregar chofer a orden de carga')
+    //     _id=id
+    //     await ObtenerCmbChoferes()
+    //     await ObtenerCmbCamiones()
+    //     await ObtenerCmbSemis()
+    //     $("#preloaderAPP").hide()
+    //     $('#modalAgregarChofer').modal('show')
+    // }
+
+    // const AgregarChofer = async () => {
+    //     $("#preloaderAPP").show()
+    //     const body = {
+    //         id: _id,
+    //         idChofer: $('#cmbChoferA').val(), 
+    //         idCamion: $('#cmbCamionA').val(), 
+    //         idSemi: $('#cmbSemiA').val()
+    //     }
+    //     const res = await $.post('/ordenesCargas/actualizarChofer', body)
+    //     $("#preloaderAPP").hide()
+    //     Swal.fire({
+    //         icon: res.icon,
+    //         title: res.title,
+    //         text: res.text
+    //     }).then(() => {
+    //         if(res.status){
+    //             $('#modalAgregarChofer').modal('hide')
+    //             getLista()
+    //         }
+    //     })
+    // }
+
+    // const CerrarModalAgregar = () => {
+    //     _id=null
+    //     $('#cmbChoferA').selectpicker('val', '')
+    //     $('#cmbCamionA').selectpicker('val', '')
+    //     $('#cmbSemiA').selectpicker('val', '')
+    //     $('.selectpicker').selectpicker('refresh')
+    // }
+
+    // const Eliminar = (id) => {
+    //     Swal.fire({
+    //         title: 'Confirmar',
+    //         text: "¿Desea borrar este registro?",
+    //         icon: 'warning',
+    //         showCancelButton: true,
+    //         confirmButtonColor: '#3085d6',
+    //         confirmButtonText: 'Sí, eliminar.',
+    //         cancelButtonColor: '#d33',
+    //         cancelButtonText: 'No, cancelar.'
+    //     }).then(async result => {
+    //         if (result.isConfirmed) {
+    //             $("#preloaderAPP").show();
+    //             let res = await $.post('/ordenesCargas/eliminar', { id })
+    //             $("#preloaderAPP").hide();
+    //             Swal.fire({
+    //                 type: res.type,
+    //                 icon: res.icon,
+    //                 title: res.title,
+    //                 text: res.text,
+    //                 timer: 2000
+    //             }).then(() => {
+    //                 if(res.status){
+    //                     CerrarModal()
+    //                     getLista()
+    //                 }
+    //             })
+    //         }    
+    //     })
+    // }
+
+    // const Filtrar = () => {
+    //     $('#tablaDatos tbody tr').each(function () {
+    //         if ($(this).find('td.search').text().toUpperCase().indexOf($('#txtFiltro').val().toUpperCase()) > -1)
+    //             $(this).closest('tr').show();
+    //         else
+    //             $(this).closest('tr').hide();
+    //     });
+    // }
+
+
+</script>
+{% endblock %}

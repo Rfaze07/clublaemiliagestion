@@ -1,0 +1,422 @@
+{% extends '../../template.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+    <h2>{{ pagename }}</h2>
+    <div class="d-flex align-items-end mb-3" style="gap: 0.2rem;">
+        <input type="text" class="form-control form-control-sm" id="txtFiltro" placeholder="Buscar" style="width: 10rem;" />
+		<div>
+			<label>Empresa</label>
+			<select class="form-control form-control-sm selectpicker" data-live-search="true" id="cmbEmpresaF" onchange="CargarLista()">
+				<option value="t" selected>Todos</option>
+				{% for e in empresas %}
+					<option value="{{ e.id }}">{{ e.razon_social }}</option>
+				{% endfor %}
+			</select>
+		</div>
+        {% if permisos.a == 1 %}
+            <button class="btn btn-round btn-sm btn-success modalAccion mr-1" onclick='Alta()'>
+                <i class="fa fa-plus"></i>
+            </button>
+        {% endif %}
+    </div>
+</div>
+<div class="col-12 mt-4" style="max-height: calc(100vh - 205px); overflow-y: auto">
+	<table class="table table-sm table-hover tableFixHead" id="tablaPuntosVentas">
+		<thead>
+			<th class="text-start">Acciones</th>
+			<th>Empresa</th>
+			<th>Pto. Venta</th>
+			<th>Dirección</th>
+			<th style="z-index: 100">Activo</th>
+		</thead>
+		<tbody></tbody>
+	</table>
+</div>
+
+
+<!-- Modal Alta/Modificar -->
+<div class="modal fade" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true" id="modalAlta">
+	<div class="modal-dialog modal-md">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="modalTitle"></h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<div class="row">
+					<div class="form-group col-sm-12" id="divEmpresa">
+						<label for="cmbEmpresa" class="form-label">Empresa</label>
+						<select class="form-control form-control-sm selectpicker" id="cmbEmpresa">
+							<option value="" selected disabled>Seleccione una opción...</option>
+							{% for e in empresas %}
+								<option value="{{ e.id }}">({{ e.cuit }}) {{ e.razon_social }}</option>
+							{% endfor %}
+						</select>
+					</div>
+					<div class="form-group col-sm-12 col-md-4">
+						<label for="txtPtoVenta" class="form-label">Nro. Pto. Venta</label>
+						<input type="text" class="form-control form-control-sm" id="txtPtoVenta" autocomplete="off" onkeypress="return soloNumeros(event)" maxlength="5" />
+					</div>
+					<div class="form-group col-sm-12 col-md-8">
+						<label for="txtDomicilio" class="form-label">Domicilio</label>
+						<input type="text" class="form-control form-control-sm" id="txtDomicilio" autocomplete="off" maxlength="50" />
+					</div>
+					<div class="form-group col-sm-12 col-md-6">
+						<label for="cmbCargo">Cargo</label>
+						<select class="form-control form-control-sm selectpicker" id="cmbCargo">
+							<option value="" selected disabled>Seleccione una opción...</option>
+							{% for c in cargos %}
+								<option value="{{ c.id }}">({{ c.desc_corta }}) - {{ c.descripcion }}</option>
+							{% endfor %}
+						</select>
+					</div>
+					<div class="form-group col-sm-12 col-md-6 text-left align-items-center row pl-5">
+						<div class="custom-control custom-switch">
+							<input type="checkbox" class="custom-control-input" id="chbHabilitaRecibo" checked />
+							<label class="custom-control-label" for="chbHabilitaRecibo">Habilita recibos</label>
+						</div>
+						<div class="custom-control custom-switch">
+							<input type="checkbox" class="custom-control-input" id="chbHabilitaInterno" />
+							<label class="custom-control-label" for="chbHabilitaInterno">Habilita interno</label>
+						</div>
+						<div class="custom-control custom-switch">
+							<input type="checkbox" class="custom-control-input" id="chbHabilitaArca" />
+							<label class="custom-control-label" for="chbHabilitaArca">Habilita fact. ARCA</label>
+						</div>
+						<!-- <div class="custom-control custom-switch">
+							<input type="checkbox" class="custom-control-input" id="chbHabilitaManual" />
+							<label class="custom-control-label" for="chbHabilitaManual">Habilita fact. manual</label>
+						</div> -->
+					</div>
+					<div class="form-group col-sm-12 text-center mb-2 mt-2 d-none" id="divActivo">
+						<div class="dropdown-divider"></div>
+						<div class="custom-control custom-switch ml-1">
+							<input type="checkbox" class="custom-control-input" id="chbActivo" />
+							<label class="custom-control-label" for="chbActivo">Activo</label>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+				<button type="button" class="btn btn-success" onclick="Guardar()">Guardar</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Modal Ver -->
+<div class="modal fade" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true" id="modalVer">
+	<div class="modal-dialog modal-md">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="modalTitleVer"></h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<div class="row">
+					<div class="form-group col-sm-12" id="divEmpresa">
+						<label for="txtEmpresaV" class="form-label">Empresa</label>
+						<input type="text" class="form-control form-control-sm" id="txtEmpresaV" disabled readonly />
+					</div>
+					<div class="form-group col-sm-12 col-md-4">
+						<label for="txtPtoVentaV" class="form-label">Nro. Pto. Venta</label>
+						<input type="text" class="form-control form-control-sm" id="txtPtoVentaV" disabled readonly />
+					</div>
+					<div class="form-group col-sm-12 col-md-8">
+						<label for="txtDomicilioV" class="form-label">Domicilio</label>
+						<input type="text" class="form-control form-control-sm" id="txtDomicilioV" disabled readonly />
+					</div>
+					<div class="form-group col-sm-12 col-md-6">
+						<label for="txtCargoV">Cargo</label>
+						<input type="text" class="form-control form-control-sm" id="txtCargoV" disabled readonly />
+					</div>
+					<div class="form-group col-sm-12 col-md-6 text-left align-items-center row pl-5">
+						<div class="custom-control custom-switch">
+							<input type="checkbox" class="custom-control-input" id="chbHabilitaReciboV" disabled readonly />
+							<label class="custom-control-label" for="chbHabilitaReciboV">Habilita recibos</label>
+						</div>
+						<div class="custom-control custom-switch">
+							<input type="checkbox" class="custom-control-input" id="chbHabilitaInternoV" disabled readonly />
+							<label class="custom-control-label" for="chbHabilitaInternoV">Habilita interno</label>
+						</div>
+						<div class="custom-control custom-switch">
+							<input type="checkbox" class="custom-control-input" id="chbHabilitaArcaV" disabled readonly />
+							<label class="custom-control-label" for="chbHabilitaArcaV">Habilita fact. ARCA</label>
+						</div>
+						<!-- <div class="custom-control custom-switch">
+							<input type="checkbox" class="custom-control-input" id="chbHabilitaManualV" disabled readonly />
+							<label class="custom-control-label" for="chbHabilitaManualV">Habilita fact. manual</label>
+						</div> -->
+					</div>
+					<div class="form-group col-sm-12 text-center mb-2 mt-2">
+						<div class="dropdown-divider"></div>
+						<div class="custom-control custom-switch ml-1">
+							<input type="checkbox" class="custom-control-input" id="chbActivoV" disabled readonly />
+							<label class="custom-control-label" for="chbActivoV">Activo</label>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+	let _accion=null, _id=null
+
+	$(document).ready(() => {
+		CargarLista()
+	})
+
+	const ModificarActivo = async (id, activo) => {
+		let data = { id: id, activo: activo }
+		let r = await $.post("/puntosVenta/activo", data)
+
+		if (r.status) {
+			CargarLista()
+		} else {
+			Swal.fire("Error!", r.text, "error")
+		}
+	}
+
+	const Limpiar = () => {
+		_accion=null, _id=null
+		$("#txtPtoVenta").val("")
+		$("#txtDomicilio").val("")
+		$("#cmbEmpresa").val("").selectpicker("refresh")
+		$("#cmbTipoComprobante").val("").selectpicker("refresh")
+		$("#txtCosto").val("")
+		$("#cmbConcepto").val("").selectpicker("refresh")
+		$("#divCosto").hide()
+	}
+
+	const Alta = async () => {
+		Limpiar()
+		_accion = "a"
+		$("#modalTitle").text("Nuevo punto de venta")
+		$('#divActivo').addClass('d-none')
+		$("#modalAlta").modal("show")
+	}
+
+	const Modificar = async (id) => {
+		Limpiar()
+		_accion = "m"
+		_id = id
+		const punto = await $.getJSON(`/puntosVenta/${id}`)
+		$("#modalTitle").text("Modificar punto de venta")
+		$('#cmbEmpresa').selectpicker('val', punto.id_empresa_fk)
+		$('#txtPtoVenta').val(punto.punto_venta)
+		$('#txtDomicilio').val(punto.domicilio)
+		$('#chbHabilitaRecibo').prop('checked', punto.habilita_recibo == 1 ? true : false)
+		$('#chbHabilitaInterno').prop('checked', punto.habilita_interno == 1 ? true : false)
+		$('#chbHabilitaArca').prop('checked', punto.habilita_arca == 1 ? true : false)
+		// $('#chbHabilitaManual').prop('checked', punto.habilita_manual == 1 ? true : false)
+		$('#chbActivo').prop('checked', punto.activo ? true : false)
+		$('#cmbCargo').selectpicker('val', punto.id_cargo_fk)
+		$('.selectpicker').selectpicker('refresh')
+		$('#divActivo').removeClass('d-none')
+		$("#modalAlta").modal("show")
+	}
+
+	const Eliminar = async (id) => {
+		let r = await Swal.fire({
+			title: "Eliminar",
+			text: "¿Está seguro que desea eliminar el registro?",
+			icon: "warning",
+			showCancelButton: true,
+			confirmButtonColor: "#3085d6",
+			cancelButtonColor: "#d33",
+			confirmButtonText: "Sí",
+			cancelButtonText: "No",
+		})
+
+		if (r.isConfirmed) {
+			let data = { id: id }
+			let r = await $.post("/puntosVenta/eliminar", data)
+
+			if (r.status) {
+				Swal.fire("Borrado!", r.text, "success")
+				CargarLista()
+			} else {
+				Swal.fire("Error!", r.text, "error")
+			}
+		}
+	};
+
+	const Guardar = async () => {
+		$("#preloaderAPP").show()
+		const body = {
+			empresa: $('#cmbEmpresa').val(),
+			ptoVenta: $('#txtPtoVenta').val(),
+			domicilio: $('#txtDomicilio').val(),
+			habRecibo: $('#chbHabilitaRecibo').is(':checked'),
+			habInterno: $('#chbHabilitaInterno').is(':checked'),
+			habArca: $('#chbHabilitaArca').is(':checked'),
+			// habManual: $('#chbHabilitaManual').is(':checked'),
+			cargo: $('#cmbCargo').val()
+		}
+
+		if(_accion == "m"){
+			body.activo = $('#chbActivo').is(':checked')
+			body.id = _id
+		}
+		const url = _accion == "a" ? "/puntosVenta/alta" : "/puntosVenta/modificar"
+		const res = await $.post(url, body)
+		$("#preloaderAPP").hide()
+
+		Swal.fire({
+			icon: res.icon, 
+			title: res.title, 
+			text: res.text
+		}).then(() => {
+			if(res.status){
+				Limpiar()
+				$("#modalAlta").modal("hide")
+				CargarLista()
+			}
+		})
+	}
+
+	const Buscar = async () => {
+		let data = lista_pvs.filter((c) =>
+			c.puerto.toString().toLowerCase().includes($("#txtBuscar").val().toLowerCase()) ||
+			c.empresa.toLowerCase().includes($("#txtBuscar").val().toLowerCase()) ||
+			c.tipo_comprobante.toLowerCase().includes($("#txtBuscar").val().toLowerCase())
+		)
+		CargarLista(data)
+	}
+
+	const CargarLista = async (lista = null) => {
+		$("#preloaderAPP").show()
+		let html = '<tr><td colspan="20">Sin registros.</td></tr>',
+            res = await $.post(`/puntosVenta/lista`, { empresa: $('#cmbEmpresaF').val() })
+
+        if(res.status){
+            html=''
+            for(let i=0; i<res.data.length; i++){
+                html += `
+                <tr>
+                    <td>
+                        <div style="display: flex; gap: 2px;">
+                                <button class="btn btn-round btn-sm btn-info" onclick="Ver(${res.data[i].id})"
+                                    data-toggle="tooltip" data-placement="top" title="Ver">
+                                    <i class="fa fa-eye"></i>
+                                </button>
+
+                                {% if permisos.m %}
+									<button class="btn btn-round btn-sm btn-warning" onclick="Modificar(${res.data[i].id})"
+										data-toggle="tooltip" data-placement="top" title="Modificar">
+										<i class="fa fa-pen"></i>
+									</button>
+                                {% endif %}
+
+                                {% if permisos.b %}
+									<button class="btn btn-round btn-sm btn-danger" onclick="Eliminar(${res.data[i].id})"
+										data-toggle="tooltip" data-placement="top" title="Eliminar">
+										<i class="fa fa-trash-alt"></i>
+									</button>
+                                {% endif %}
+                            </div>
+                    </td>
+                    <td>${res.data[i].empresaTxt}</td>
+					<td>${res.data[i].punto_venta.toString().padStart(5, '0')}</td>
+					<td>${res.data[i].domicilio || ""}</td>
+					<td>${res.data[i].activo == 1 ? "Si" : "No"}</td>
+                </tr>`
+            }
+        }
+
+        $('#tablaPuntosVentas tbody').html(html)
+		$("#preloaderAPP").hide()
+
+
+
+
+		// let puntos
+
+		// $("#preloaderAPP").show()
+		// if (lista) {
+		// 	puntos = lista
+		// } else {
+		// 	puntos = await $.post("/puntosVenta/lista", {
+		// 		empresa: $("#cmbEmpresaF").val(),
+		// 	})
+
+		// 	lista_pvs = puntos
+		// }
+
+		// $("#preloaderAPP").hide()
+		// let tabla = $("#tablaPuntosVentas tbody")
+		// tabla.html("")
+		// if (puntos.length == 0) {
+		// 	tabla.append(FilaPorDefault("tablaPuntosVentas"))
+		// 	return
+		// }
+
+		// let filas
+		// filas += puntos.map((p) => (`
+		// 	<tr>
+		// 		<td class="text-start">
+		// 			{% if permisos.m %}
+		// 				<button class="btn btn-round btn-warning btn-sm" id="btnEditar" data-id="${p.id}" onclick="Modificar(${p.id})">
+		// 					<i class="fa fa-pen"></i>
+		// 				</button>
+		// 			{% endif %}
+
+		// 			{% if permisos.b %}
+		// 				<button class="btn btn-round btn-danger btn-sm" id="btnEliminar" data-id="${p.id}" onclick="Eliminar(${p.id})">
+		// 					<i class="fa fa-trash"></i>
+		// 				</button>
+		// 			{% endif %}
+		// 		</td>
+		// 		<td>${p.empresa}</td>
+		// 		<td>${p.letra}</td>
+		// 		<td>${p.tipo_comprobante}</td>
+		// 		<td>${p.punto_venta.toString().padStart(5, '0')}</td>
+		// 		<td>${p.domicilio || ""}</td>
+		// 		<td>${p.activo == 1 ? "Si" : "No"}</td>
+		// 	</tr>
+		// `))
+
+		// tabla.html(filas)
+	}
+
+	$('#txtPtoVenta').on('blur', function(e){
+		if(e.target.value.length > 0){
+			if(e.target.value > 99998){
+				$('#txtPtoVenta').val('')
+				return Swal.fire('Error', 'El número de punto de venta no puede ser mayor a 99998', 'error')
+			}
+		}
+	})
+
+	const Ver = async id => {
+		$("#preloaderAPP").show()
+		const punto = await $.getJSON(`/puntosVenta/${id}`)
+		$("#modalTitleVer").text("Ver más información")
+		$('#txtEmpresaV').val(punto.empresaTxt)
+		$('#txtPtoVentaV').val(punto.punto_venta)
+		$('#txtDomicilioV').val(punto.domicilio)
+		$('#txtCargoV').val(punto.cargoTxt)
+		$('#chbHabilitaReciboV').prop('checked', punto.habilita_recibo == 1 ? true : false)
+		$('#chbHabilitaInternoV').prop('checked', punto.habilita_interno == 1 ? true : false)
+		$('#chbHabilitaArcaV').prop('checked', punto.habilita_arca == 1 ? true : false)
+		// $('#chbHabilitaManualV').prop('checked', punto.habilita_manual == 1 ? true : false)
+		$('#chbActivoV').prop('checked', punto.activo ? true : false)
+		$("#preloaderAPP").hide()
+		$("#modalVer").modal("show")
+	}
+
+</script>
+{% endblock %}

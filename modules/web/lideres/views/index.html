@@ -1,0 +1,443 @@
+{% extends '../../template.html' %}
+
+{% block title %}Bienvenido - Torneo Acercamiento{% endblock %}
+
+
+{% block styles %}
+
+<style>
+/* CONTENEDOR */
+.container.my-5 {
+  max-width: 1200px;
+}
+
+/* CARD */
+.card-noticia {
+  border: none;
+  border-radius: 0;
+  background-color: #fff;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  overflow: hidden;
+}
+
+/* HOVER */
+.card-noticia:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.18);
+}
+
+/* IMAGEN */
+.card-noticia img {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  filter: grayscale(100%);
+  transition: filter 0.25s ease, transform 0.25s ease;
+}
+
+.card-noticia:hover img {
+  filter: grayscale(0%);
+  transform: scale(1.02);
+}
+
+/* BODY */
+.card-noticia .card-body {
+  padding: 22px;
+}
+
+
+/* TÍTULO DE NOTICIA */
+.titulo {
+  font-size: 1.35rem;
+  font-weight: 800;
+  line-height: 1.35;
+  color: #000;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* SUBTÍTULO */
+.subtitulo {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: #666;
+  margin-bottom: 14px;
+  line-height: 1.5;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .titulo {
+    font-size: 1.15rem;
+  }
+
+  .subtitulo {
+    font-size: 0.85rem;
+  }
+}
+
+
+/* LINK */
+.leer-mas {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #000;
+  text-decoration: none;
+}
+
+.leer-mas:hover {
+  text-decoration: underline;
+}
+@media (max-width: 768px) {
+  .card-noticia img {
+    height: 200px;
+  }
+
+  .card-noticia .card-body {
+    padding: 18px;
+  }
+
+  .card-noticia .card-title {
+    font-size: 1rem;
+  }
+}
+
+/* Contenedor sugerido (opcional) */
+.header-noticias {
+  margin: 40px 0 30px;
+  text-align: center;
+}
+
+/* Título principal */
+.header-noticias h2 {
+  font-size: 2.2rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #000;
+  margin-bottom: 12px;
+}
+
+/* Texto introductorio */
+.header-noticias h4 {
+  font-size: 1rem;
+  font-weight: 400;
+  color: #444;
+  max-width: 820px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+@media (max-width: 768px) {
+  .header-noticias h2 {
+    font-size: 1.6rem;
+  }
+
+  .header-noticias h4 {
+    font-size: 0.95rem;
+    padding: 0 10px;
+  }
+}
+.card-noticia {
+  max-width: 100%;
+}
+
+@media (min-width: 992px) {
+  .card-noticia {
+    max-width: 100%;
+  }
+}
+/*TABLAS-------------------*/
+
+
+/* CONTENEDOR */
+.tabla-posiciones {
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  padding: 24px;
+}
+
+/* TÍTULO */
+.titulo-tabla {
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #000;
+}
+
+/* TABLA */
+.table-posiciones {
+  margin-bottom: 16px;
+  border: 1px solid #e5e5e5;
+}
+
+.table-posiciones thead {
+  background-color: #000;
+  color: #fff;
+}
+
+.table-posiciones th {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-bottom: none;
+}
+
+.table-posiciones td {
+  font-size: 0.9rem;
+  border-top: 1px solid #eaeaea;
+}
+
+/* HOVER */
+.table-posiciones tbody tr:hover {
+  background-color: #f8f8f8;
+}
+
+/* POSICIONES */
+.pos-1 {
+  background-color: #f0f8ff;
+  font-weight: 600;
+}
+
+.pos-2 {
+  background-color: #f7f7f7;
+}
+
+/* NOTA */
+.nota-tabla {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .titulo-tabla {
+    font-size: 0.9rem;
+  }
+
+  .table-posiciones td,
+  .table-posiciones th {
+    font-size: 0.85rem;
+  }
+}
+
+
+    
+
+
+
+
+
+
+    
+</style>
+{% endblock %}
+
+
+{% block content %}
+    
+<div class="header-noticias">
+  <h2 class="m-0">{{ pagename }}</h2>
+  <h4>
+    En este apartado se presentan los principales registros individuales del torneo, reflejando el rendimiento de los jugadores en las distintas facetas del juego. Los datos permiten analizar el desempeño a lo largo de la competencia y destacar a quienes se han sobresalido en cada rubro.
+  </h4>
+</div>
+
+<div class="container my-5">
+  <div class="row justify-content-center">
+
+    <div class="col-12 col-lg-10 tabla-posiciones">
+
+      <h4 class="titulo-tabla mb-3 text-center">
+        Máximos Anotadores del Torneo
+      </h4>
+
+      <div class="table-responsive">
+        <table class="table table-posiciones text-center align-middle" id="tablaGoleadores">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Jugador</th>
+              <th>Equipo</th>
+              <th>Puntos</th>
+            </tr>
+          </thead>
+          <tbody>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="container my-5">
+  <div class="row justify-content-center">
+
+    <div class="col-12 col-lg-10 tabla-posiciones">
+
+      <h4 class="titulo-tabla mb-3 text-center">
+        Máximos Asistidores del Torneo
+      </h4>
+
+      <div class="table-responsive">
+        <table class="table table-posiciones text-center align-middle" id="tablaAsistencias">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Jugador</th>
+              <th>Equipo</th>
+              <th>Asistencias</th>
+            </tr>
+          </thead>
+          <tbody>
+
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="container my-5">
+  <div class="row justify-content-center">
+
+    <div class="col-12 col-lg-10 tabla-posiciones">
+
+      <h4 class="titulo-tabla mb-3 text-center">
+        Máximos Reboteadores del Torneo
+      </h4>
+
+      <div class="table-responsive">
+        <table class="table table-posiciones text-center align-middle" id="tablaRebotes">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Jugador</th>
+              <th>Equipo</th>
+              <th>Rebotes</th>
+            </tr>
+          </thead>
+          <tbody>
+
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="container my-5">
+  <div class="row justify-content-center">
+
+    <div class="col-12 col-lg-10 tabla-posiciones">
+
+      <h4 class="titulo-tabla mb-3 text-center">
+        Faltas Cometidas del Torneo
+      </h4>
+
+      <div class="table-responsive">
+        <table class="table table-posiciones text-center align-middle" id="tablaFaltas">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Jugador</th>
+              <th>Equipo</th>
+              <th>Faltas</th>
+            </tr>
+          </thead>
+          <tbody>
+
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+
+
+
+
+{% endblock %}
+
+
+
+{% block scripts %}
+
+<script type="text/javascript">
+
+
+$(document).ready(async function() {
+    await getLista()
+});
+
+const getLista = async () => {
+    try {
+        $('#preloaderAPP').show();
+        const res = await $.post('/web/lideres/getLista', {});
+        if (!res.status){
+            return;
+        }
+        const goleadores = res.data.goleadores;
+        for (let i = 0; i < goleadores.length; i++) {
+            const goleador = goleadores[i];
+            const row = `<tr class="pos-${i + 1}">
+                            <td>${i + 1}</td>
+                            <td>${goleador.jugador}</td>
+                            <td>${goleador.equipo}</td>
+                            <td>${goleador.puntosTotales}</td>
+                         </tr>`;
+            $('#tablaGoleadores tbody').append(row);
+        }
+
+        const asistencias = res.data.asistidores;
+        for (let i = 0; i < asistencias.length; i++) {
+            const asistente = asistencias[i];
+            const row = `<tr class="pos-${i + 1}">
+                            <td>${i + 1}</td>
+                            <td>${asistente.jugador}</td>
+                            <td>${asistente.equipo}</td>
+                            <td>${asistente.asistenciasTotales}</td>
+                         </tr>`;
+            $('#tablaAsistencias tbody').append(row);
+        }
+        const rebotes = res.data.reboteadores;
+        for (let i = 0; i < rebotes.length; i++) {
+            const reboteador = rebotes[i];
+            const row = `<tr class="pos-${i + 1}">
+                            <td>${i + 1}</td>
+                            <td>${reboteador.jugador}</td>
+                            <td>${reboteador.equipo}</td>
+                            <td>${reboteador.rebotesTotales}</td>
+                         </tr>`;
+            $('#tablaRebotes tbody').append(row);
+        }
+        const faltas = res.data.pegadores;
+        for (let i = 0; i < faltas.length; i++) {
+            const jugadorFaltas = faltas[i];
+            const row = `<tr class="pos-${i + 1}">
+                            <td>${i + 1}</td>
+                            <td>${jugadorFaltas.jugador}</td>
+                            <td>${jugadorFaltas.equipo}</td>
+                            <td>${jugadorFaltas.faltasTotales}</td>
+                         </tr>`;
+            $('#tablaFaltas tbody').append(row);
+        }
+
+        $('#preloaderAPP').hide();
+    } catch (error) {
+        console.error('Error al obtener la lista de noticias:', error);
+    }
+};
+
+
+</script>
+{% endblock %}

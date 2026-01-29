@@ -1,0 +1,125 @@
+{% extends '../../template.html' %}
+
+{% block styles %} 
+    <style type="text/css">
+
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-12">
+            <h4 id="title"><i class="fa fa-users"></i>&nbsp;{{ pagename }}</h4>
+            <br>
+        </div>
+        <div class="col-12">
+            <h5>Detalles del usuario:</h5>
+            <br>
+        </div>
+        <div class="col-12">
+            <input hidden type="text" id="unica" value="{{usuario.unica}}">
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="empleado"><b>Empleado</b></label>
+                <select id="empleado"class="form-control">
+                    <option value="" selected>No es empleado</option>
+                    {% for e in empleados %}
+                        {% if e.id == usuario.id_empleado_fk %}
+                            <option value="{{ e.id }}" selected>{{ e.nro_legajo }} - {{ e.nombre }} {{ e.apellido }}</option>
+                        {% else %}
+                            <option value="{{ e.id }}">{{ e.nro_legajo }} - {{ e.nombre }} {{ e.apellido }}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="usuario"><b>Nombre de usuario</b></label>
+                <input class="form-control" id="usuario" placeholder="Nombre de usuario" required maxlength="20" autocomplete="off" value="{{ usuario.usuario.trim() }}">
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="mail"><b>Mail</b></label>
+                <input class="form-control" maxlength="50" id="mail" placeholder="ejemplo@hotmail.com" autocomplete="off" value="{{ usuario.mail.trim() }}">
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="niveles"><b>Permisos</b></label>
+                <select id="niveles" class="form-control">
+                    {% if usuario.niveles.indexOf('Administrador') >= 0 %}
+                        <option selected value="Administrador">Administrador</option>
+                        <option value="Lista">Lista</option>
+                    {% else %}
+                        <option value="Administrador">Administrador</option>
+                        <option selected value="Lista">Lista</option>
+                    {% endif %}
+                </select>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="activa"><b>Activo</b></label>
+                <select id="activa" class="form-control">
+                    {% if usuario.activa == 1 %}
+                        <option selected value="1">Si</option>
+                        <option value="0">No</option>
+                    {% else %}
+                        <option selected value="0">No</option>
+                        <option value="1">Si</option>
+                    {% endif %}
+                </select>
+            </div>
+        </div>
+        <div class="col-12">
+            <div class="form-group" style="float: right;">
+                <button id="Guardar" onclick="Modificar()" class="btn btn-round btn-success"><i class="fa fa-save"></i>&nbsp;Guardar</button>
+                <a href="/usuarios" class="btn btn-round btn-danger"><i class="fa fa-arrow-left"></i>&nbsp;Volver</a>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+{% block scripts%}
+<script>
+
+    const Modificar = () => {
+        Swal.fire({
+            title: 'Confirmar',
+            text: "Confirme para modificar el usuario",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Aceptar',
+            cancelButtonText: 'Cancelar',
+        }).then(async result => {
+            if (result.value) {
+                $("#preloader").show();
+                let body = {
+                    unica: $("#unica").val(),
+                    usuario: $("#usuario").val(),
+                    mail: $("#mail").val(),
+                    niveles: $("#niveles").val(),
+                    empleado: $("#empleado").val(),
+                    activa: $("#activa").val()
+                }
+                const res = await $.post("/usuarios/modificar", body);
+                $("#preloader").hide();
+                Swal.fire({
+                    icon: res.type,
+                    title: res.title,
+                    text: res.text,
+                    timer: 2500
+                }).then(() => {
+                    if (res.type != 'error') window.location = "/usuarios";
+                });
+            }
+        });
+    }
+
+</script>
+{% endblock %}

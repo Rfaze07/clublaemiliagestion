@@ -1,0 +1,304 @@
+{% extends '../../template.html' %}
+
+{% block styles %}
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+    <h2>{{ pagename }}</h2>
+</div>
+
+<!-- SECCION CLIENTE -->
+<div class="card mb-3">
+    <div class="card-header">
+        <h5><b>Datos del Cliente</b></h5>
+    </div>
+    <div class="card-body row align-items-end">
+        <div class="col-sm-12 col-md-6">
+            <label>Cliente</label>
+            <select class="form-control form-control-sm selectpicker" id="cmbCliente" data-live-search="true"></select>
+        </div>
+        <!-- <div class="col-sm-12 col-md-2">
+            <button class="btn btn-success btn-sm mt-4" onclick="ModalClienteNuevo()">
+                <i class="fa fa-plus"></i> Nuevo Cliente
+            </button>
+        </div> -->
+    </div>
+</div>
+
+<!-- SECCION PRODUCTOS -->
+<div class="card mb-3">
+    <div class="card-header">
+        <h5><b>Selección de Productos</b></h5>
+    </div>
+    <div class="card-body row align-items-end">
+        <div class="col-sm-12 col-md-2">
+            <label>Cantidad</label>
+            <input type="number" class="form-control form-control-sm" id="txtCantidad" value="1" min="1">
+        </div>
+        <div>
+            <label>Codigo</label>
+            <input type="text" class="form-control form-control-sm" id="txtCodigo" maxlength="100" oninput="buscarPorCodigoDebounce()">
+        </div>
+        <div class="col-sm-12 col-md-6">
+            <label>Producto</label>
+            <select class="form-control form-control-sm selectpicker" id="cmbProducto" data-live-search="true" onchange="AgregarAlCarrito()"></select>
+        </div>
+    </div>
+    <!-- TABLA CARRITO DENTRO DE LA CARD -->
+    <div class="table-responsive mb-3" style="max-height: 40vh; overflow-y: auto;">
+        <table class="table table-sm table-hover" id="tablaCarrito">
+            <thead>
+                <tr>
+                    <th>Acciones</th>
+                    <th>Código</th>
+                    <th>Descripción</th>
+                    <th>Cant.</th>
+                    <th>Precio Unit.</th>
+                    <th>Subtotal</th>
+                    <th class="d-none">ID</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td colspan="6">Sin productos en el carrito.</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- SECCION PAGO -->
+<div class="card mb-3">
+    <div class="card-header">
+        <h5><b>Forma de Pago</b></h5>
+    </div>
+    <div class="card-body row align-items-end">
+        <div class="col-sm-12 col-md-4">
+            <label>Medio de Pago</label>
+            <select class="form-control form-control-sm selectpicker" id="cmbMedioPago"></select>
+        </div>
+        <div class="col-sm-12 col-md-4">
+            <label>Monto Recibido</label>
+            <input type="number" class="form-control form-control-sm" id="txtMontoRecibido">
+        </div>
+        <div class="col-sm-12 col-md-4">
+            <h4 class="mt-3">TOTAL: $<span id="lblTotal">0.00</span></h4>
+            <small>Vuelto: $<span id="lblVuelto">0.00</span></small>
+        </div>
+    </div>
+</div>
+
+<!-- BOTONES FINALES -->
+<div class="d-flex justify-content-end" style="gap:0.5rem;">
+    <button class="btn btn-secondary" onclick="CancelarVenta()">Cancelar</button>
+    <button class="btn btn-success" onclick="ConfirmarVenta()">Confirmar Venta</button>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript">
+
+
+//documentready
+
+$(document).ready(() => {
+        ObtenerCmbClientes('cmbCliente', false)
+        ObtenerCmbMediosPago('cmbMedioPago', false)
+        ObtenerCmbProductos('cmbProducto')
+    })
+
+
+     const AgregarAlCarrito = () => {
+        // ejemplo, despues vos le das la logica real
+        let prod = $('#cmbProducto option:selected').text()
+        let cant = $('#txtCantidad').val()
+        let precio = parseFloat($('#cmbProducto option:selected').data('precio'))
+        let subtotal = cant * precio
+
+        let html = `
+        <tr>
+            <td><button class="btn btn-danger btn-sm" onclick="QuitarProducto(this)"><i class="fa fa-trash"></i></button></td>
+            <td>${$('#cmbProducto').val()}</td>
+            <td>${prod}</td>
+            <td>${cant}</td>
+            <td>${precio.toFixed(2)}</td>
+            <td>${subtotal.toFixed(2)}</td>
+            <td class="d-none">${$('#cmbProducto option:selected').data('id')}</td>
+        </tr>
+        `
+        if($('#tablaCarrito tbody tr td').length == 1){
+            $('#tablaCarrito tbody').html(html)
+        }else{
+            $('#tablaCarrito tbody').append(html)
+        }
+
+        ActualizarTotal()
+        $('#cmbProducto').val('')
+        $('#cmbProducto').selectpicker('refresh')
+        $('#txtCantidad').val(1)
+        $('#txtCodigo').val('')
+        $('#txtCodigo').focus()
+    }
+
+    const QuitarProducto = (btn) => {
+        $(btn).closest('tr').remove()
+        if($('#tablaCarrito tbody tr').length == 0){
+            $('#tablaCarrito tbody').html('<tr><td colspan="6">Sin productos en el carrito.</td></tr>')
+        }
+        ActualizarTotal()
+    }
+
+    let timeoutBusqueda = null;
+    
+    const buscarPorCodigoDebounce = () => {
+        clearTimeout(timeoutBusqueda);
+        timeoutBusqueda = setTimeout(() => {
+            buscarPorCodigo();
+        }, 300); // Espera 300ms después de que el usuario deje de escribir
+    }
+    
+    const buscarPorCodigo = async() => {
+        let codigo = $('#txtCodigo').val().trim()
+        if(codigo.length >= 3){ // Buscar solo si tiene al menos 3 caracteres
+            // consulta a la bd
+            let res = await $.post('/productos/buscar', { codigo })
+            console.log(res)
+            if(res.status && res.producto){
+                console.log(res.producto)
+                AgregarAlCarritoConProducto(res.producto)
+                $('#txtCodigo').val('') // Limpiar el campo después de agregar
+            } else {
+                console.log('Producto no encontrado')
+            }
+        }
+    }
+
+    const AgregarAlCarritoConProducto = (producto) => {
+        if (!producto || !producto.precioIva) {
+            console.error('Producto inválido o sin precio:', producto)
+            return
+        }
+        
+        let cant = $('#txtCantidad').val()
+        let precio = parseFloat(producto.precioIva)
+        let subtotal = cant * precio
+
+        let html = `
+        <tr>
+            <td><button class="btn btn-danger btn-sm" onclick="QuitarProducto(this)"><i class="fa fa-trash"></i></button></td>
+            <td>${producto.Cod_Producto}</td>
+            <td>${producto.Desc_Producto}</td>
+            <td>${cant}</td>
+            <td>${precio.toFixed(2)}</td>
+            <td>${subtotal.toFixed(2)}</td>
+            <td class="d-none">${producto.id}</td>
+        </tr>
+        `
+        if($('#tablaCarrito tbody tr td').length == 1){
+            $('#tablaCarrito tbody').html(html)
+        }else{
+            $('#tablaCarrito tbody').append(html)
+        }
+        ActualizarTotal()
+        $('#cmbProducto').val('')
+        $('#cmbProducto').selectpicker('refresh')
+        $('#txtCantidad').val(1)
+        $('#txtCodigo').val('')
+        $('#txtCodigo').focus()
+
+    }
+
+    const ActualizarTotal = () => {
+        let total = 0
+        $('#tablaCarrito tbody tr').each(function(){
+            let td = $(this).find('td').eq(5)
+            if(td.length){
+                total += parseFloat(td.text())
+            }
+        })
+        $('#lblTotal').text(total.toFixed(2))
+
+        let recibido = parseFloat($('#txtMontoRecibido').val() || 0)
+        let vuelto = recibido - total
+        $('#lblVuelto').text(vuelto >= 0 ? vuelto.toFixed(2) : '0.00')
+    }
+
+    $('#txtMontoRecibido').on('input', ActualizarTotal)
+
+    const CancelarVenta = () => {
+        Swal.fire('Cancelada', 'La venta fue cancelada.', 'info')
+        //Limpiar todo
+        LimpiarVenta()
+    }
+
+    const LimpiarVenta = () => {
+        //Limpiar todo
+        $('#tablaCarrito tbody').html('<tr><td colspan="6">Sin productos en el carrito.</td></tr>')
+        ActualizarTotal()
+        $('#cmbCliente').val('')
+        $('#cmbCliente').selectpicker('refresh')
+        $('#cmbMedioPago').val('')
+        $('#cmbMedioPago').selectpicker('refresh')
+        $('#txtMontoRecibido').val('')
+        $('#txtCantidad').val(1)
+        $('#cmbProducto').val('')
+        $('#cmbProducto').selectpicker('refresh')
+    }
+
+    const ConfirmarVenta = () => {
+        const cliente = $('#cmbCliente').val()
+        const medioPago = $('#cmbMedioPago').val()
+        let productos = []
+        $('#tablaCarrito tbody tr').each(function(){
+            let td = $(this).find('td')
+            if(td.length == 7){ // Asegurarse de que no sea la fila "Sin productos"
+                productos.push({
+                    codigo: td.eq(1).text(),
+                    descripcion: td.eq(2).text(),
+                    cantidad: parseInt(td.eq(3).text()),
+                    precio: parseFloat(td.eq(4).text()),
+                    total: parseFloat(td.eq(5).text()),
+                    id: td.eq(6).text()
+                })
+            }
+        })
+    
+        const total = parseFloat($('#lblTotal').text())
+        const montoRecibido = parseFloat($('#txtMontoRecibido').val() ||0)
+        const vuelto = montoRecibido - total
+
+        const res = $.post('/ventas/alta', {
+            cliente,
+            medioPago,
+            productos,
+            total,
+            montoRecibido,
+            vuelto
+        }, (data) => {
+            if(data.status){
+                Swal.fire(data.title, data.text, data.icon)
+                 Swal.fire({
+                    title: '¿Desea imprimir el comprobante?',
+                    showDenyButton: true,
+                    confirmButtonText: 'Sí',
+                    denyButtonText: `No`,
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Abrir en una nueva pestaña
+                        window.open(`/ventas/imprimir/${data.id}`, '_blank');
+                    } 
+                })
+                LimpiarVenta()
+            }else{
+                Swal.fire(data.title, data.text, data.icon)  
+            }
+        })
+    }
+
+    const ModalClienteNuevo = () => {
+        // aca podes reusar el modal de clientes que ya tenes
+        $('#modalClientes').modal('show')
+    }
+
+</script>
+{% endblock %}

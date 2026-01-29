@@ -1,0 +1,191 @@
+{% extends '../../template.html' %}
+
+{% block styles %}
+<style>
+    .textAreaSize {
+        resize: vertical;
+        min-height: 48px;
+        max-height: 100px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+    <h2>{{ pagename }}</h2>
+    <div class="d-flex align-items-end mb-3" style="gap: 0.2rem;">
+        <div>
+            <input type="text" class="form-control" id="txtFiltro" placeholder="Buscar" style="width: 10rem;" />
+        </div>
+        <div class="ml-1">
+            <label>Provincia</label>
+            <select class="form-control selectpicker" id="cmbProvincia" onchange="getListaLocalidades()">
+                {% for p in provincias %}
+                <option value="{{p.id}}">{{p.descripcion}}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% if permisos.a %}
+            <button class="btn btn-round btn-success modalAccion mr-1" onclick="ModalAccion()">
+                <i class="fa fa-plus"></i>
+            </button>
+        {% endif %}
+    </div>
+</div>
+<div class="table-responsive" style="height: calc(100vh - 200px)" id="tablaLocalidades">
+    <table class="table table-sm table-fix table-hover tableFixHead">
+        <thead>
+            <tr>
+                {% if permisos.b %}<th class="text-center" style="width: 85px;">Acciones</th>{% endif %}
+                <th>Localidades</th>
+                <th>Cod. Postal</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<!-- MODAL -->
+<div class="modal fade modal-m" data-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true" id="modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabel"></h5>
+                <button type="button" class="close" aria-label="Close" onclick="CerrarModal()">
+                    <span aria-hidden=" true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-sm-12 col-md-8">
+                        <label for="txtDescripcion">Descripción</label>
+                        <input type="text" class="form-control form-control-sm" id="txtDescripcion" maxlength="80">
+                    </div>
+                    <div class="col-sm-12 col-md-4">
+                        <label for="txtCP">Cód. postal</label>
+                        <input type="text" class="form-control form-control-sm" id="txtCP" maxlength="6" onkeypress="return soloNumeros(event)">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                    onclick="CerrarModal()">Cancelar</button>
+                <button type="button" class="btn btn-success" id="btnAccion">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(() => {
+        getListaLocalidades()
+    })
+
+    const getListaLocalidades = async () => {
+        $("#preloaderAPP").show()
+        let IdProvincia = $('#cmbProvincia').val()
+        let res = await $.post('/localidades/listaAjax', { IdProvincia })
+        let html = ""
+        for(let i=0; i<res.data.length; i++){
+            html += `
+            <tr>
+                {% if permisos.b %}
+                    <td class="text-center" style="width: 85px;">
+                        <button class="btn btn-round btn-sm btn-danger" onclick="Eliminar(${res.data[i].id})"
+                            data-toggle="tooltip" data-placement="top" title="Eliminar">
+                            <i class="fa fa-trash-alt"></i>
+                        </button>
+                    </td>
+                {% endif %}
+                <td class='search'>${res.data[i].localidad}</td>
+                <td class='search'>${res.data[i].cp}</td>
+            </tr>`
+        }
+        $('#tablaLocalidades tbody').html(html)
+        $("#preloaderAPP").hide()
+    }
+
+    const ModalAccion = async () => {
+        $("#preloaderAPP").show()
+        $('#modalLabel').text('Nueva localidad')
+        $('#btnAccion').attr('onclick', `PostRegistro()`)
+        $('#btnAccion').text('Guardar')
+        $("#preloaderAPP").hide()
+        $('#modal').modal('show')
+    }
+
+    const PostRegistro = async () => {
+        $("#preloaderAPP").show()
+        const res = await $.post('/localidades/alta', { 
+            descripcion: $('#txtDescripcion').val(), 
+            cp: $('#txtCP').val(),
+            idProvincia: $('#cmbProvincia').val()
+        })
+        $("#preloaderAPP").hide()
+        Swal.fire({
+            icon: res.icon,
+            title: res.title, 
+            text: res.text, 
+            timer: 2500
+        }).then(() => {
+            if(res.status){
+                CerrarModal()
+                getListaLocalidades()
+            }
+        })        
+    }
+
+    const Eliminar = id => {
+        Swal.fire({
+            title: 'Confirmar',
+            text: "¿Desea borrar este registro?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar.',
+            cancelButtonColor: '#d33',
+            cancelButtonText: 'No, cancelar.'
+        }).then(async result => {
+            if (result.isConfirmed) {
+                $("#preloaderAPP").show()
+                const res = await $.post('/localidades/eliminar', { id })
+                $("#preloaderAPP").hide()
+                Swal.fire({
+                    icon: res.icon,
+                    title: res.title,
+                    text: res.text,
+                    timer: 2500
+                }).then(() => {
+                    if(res.status){
+                        CerrarModal()
+                        getListaLocalidades()
+                    }
+                })
+            }    
+        })
+    }
+
+    const CerrarModal = () => {
+        $('txtDescripcion').val('')
+        $('#txtCP').val('')
+        $('#modal').modal('hide')
+    }
+
+    $("#txtFiltro").keyup(async function () {
+        Filtrar()
+    })
+    
+    const Filtrar = () => {
+        $('#tablaLocalidades tbody tr').each(function () {
+            if ($(this).find('td.search').text().toUpperCase().indexOf($('#txtFiltro').val().toUpperCase()) > -1)
+                $(this).closest('tr').show()
+            else
+                $(this).closest('tr').hide()
+        })
+    }
+
+</script>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends './template.html' %}
+
+{% block title %} {{ pagename }} {% endblock %}
+
+{% block content %}
+<style type="text/css">
+    @media (max-width: 600px) {
+        #btnvolver{
+            float: left !important;
+            margin-top: 10px;
+        }
+    }
+</style>
+<br>
+    <div class="row">
+        <div class="col-md-8">
+            <h4 id="title">Error de permiso</h4>
+        </div>
+        <div class="col-md-4">
+            <button id="btnvolver" onclick="history.back();" class="btn btn-round btn-danger" style="float: right;"><i class="fa fa-arrow-left"></i> Volver</button>
+        </div>
+        <br><br><br><br>
+        <div class="col-12">
+            <center><b>{{error}}</b></center>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+{% endblock %}

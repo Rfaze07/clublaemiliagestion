@@ -1,0 +1,267 @@
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <!-- <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"> -->
+        <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, shrink-to-fit=no' name='viewport' />
+        <title>{{ pagename }}</title>
+        <link rel="icon" type="image/png" sizes="32x32" href="/img/favicon.ico">
+        <link rel="stylesheet" href="/css/bootstrap.min.css">
+        <link rel="stylesheet" href="/css/stylesFactura.css">
+    </head>
+    <body>
+        <div class="pt-3 pb-4 text-center no-print">
+            <button type="button" class="btn btn-danger btn-sm" onclick="Cerrar()">
+                <i class="fas fa-times mr-1"></i> Cerrar
+            </button>
+            <button type="button" class="btn btn-success btn-sm" onclick="Imprimir()">
+                <i class="fas fa-print mr-1"></i> Imprimir
+            </button>
+        </div>
+
+        {% set totalIVA = 0 %}
+        {% set totalImporte = 0 %}
+        {% set heightPage = 415 %}
+
+        {% for key, val in tiposCopias %}
+            <div class="content" style="page-break-after: always; width: 1100px; min-height: 415mm;">
+                <div class="upper">
+                    <!-- TIPO DE COPIA DE COMPROBANTE -->
+                    <div class="">
+                        <div class="compTipoCopia">{{ val }}</div>
+                    </div>
+                    <!-- TIPO DE COPIA DE COMPROBANTE -->
+
+
+
+                    <!-- ENCABEZADO PRINCIPAL -->
+                    <div class="d-flex" style="position: relative; height: 230px;">
+                        <div class="col s6 m6 l6 xl6 bordeRecuadro">
+                            <div class="row pt-3 pb-3" style="width: 500px;">
+                                <div class="col-12" style="text-align: center;">
+                                    {% if empresa.imagen == null %}
+                                        <span class="textoFacturaEncabezado text-uppercase">{{ empresa.empresaTxt }}</span>
+                                    {% else %}
+                                        <img src="{{ empresa.imagen }}" style="max-height: 100px;">
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col s6 m6 l6 xl6 {% if empresa.imagen == null %}mt-5{% endif %}">
+                                <div class="row mb-1">
+                                    <div class="col-12">
+                                        <span class="textoNegrita">Razón Social: </span>
+                                        <span style="text-transform: uppercase;"></span>
+                                        {{ empresa.empresaTxt }}
+                                    </div>
+                                </div>
+                                <div class="row mb-1">
+                                    <div class="col-12">
+                                        <span class="textoNegrita">Domicilio comercial: </span>
+                                        {{ empresa.direccion }} - San Nicolas, Buenos Aires
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-12">
+                                        <span class="textoNegrita">Condición frente al IVA: </span>
+                                        <span>{{ empresa.condicionIvaTxt }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tipoComprobante"><p>{{ titulo.letra }}</p></div>
+                        <div class="col s6 m6 l6 xl6 bordeRecuadro">
+                            <div class="row mb-4">
+                                <div class="col-12" style="text-align: center;">
+                                    <span class="textoFacturaEncabezado">{{ titulo.impresion }}</span>
+                                </div>
+                            </div>
+                            <div class="row mb-1" style="width: 500px; float: right;">
+                                <div class="col s6 m6 l6 xl6">
+                                    <span class="textoNegrita">Punto de venta: </span>
+                                    <span class="textoNegrita">{{ titulo.punto_venta }}</span>
+                                </div>
+                                <div class="col s6 m6 l6 xl6">
+                                    <span class="textoNegrita">Comp. nro: </span>
+                                    <span class="textoNegrita">{{ titulo.numero }}</span>
+                                </div>
+                            </div>
+                            <div class="row mb-3" style="width: 500px; float: right;">
+                                <div class="col-12">
+                                    <span class="textoNegrita">Fecha de emisión: </span>
+                                    <span class="textoNegrita">{{ titulo.fecha | date('d/m/Y') }}</span>
+                                </div>
+                            </div>
+                            <div class="row" style="width: 500px; float: right;">
+                                <div class="col-12">
+                                    <span class="textoNegrita">CUIT: </span>
+                                    {{ empresa.cuit }}
+                                </div>
+                            </div>
+                            <div class="row" style="width: 500px; float: right;">
+                                <div class="col-12">
+                                    <span class="textoNegrita">Ingresos Brutos: </span>
+                                    {{ empresa.cuit }}
+                                </div>
+                            </div>
+                            <div class="row" style="width: 500px; float: right;">
+                                <div class="col-12">
+                                    <span class="textoNegrita">Fecha de inicio de Actividades: </span>
+                                    {{ empresa.fecha_inicio }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- ENCABEZADO PRINCIPAL -->
+
+
+
+                    <!-- DETALLES DEL CLIENTE -->
+                    <div class="mb-2 pt-2 pb-2 d-flex bordeRecuadro">
+                        <div class="col-6">
+                            <div>
+                                <span class="textoNegrita">CUIT: </span>
+                                <span>{{ cliente.nro_documento }}</span>
+                            </div>
+                            <div>
+                                <span class="textoNegrita">Condicion frente al IVA: </span>
+                                <span>{{ cliente.condicionIvaTxt }}</span>
+                            </div>
+                            <!-- <div class="mb-2">
+                                <span class="textoNegrita">Condición de venta: </span>
+                                <span>{{ titulo.descCondVentaTxt }}</span>
+                            </div> -->
+                        </div>
+                        <div class="col-6">
+                            <div>
+                                <span class="textoNegrita">Apellido y Nombre / Razón Social:</span>
+                                <span>{{ cliente.clienteTxt }}</span>
+                            </div>
+                            <div>
+                                <span class="textoNegrita">Domicilio comercial:</span>
+                                <span>{{ cliente.direccion }}</span>
+                            </div>
+                            {% if titulo.rem_punto_venta != null && titulo.rem_nro_comprobante != null %}
+                                <div>
+                                    <span class="textoNegrita">Remito: </span>
+                                    <span>{{ titulo.rem_punto_venta }} - {{ titulo.rem_nro_comprobante }}</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <!-- DETALLES DEL CLIENTE -->
+
+
+
+                    <!-- TABLA DETALLE DE FACTURA -->
+                    <div>
+                        <table class="table table-sm m-0">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th style="width: 7%;">Código</th>
+                                    <th style="width: 30%;">Producto / Servicio</th>
+                                    <th style="width: 6%;">Cantidad</th>
+                                    <th style="width: 9%;">U. medida</th>
+                                    <th style="width: 10%;">Precio Unit.</th>
+                                    <th style="width: 6%;">% Bonif.</th>
+                                    <th style="width: 10%;">Subtotal</th>
+                                    <th style="width: 5%;">Alicuota IVA</th>
+                                    <th style="width: 10%;">Subtotal c/IVA</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for d in detalles %}
+
+                                    {% set totalIVA += d.cantidad * d.precio * d.iva / 100 %}
+                                    {% set totalImporte += d.cantidad * d.precio %}
+
+                                    <tr>
+                                        <td>{{ loop.index | padCodigo }}</td>
+                                        <td>{{ d.descripcion }}</td>
+                                        <td class="textoAlignDer">{{ d.cantidad }}</td>
+                                        <td class="textoAlignCen">{{ d.uniMedTxt }}</td>
+                                        <td class="textoAlignDer">{{ d.precio | formatCurrency }}</td>
+                                        <td class="textoAlignCen">0,00</td>
+                                        <td class="textoAlignDer">{{ (d.cantidad * d.precio) | formatCurrency }}</td>
+                                        <td class="textoAlignCen">{{ d.iva }}</td>
+                                        <td class="textoAlignDer">{{ (d.cantidad * d.precio) * d.iva / 100 + (d.cantidad * d.precio) | formatCurrency }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- TABLA DETALLE DE FACTURA -->
+                </div>
+            
+                <!-- PIE DE PAGINA -->
+                    <div class="bottom">
+                        {% if titulo.letra != 'I' %}
+                            <div class="mb-2 d-flex justify-content-between align-items-center">
+                                <div class="d-flex align-items-center">
+                                    <div>
+                                        <img class="mr-3 codigoQR" src="{{ qr }}" />
+                                    </div>
+                                    <div>
+                                        <img src="/img/logo-arca.png" height="40" /><br>
+                                        <span style="font-size: 1rem; font-weight: 700;">Comprobante Autorizado</span><br><br>
+                                        <span class="textoFacturaPiePagina">CAE Nº:</span> {{ titulo.cae }}<br>
+                                        <span class="textoFacturaPiePagina">Fecha de Vto. de CAE</span> {{ titulo.cae_vence }}
+                                    </div>
+                                </div>
+
+                                <div class="d-flex align-items-end">
+                                    <div class="p-2 cantPaginas">Pág 1/1</div>
+                                </div>
+
+                                <div class="d-flex align-items-end">
+                                    <div style="height: 150px; min-width: 330px;">
+                                        <div class="d-flex justify-content-between">
+                                            <span class="textoFacturaPiePagina importe text-right">Importe Neto Gravado: $ </span>
+                                            <span class="text-right importe">{{ titulo.neto | formatCurrency }}</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between">
+                                            <span class="textoFacturaPiePagina importe textoAlignIzq">IVA 10,5%: $ </span>
+                                            <span class="textoAlignDer importe">{{ titulo.iva105 | formatCurrency }}</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between">
+                                            <span class="textoFacturaPiePagina importe textoAlignIzq">IVA 21%: $</span>
+                                            <span class="textoAlignDer importe">{{ titulo.iva | formatCurrency }}</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between">
+                                            <span class="textoFacturaPiePagina importeTot textoNegrita text-right">Importe total: $ </span>
+                                            <span class="textoAlignDer importeTot textoNegrita">{{ titulo.total | formatCurrency }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="mb-2 d-flex justify-content-between align-items-end">
+                                <div class="d-grid justify-content-center align-items-center">
+                                    <div class="d-grid justify-content-between">
+                                        <span class="textoFacturaPiePagina importe text-right">Imp. Neto Gravado: $ </span>
+                                        <span class="text-right importe">{{ titulo.neto | formatCurrency }}</span>
+                                    </div>
+                                    <div class="d-grid justify-content-between">
+                                        <span class="textoFacturaPiePagina importe textoAlignIzq">IVA 10,5%: $ </span>
+                                        <span class="textoAlignDer importe">{{ titulo.iva105 | formatCurrency }}</span>
+                                    </div>
+                                    <div class="d-grid justify-content-between">
+                                        <span class="textoFacturaPiePagina importe textoAlignIzq">IVA 21%: $</span>
+                                        <span class="textoAlignDer importe">{{ titulo.iva | formatCurrency }}</span>
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span class="textoFacturaPiePagina importeTot textoNegrita text-right">Importe total: $ </span>
+                                    <span class="textoAlignDer importeTot textoNegrita">{{ titulo.total | formatCurrency }}</span>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                <!-- PIE DE PAGINA -->
+            </div>
+        {% endfor %}
+    </body>
+    <script>
+        const Imprimir = () => { window.print() }
+        const Cerrar = () => { window.close() }
+        Imprimir()
+    </script>
+</html>

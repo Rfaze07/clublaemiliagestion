@@ -1,0 +1,263 @@
+{% extends '../../template.html' %}
+
+{% block styles %}
+    <style>
+        #content{
+            font-size : 0.8rem;
+        }
+        .parent_elem{
+            padding : 1rem;
+        }
+        .submenu{
+            margin-bottom : 1rem;
+        }
+        .collapsed{
+            display : none;
+        }
+        .toggle_content{
+            color : lightseagreen;
+            cursor: pointer;
+        }
+        .route{
+            color : blue;
+        }
+    
+    </style>
+{% endblock %}
+
+{% block content %}
+    <h5>Desarrollador: Configurar menú lateral</h5>
+    <div><button id="nuevo_item" class="btn btn-sm btn-primary">Agregar ítem (raíz)</button></div>
+    <div id="content" class="row">
+        {{ tree_html | safe }}
+    </div>
+
+    <!-- MODAL -->
+
+    <div class="modal fade modal-m" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+        aria-labelledby="staticBackdropLabel" aria-hidden="true" id="modalConfigItem">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalLabel">Configurar ítem del menú</h5>
+                    <button type="button" class="close" aria-label="Close" onclick="CerrarModal()">
+                        <span aria-hidden=" true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" id="id_item" hidden>
+                    <input type="text" id="parent_id_item" hidden>
+                    <div>
+                        <label for="">Título</label>
+                        <input type="text" class="form-control form-control-sm" id="titulo_item"/>
+                    </div>
+                    <br>
+                    <div>
+                        <label for="">Tipo</label>
+                        <select class="form-control form-control-sm" name="" id="tipo_item">
+                            <option value="link">Link</option>
+                            <option value="dropdown">Dropdown</option>
+                        </select>
+                    </div>
+
+                    <br>
+                    <div id="div_pantalla_relacionada">
+                        <label for="">Módulo relacionado</label>
+                        <select name="" class="form-control form-control-sm selectpicker" id="pantalla_item">
+                            {% for p in pantallas %}
+                                <option value="{{p.id}}">{{p.titulo}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <br>
+                    <label for="">Ícono (opcional)</label>
+                    <input type="text" class="form-control form-control-sm" id="icono_item"/>
+                    <small>Ingresar la clase de Font awesome 6, ejemplo "fa fa-star" </small>
+                    <br>
+                    <div>
+                        <label for="">Orden</label>
+                        <input type="number" class="form-control form-control-sm" id="orden_item"/>
+                    </div>
+                   
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                        onclick="CerrarModal()">Cancelar</button>
+                    <button type="button" class="btn btn-success" id="btnGuardar">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        function CerrarModal(){
+            $("#modalConfigItem").modal("hide");
+        }
+        $(document).ready(function(){
+            $(".toggle_content").on("click", function (e){
+                let id = $(this).data('id');
+
+                let target = "#content_"+id;
+            
+                $(target).toggleClass('collapsed')
+                
+            })
+
+            $(".config_btn").on("click",function(e){
+                let id = $(this).data('id');
+                
+                $.ajax({
+                    method : 'GET',
+                    url : '/getItemMenuByID/'+id,
+                    cache : false,
+                    success : function(res){
+                        if(res){
+                            $("#id_item").val(res.id);
+                            $("#parent_id_item").val(res.parent);
+                            $("#titulo_item").val(res.titulo);
+                            $("#icono_item").val(res.icono);
+                            $("#orden_item").val(res.orden);
+
+                            if(res.id_pantalla){
+                                $("#tipo_item").val('link')
+                                $("#pantalla_item").val(res.id_pantalla)
+                                $("#div_pantalla_relacionada").css({display:''})
+                            }
+                            else{
+                                $("#tipo_item").val('dropdown')
+                                $("#pantalla_item").val(null)
+                                $("#div_pantalla_relacionada").css({display:'none'})
+                            }
+                            
+                        }
+                    },
+                    error : function(er){
+
+                    }
+                })
+                
+                $("#modalConfigItem").modal("show");
+            })
+
+            
+            $("#tipo_item").change(function(){
+                if($(this).val() == 'link'){
+                    $("#div_pantalla_relacionada").css({display:''})
+                }
+                else{
+                    $("#div_pantalla_relacionada").css({display:'none'})
+                }
+            })
+
+            $("#btnGuardar").click(function(){
+                let id = $("#id_item").val()
+
+                let data = {
+                    titulo : $("#titulo_item").val(),
+                    parent : $("#parent_id_item").val(),
+                    tipo : $("#tipo_item").val(),
+                    icono : $("#icono_item").val(),
+                    orden : $("#orden_item").val()
+                }
+                if(data.tipo == 'link'){
+                    data.pantalla = $("#pantalla_item").val()
+                }
+
+                if(id) data.id = id;
+                if(data.parent == "") data.parent = null;
+
+                if(data.tipo == 'link' && !data.pantalla){
+                    return alert("Debe asociar un módulo al link")
+                }
+
+                if(!data.titulo){
+                    return alert("Ingrese un título")
+                }
+
+                $.ajax({
+                    method : 'post',
+                    url : '/guardarItemMenu',
+                    data : data,
+                    success : function(res) {
+                        if(res == 'done'){
+                            Swal.fire('Éxito', 'Item actualizado', 'success')
+                            .then(_=>{
+                                window.location.reload()
+                            })
+                        }
+                        else
+                            Swal.fire('Error', res, 'error')
+                    },
+                    error : function(er){
+                        Swal.fire('Error', er.toString(), 'error')
+                    }
+                })
+            })
+
+            $("#nuevo_item").click(function(){
+                $("#id_item").val("");
+                $("#parent_id_item").val("");
+                $("#titulo_item").val("");
+
+                $("#tipo_item").val('link')
+                $("#pantalla_item").val("")
+                $("#div_pantalla_relacionada").css({display:''})
+                $("#icono_item").val("");
+                $("#orden_item").val("");
+                $("#modalConfigItem").modal("show");
+               
+            })
+
+            $(".addSubitem_btn").click(function(){
+                let parent = $(this).data('id')
+                $("#id_item").val("");
+                $("#parent_id_item").val(parent);
+                $("#titulo_item").val("");
+                $("#icono_item").val("");
+                $("#orden_item").val("");
+
+                $("#tipo_item").val('link')
+                $("#pantalla_item").val("")
+                $("#div_pantalla_relacionada").css({display:''})
+                $("#modalConfigItem").modal("show");
+            })
+
+            $(".borrar_btn").click(function(){
+                let id = $(this).data('id')
+                
+                Swal.fire({
+                    title: 'Advertencia',
+                    text: "¿Desea borrar este elemento? (Se borrarán todos sus subitems en caso de ser un dropdown)",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    confirmButtonText: 'Sí, eliminar.',
+                    cancelButtonColor: '#d33',
+                    cancelButtonText: 'No, cancelar.'
+                }).then(async result => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            method : 'DELETE',
+                            url : '/itemMenu/'+id,
+                            success : function(){
+                                Swal.fire('Éxito', 'Item borrado', 'success')
+                                .then(_=>{
+                                    window.location.reload()
+                                })
+                            },
+                            error : function(er){
+                                console.error(er)
+                            }
+                        })
+                    } 
+                })
+
+               
+            })
+
+           
+        })
+    </script>
+{% endblock %}

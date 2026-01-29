@@ -1,0 +1,285 @@
+{% extends '../../template.html' %}
+
+{% block styles %}
+<style>
+    .textAreaSize {
+        resize: vertical;
+        min-height: 48px;
+        max-height: 100px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+    <h2>{{ pagename }}</h2>
+    <div class="d-flex align-items-end mb-3" style="gap: 0.2rem;">
+        <input type="text" class="form-control" id="txtFiltro" placeholder="Buscar" style="width: 10rem;" />
+        <div>
+            <label>Activos</label>
+            <select class="form-control" id="cmbActivoFiltro" onchange="getLista()">
+                <option value="t" selected>Todos</option>
+                <option value="1">Si</option>
+                <option value="0">No</option>
+            </select>
+        </div>
+        {% if permisos.a == 1 %}
+        <button class="btn btn-round btn-success modalAccion mr-1" data-accion="a" onclick='ModalAccion("a")'>
+            <i class="fa fa-plus"></i>
+        </button>
+        {% endif %}
+    </div>
+</div>
+<div class="table-responsive" style="height: calc(100vh - 200px)" id="tablaDatos">
+    <table class="table table-sm table-fix table-hover tableFixHead">
+        <thead>
+            <tr>
+                <th scope="col">Acciones</th>
+                <th scope="col">Tipo</th>
+                <th scope="col">Descripción</th>
+                <th scope="col">Desc. Corta</th>
+                {% if permisos.x %}
+                    <th scope="col">Editable</th>
+                {% endif %}
+                <th scope="col">Flujo</th>
+                <th scope="col">Activo</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<!-- MODAL -->
+<div class="modal fade modal-m" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true" id="modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabel"></h5>
+                <button type="button" class="close" aria-label="Close" onclick="CerrarModal()">
+                    <span aria-hidden=" true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-8">
+                        <label for="txtDescripcion">Descripción</label>
+                        <input type="text" class="form-control form-control-sm" id="txtDescripcion" maxlength="100">
+                    </div>
+                    <div class="form-group col-sm-12 col-md-4">
+                        <label for="txtDescCorta">Desc. corta</label>
+                        <input type="text" class="form-control form-control-sm text-uppercase" id="txtDescCorta" maxlength="4">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-7">
+                        <label for="cmbTipoMovimiento">Tipo movimiento</label>
+                        <select class="form-control form-control-sm" id="cmbTipoMovimiento">
+                            <option value="" selected disabled>Seleccione una el tipo...</option>
+                            <option value="i">Ingreso</option>
+                            <option value="e">Egreso</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-5 d-grid justify-content-around align-items-center">
+                        <div class="col mb-2">
+                            <div class="custom-control custom-switch ml-1">
+                                <input type="checkbox" class="custom-control-input" id="chbActivoFlujo" />
+                                <label class="custom-control-label" for="chbActivoFlujo">Activo flujo</label>
+                            </div>
+                        </div>
+                        {% if permisos.x %}
+                            <div class="col">
+                                <div class="custom-control custom-switch ml-1">
+                                    <input type="checkbox" class="custom-control-input" id="chbEditable" />
+                                    <label class="custom-control-label" for="chbEditable">Editable?</label>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="row d-none" id="actionSeccion">
+                    <div class="col-sm-12 text-center">
+                        <div class="custom-control custom-switch ml-1">
+                            <input type="checkbox" class="custom-control-input" id="chbActivo" />
+                            <label class="custom-control-label" for="chbActivo">Activo</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                    onclick="CerrarModal()">Cancelar</button>
+                <button type="button" class="btn btn-success" id="btnAccion">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(() => {
+        getLista()
+    })
+
+    $("#txtFiltro").keyup(async function () {
+        Filtrar()
+    })
+    
+    const getLista = async () => {
+        $("#preloaderAPP").show();
+        let activo = $('#cmbActivoFiltro').val()
+        let res = await $.post('/conceptos/getlistaAjax', { activo })
+        console.log(res)
+        let html = ""
+        if(res.status){
+            for (let i = 0; i < res.data.length; i++) {
+                html += `
+                    <tr>
+                        <td>
+                            <div style="display: flex; gap: 2px;">
+                                {% if permisos.m %}
+                                    <button class="btn btn-round btn-sm btn-warning" data-accion="m"
+                                        data-toggle="tooltip" data-placement="top" title="Modificar" onclick="ModalAccion('m',${res.data[i].id})">
+                                        <i class="fa fa-pen"></i>
+                                    </button>
+                                {% endif %}
+
+                                {% if permisos.b %}
+                                    <button class="btn btn-round btn-sm btn-danger" onclick="Eliminar(${res.data[i].id})"
+                                        data-toggle="tooltip" data-placement="top" title="Eliminar">
+                                        <i class="fa fa-trash-alt"></i>
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class='search'>${res.data[i].tipo == 'i' ? 'Ingreso' : 'Egreso'}</td>
+                        <td class='search'>${res.data[i].descripcion}</td>
+                        <td class='search'>${res.data[i].desc_corta}</td>
+                        {% if permisos.x %}<td>${res.data[i].editable === 1 ? 'Si' : 'No'}</td>{% endif %}
+                        <td>${res.data[i].activo_flujo === 1 ? 'Si' : 'No'}</td>
+                        <td>${res.data[i].activo === 1 ? 'Si' : 'No'}</td>
+                    </tr>`
+            }
+        }else{
+            html = `<tr><td class="font-weight-bold" colspan="4">${res.text}</td></tr>`
+        }
+        $('#tablaDatos tbody').html(html)
+        $("#preloaderAPP").hide();
+    }
+
+    const ModalAccion = async (accion, id) => {
+        $("#preloaderAPP").show();
+        if (accion === 'a') {
+            $('#modalLabel').text('Nuevo concepto')
+            $('#btnAccion').attr('onclick', `PostRegistro("a")`)
+            $('#btnAccion').text('Guardar')
+        }
+        if (accion == 'm') {
+            let res = await $.post(`/conceptos/getByIdAjax`, {id})
+            if (res.status != 0) {
+                $('#txtDescripcion').val(res.data.descripcion)
+                $('#txtDescCorta').val(res.data.desc_corta)
+                $('#cmbTipoMovimiento').val(res.data.tipo)
+                $('#chbEditable').prop('checked', res.data.editable === 1 ? true : false)
+                $('#chbActivoFlujo').prop('checked', res.data.activo_flujo === 1 ? true : false)
+                $('#chbActivo').prop('checked', res.data.activo === 1 ? true : false)
+            }
+            $('#modalLabel').text('Modificar concepto')
+            $('#btnAccion').text('Guardar')
+            $('#btnAccion').attr('onclick', `PostRegistro("m",${id})`)
+            $('#actionSeccion').removeClass('d-none')
+            $('#actionSeccionDivider').removeClass('d-none')
+        }
+        $("#preloaderAPP").hide();
+        $('#modal').modal('show')
+    }
+
+    const PostRegistro = async (accion, Id) => {
+        $("#preloaderAPP").show()
+        let url = '/conceptos/alta', 
+         body = {
+            descripcion: $('#txtDescripcion').val(),
+            descCorta: $('#txtDescCorta').val(),
+            tipo: $('#cmbTipoMovimiento').val(),
+            activoFlujo: $('#chbActivoFlujo').is(':checked'),
+            editable: $('#chbEditable').is(':checked')
+        }
+
+        if(accion === 'm'){
+            url = '/conceptos/modificar'
+            body.activo = $('#chbActivo').prop('checked') ? 1 : 0
+            body.id = Id
+        }
+
+        const res = await $.post(url, body)
+        $("#preloaderAPP").hide()
+        Swal.fire({
+            icon: res.icon,
+            title: res.title, 
+            text: res.text, 
+            timer: 2500
+        }).then(() => {
+            if(res.status){
+                CerrarModal()
+                getLista()
+            }
+        })        
+    }
+
+    const Eliminar = (id) => {
+        Swal.fire({
+            title: 'Confirmar',
+            text: "¿Desea borrar este registro?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar.',
+            cancelButtonColor: '#d33',
+            cancelButtonText: 'No, cancelar.'
+        }).then(async result => {
+            if (result.isConfirmed) {
+                $("#preloaderAPP").show();
+                let res = await $.post('/conceptos/eliminar', { id })
+                $("#preloaderAPP").hide();
+                Swal.fire({
+                    type: res.type,
+                    icon: res.icon,
+                    title: res.title,
+                    text: res.text,
+                    timer: 2000
+                }).then(() => {
+                    if(res.status){
+                        CerrarModal()
+                        getLista()
+                    }
+                })
+            }    
+        })
+    }
+
+    const Filtrar = () => {
+        $('#tablaDatos tbody tr').each(function () {
+            if ($(this).find('td.search').text().toUpperCase().indexOf($('#txtFiltro').val().toUpperCase()) > -1)
+                $(this).closest('tr').show();
+            else
+                $(this).closest('tr').hide();
+        });
+    }
+
+    const CerrarModal = () => {
+        $('#modal').modal('hide')
+        $('#actionSeccion').addClass('d-none')
+        $('#actionSeccionDivider').addClass('d-none')
+        LimpiarCampos()
+    }
+
+    const LimpiarCampos = () => {
+        $('input[type="text"]').val('')
+        $('textarea').val('')
+        $('input[type="checkbox"]').prop('checked', false)
+        $('input[type="radio"]').prop('checked', false)
+    }
+
+</script>
+{% endblock %}

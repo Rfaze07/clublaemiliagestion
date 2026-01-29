@@ -1,0 +1,374 @@
+{% extends '../../template.html' %}
+
+{% block styles %}
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+    <h2>{{ pagename }}</h2>
+    <div class="d-flex align-items-end mb-3" style="gap: 0.2rem;">
+        <input type="text" class="form-control" id="txtFiltro" placeholder="Buscar" style="width: 10rem;" />
+        <div>
+            <label>Activos</label>
+            <select class="form-control" id="cmbActivoFiltro" onchange="getListaChoferes()">
+                <option value="t" selected>Todos</option>
+                <option value="1">Si</option>
+                <option value="0">No</option>
+            </select>
+        </div>
+        {% if permisos.a == 1 %}
+        <button class="btn btn-round btn-success modalAccion mr-1" data-accion="a" onclick='ModalAccion("a")'>
+            <i class="fa fa-plus"></i>
+        </button>
+        {% endif %}
+    </div>
+</div>
+<div class="table-responsive" style="height: calc(100vh - 200px)" id="tablaChoferes">
+    <table class="table table-sm table-fix table-hover tableFixHead">
+        <thead>
+            <tr>
+                <th scope="col">Acciones</th>
+                <th scope="col">Chofer</th>
+                <th scope="col">Dni</th>
+                <th scope="col">Direccion</th>
+                <th scope="col">Localidad</th>
+                <th scope="col">Provincia</th>
+                <th scope="col">Celular</th>
+                <th scope="col">Camion</th>
+                <th scope="col">Activo</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<!-- MODAL -->
+<div class="modal fade modal-m" data-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    aria-labelledby="staticBackdropLabel" aria-hidden="true" id="modalChoferes">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabel"></h5>
+                <button type="button" class="close" aria-label="Close" onclick="CerrarModal()">
+                    <span aria-hidden=" true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col">
+                        <label for="txtNombreApellido">Nombre y Apellido</label>
+                        <input type="text" class="form-control form-control-sm" id="txtNombreApellido">
+                    </div>
+                </div>
+                <div class="dropdown-divider"></div>
+                <div class="row">
+                    <div class="col">
+                        <label for="txtDni">Documento</label>
+                        <input type="text" onkeypress="return soloNumeros(event)"
+                            class="form-control form-control-sm validarDni" id="txtDni">
+                    </div>
+                    <div class="col">
+                        <label for="txtDireccion">Direccion</label>
+                        <input type="text" class="form-control form-control-sm" id="txtDireccion">
+                    </div>
+
+                </div>
+                <div class="dropdown-divider"></div>
+                <div class="row">
+                    <div class="col">
+                        <label for="cmbProvincia">Provincia</label>
+                        <select class="form-control form-control-sm selectpicker" data-live-search="true"
+                            title="Seleccione una provincia" id="cmbProvincia">
+                            {% for p in provincias %}
+                            <option value="{{p.id}}">{{ p.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <label for="cmbLocalidad">Localidad</label>
+                        <select class="form-control form-control-sm selectpicker" data-live-search="true"
+                            title="Seleccione una localidad" id="cmbLocalidad">
+                        </select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <!-- VALOR NUMERICO -->
+                        <label for="txtCelular">Celular</label>
+                        <input type="text" onkeypress="return soloNumeros(event)" class="form-control form-control-sm"
+                            id="txtCelular">
+                    </div>
+                </div>
+                <div class="dropdown-divider"></div>
+                <div class="row">
+                    <div class="col">
+                        <label for="cmbCamion">Camion</label>
+                        <select class="form-control form-control-sm selectpicker" data-live-search="true"
+                            title="Seleccione un camión" id="cmbCamion">
+                            {% for c in camiones %}
+                            <option value="{{c.id}}">{{ c.dominio }} - {{ c.marca }} - {{ c.modelo }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="dropdown-divider d-none" id="actionSeccionDivider"></div>
+                <div class="row d-none" id="actionSeccion">
+                    <div class="col">
+                        <div class="custom-control custom-switch ml-1">
+                            <input type="checkbox" class="custom-control-input" id="chbActivo" />
+                            <label class="custom-control-label" for="chbActivo">Activo</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                    onclick="CerrarModal()">Cancelar</button>
+                <button type="button" class="btn btn-success" id="btnAccion">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(() => {
+        $('.validarDni').mask('99.999.999')
+        getListaChoferes()
+        $('#cmbLocalidad').prop('disabled', true);
+        $('.selectpicker').selectpicker(optionsSelectPicker)
+    })
+
+
+    //GETS
+    $('#cmbProvincia').change(async () => {
+        // hacer fetch de la localidades con los id de la provincia
+        
+        await ActualizarLocalidad()
+        $('#cmbLocalidad').prop('disabled', false);
+        $('#cmbLocalidad').selectpicker('refresh')
+    })
+
+    const getListaChoferes = async () => {
+        let activo = $('#cmbActivoFiltro').val()
+        let res = await $.post('/choferes/listaAjax', { activo })
+        let html = ""
+        for (let i = 0; i < res.length; i++) {
+            html += `
+                    <tr>
+                        <td>
+                            <div style="display: flex; gap: 2px;">
+                                {% if permisos.m == 1 %}
+                                <button class="btn btn-round btn-sm btn-warning" data-accion="m"
+                                    data-toggle="tooltip" data-placement="top" title="Modificar" onclick="ModalAccion('m',${res[i].id})">
+                                    <i class="fa fa-pen"></i>
+                                </button>
+                                {% endif %}
+                                {% if permisos.b == 1 %}
+                                <button class="btn btn-round btn-sm btn-danger" onclick="BorrarChofer(${res[i].id})"
+                                    data-toggle="tooltip" data-placement="top" title="Borrar">
+                                    <i class="fa fa-trash-alt"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class='search'>${res[i].apellidoYNombre}</td>
+                        <td class='search'>${res[i].documento}</td>
+                        <td class='search'>${res[i].direccion}</td>
+                        <td class='search'>${res[i].provincia}</td>
+                        <td class='search'>${res[i].localidad}</td>
+                        <td class='search'>${res[i].celular}</td>
+                        <td class='search'>${res[i].camion}</td>
+                        <td>${res[i].activo === 1 ? 'Si' : 'No'}</td>
+                    </tr>`
+        }
+        $('#tablaChoferes tbody').html(html)
+        $('[data-toggle="tooltip"]').tooltip()
+    }
+
+    const ModalAccion = async (accion, IdChofer) => {
+        if (accion === 'a') {
+            $('#modalLabel').text('Nuevo chofer')
+            $('#btnAccion').attr('onclick', `PostRegistro("a")`)
+            $('#btnAccion').text('Guardar')
+            AbrirModal()
+        }
+        if (accion == 'm') {
+            
+            let res = await $.getJSON(`/choferes/modificar/${IdChofer}`)
+            
+            if (res.length != 0) {
+                await CargarDatosModificar(res)
+            }
+            $('#modalLabel').text('Modificar chofer')
+            $('#btnAccion').text('Guardar')
+            $('#btnAccion').attr('onclick', `PostRegistro("m",${IdChofer})`)
+            $('#actionSeccion').removeClass('d-none')
+            $('#actionSeccionDivider').removeClass('d-none')
+            AbrirModal()
+        }
+
+    }
+
+    const PostRegistro = async (accion, IdChofer) => {
+        let url
+        let body = {
+            apellidoYNombre: $('#txtNombreApellido').val().trim(),
+            documento: $('#txtDni').val().trim(),
+            direccion: $('#txtDireccion').val().trim(),
+            provincia: $('#cmbProvincia').val(),
+            localidad: $('#cmbLocalidad').val(),
+            celular: $('#txtCelular').val().trim(),
+            camion: $('#cmbCamion').val()
+        };
+
+        if (accion === 'a') {
+            url = '/choferes/alta'
+        }
+        if (accion === 'm') {
+            url = '/choferes/update'
+            body.activo = $('#chbActivo').prop('checked') ? 1 : 0
+            body.id = IdChofer
+        }
+
+
+        const ValidarDatos = await Validar(body)
+        if (ValidarDatos.status === false) {
+            Swal.fire({
+                icon: ValidarDatos.type,
+                title: ValidarDatos.title,
+                text: ValidarDatos.text
+            })
+        } else {
+            let res = await $.post(url, body)
+            Swal.fire({
+                icon: res.type,
+                title: res.title,
+                text: res.text
+            })
+            $('#cmbActivoFiltro').val('t')
+            getListaChoferes()
+            CerrarModal()
+        }
+    }
+
+    const BorrarChofer = (IdChofer) => {
+        Swal.fire({
+            title: 'Advertencia',
+            text: "¿Desea borrar este registro?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar.',
+            cancelButtonColor: '#d33',
+            cancelButtonText: 'No, cancelar.'
+        }).then(async result => {
+            if (result.isConfirmed) {
+                let res = await $.post('/choferes/borrar', { IdChofer })
+                Swal.fire({
+                    type: res.type,
+                    icon: res.icon,
+                    title: res.title,
+                    text: res.text,
+                })
+                getListaChoferes()
+            }
+        })
+    }
+
+
+
+    // FUNCIONES
+    $("#txtFiltro").keyup(async function () {
+        Filtrar();
+    });
+
+    function Filtrar() {
+        $('#tablaChoferes tbody tr').each(function () {
+            if ($(this).find('td.search').text().toUpperCase().indexOf($('#txtFiltro').val().toUpperCase()) > -1)
+                $(this).closest('tr').show();
+            else
+                $(this).closest('tr').hide();
+        });
+    }
+
+    function AbrirModal() {
+        $('#modalChoferes').modal('show')
+    }
+
+    function CerrarModal() {
+        $('#modalChoferes').modal('hide')
+        $('#actionSeccion').addClass('d-none')
+            $('#actionSeccionDivider').addClass('d-none')
+        LimpiarCampos()
+
+    }
+
+    async function CargarDatosModificar(obj) {
+        $('#txtNombreApellido').val(obj.apellidoYNombre);
+        $('#txtDni').val(obj.documento);
+        $('#txtDireccion').val(obj.direccion);
+        $('#cmbProvincia').val(obj.id_provincia_fk).selectpicker('refresh');
+        await ActualizarLocalidad()
+        $('#cmbLocalidad').prop('disabled', false);
+        $('#cmbLocalidad').val(obj.id_localidad_fk).selectpicker('refresh');
+        $('#txtCelular').val(obj.celular);
+        $('#cmbCamion').val(obj.id_camion_fk).selectpicker('refresh');
+        $('#chbActivo').prop('checked', obj.activo === 1);
+        $('#modalChoferes').modal('show');
+    }
+
+
+    async function ActualizarLocalidad() {
+        return new Promise(async (resolve, reject) => {
+            let provincia = parseInt($('#cmbProvincia').val());
+            try {
+                let res = await $.post('/choferes/localidades', { provincia });
+                $('#cmbLocalidad').empty();
+                $.each(res, function (key, value) {
+                    $('#cmbLocalidad').append($('<option>', {
+                        value: value.id,
+                        text: value.nombre
+                    }));
+                });
+                $('#cmbLocalidad').selectpicker('refresh');
+                $('#cmbLocalidad').selectpicker('val', 't');
+                resolve();
+            } catch (error) {
+                reject(error);
+            }
+        }
+        )
+    }
+
+
+    function LimpiarCampos() {
+        $('input[type="text"]').val('')
+        $('textarea').val('')
+        $('input[type="checkbox"]').prop('checked', false)
+        $('input[type="radio"]').prop('checked', false)
+        $('select').val('0')
+        $('.selectpicker').selectpicker('refresh')
+    }
+
+    function Validar(body) {
+        if (body.apellidoYNombre === "") return { status: false, type: 'error', title: 'Error', text: '¡Ingresa un nombre y apellido!' }
+        if (body.documento === "") return { status: false, type: 'error', title: 'Error', text: '¡Ingresa un documento!' }
+        if (body.direccion.trim() === "") return { status: false, type: 'error', title: 'Error', text: '¡Ingresa una dirección!' }
+        if (body.provincia === null || body.provincia === "") return { status: false, type: 'error', title: 'Error', text: '¡Selecciona una provincia!' }
+        if (body.localidad === null || body.localidad === "") return { status: false, type: 'error', title: 'Error', text: '¡Selecciona una localidad!' }
+        if (body.celular === "") return { status: false, type: 'error', title: 'Error', text: '¡Ingresa un número de celular!' }
+        if (body.camion === null || body.camion === "") return { status: false, type: 'error', title: 'Error', text: '¡Selecciona un camión!' }
+
+        return { status: true };
+
+    }
+
+</script>
+
+{% endblock %}

@@ -1,0 +1,75 @@
+{% extends '../../template.html' %}
+
+{% block styles %}
+<style>
+    .textAreaSize {
+        resize: vertical;
+        min-height: 48px;
+        max-height: 100px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+    <h2>{{ pagename }}</h2>
+    <input type="text" class="form-control" id="txtFiltro" placeholder="Buscar" style="width: 10rem;" />
+</div>
+<div class="table-responsive" style="height: calc(100vh - 200px)" id="tablaProvincia">
+    <table class="table table-sm table-fix table-hover tableFixHead">
+        <thead>
+            <tr>
+                <th scope="col">Provincias</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+
+
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript" src="/js/jquery.mask.min.js"></script>
+<script>
+    $(document).ready(() => {
+        getListaProvincia()
+    })
+
+    const getListaProvincia = async () => {
+        let res = await $.get('/provincias/listaAjax')
+        let html = ""
+        for (let i = 0; i < res.length; i++) {
+            html += `
+                    <tr>
+                        <td class='search'>${res[i].nombre}</td>
+                    </tr>`
+        }
+        $('#tablaProvincia tbody').html(html)
+    }
+
+    const Actualizar = async () => {
+        const res = await $.get('/provincias/actualizar')
+        Swal.fire({
+            icon: res.type,
+            title: res.title,
+            text: res.text
+        })
+        getListaProvincia()
+    }
+
+    $("#txtFiltro").keyup(async function () {
+        Filtrar();
+    });
+
+    function Filtrar() {
+        $('#tablaProvincia tbody tr').each(function () {
+            if ($(this).find('td.search').text().toUpperCase().indexOf($('#txtFiltro').val().toUpperCase()) > -1)
+                $(this).closest('tr').show();
+            else
+                $(this).closest('tr').hide();
+        });
+    }
+</script>
+{% endblock %}

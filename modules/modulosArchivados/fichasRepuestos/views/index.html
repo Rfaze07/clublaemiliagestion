@@ -1,0 +1,408 @@
+{% extends '../../template.html' %}
+
+{% block styles %}
+<style>
+    .chbs { display: flex; justify-content: space-around; align-items: center; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+    <h2>{{ pagename }}</h2>
+    <div class="d-flex align-items-end mb-3" style="gap: 0.2rem;">
+        <input type="text" class="form-control" id="txtFiltro" placeholder="Buscar" style="width: 10rem;" />
+        <div>
+            <label>Ubicación</label>
+            <select class="form-control" id="cmbUbicacionFiltro" onchange="getLista()"></select>
+        </div>
+        <div>
+            <label>Repuesto</label>
+            <select class="form-control" id="cmbRepuestoFiltro" onchange="getLista()"></select>
+        </div>
+        <div>
+            <label>Neumát.</label>
+            <select class="form-control" id="cmbNeumaticosFiltro" onchange="getLista()">
+                <option value="t" selected>Todos</option>
+                <option value="1">Si</option>
+                <option value="0">No</option>
+            </select>
+        </div>
+        <div>
+            <label>Condicion Neumat.</label>
+            <select class="form-control" id="cmbCondNeumaFiltro" onchange="getLista()"></select>
+        </div>
+        <div>
+            <label>Marca</label>
+            <select class="form-control" id="cmbMarcaFiltro" onchange="getLista()"></select>
+        </div>
+        {% if permisos.a %}
+            <button class="btn btn-round btn-success modalAccion mr-1" data-toggle="tooltip" data-placement="top" title="Nuevo" onclick="ModalAccion('a')">
+                <i class="fa fa-plus"></i>
+            </button>
+        {% endif %}
+    </div>
+</div>
+<div class="table-responsive" style="height: calc(100vh - 200px)" id="tablaDatos">
+    <table class="table table-sm table-fix table-hover tableFixHead">
+        <thead>
+            <tr>
+                <th scope="col">Acciones</th>
+                <th>Repuesto</th>
+                <th>Marca</th>
+                <th>Serie</th>
+                <th class="text-center text-center" style="width: 180px;">Es nuemat.?</th>
+                <th>Condición</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<!-- MODAL -->
+<div class="modal fade modal-m" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true" id="modal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabel"></h5>
+                <button type="button" class="close" aria-label="Close" onclick="CerrarModal()">
+                    <span aria-hidden=" true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-6">
+                        <label for="cmbRepuesto">Repuesto</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbRepuesto" onchange="ValidarRepuestoEsNeumatico(this.value)"></select>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-6">
+                        <label for="cmbProveedor">Proveedor</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbProveedor"></select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-3">
+                        <label for="cmbDeposito">Origen</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbDeposito"></select>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-3">
+                        <label for="txtNroSerie">Nro. serie</label>
+                        <input type="text" class="form-control form-control-sm" id="txtNroSerie" maxlength="18" />
+                    </div>
+                    <div class="form-group col-sm-12 col-md-3">
+                        <label for="txtNroChas">Nro. chas</label>
+                        <input type="text" class="form-control form-control-sm" id="txtNroChas" maxlength="18" />
+                    </div>
+                    <div class="form-group col-sm-12 col-md-3">
+                        <label for="txtModelo">Modelo</label>
+                        <input type="text" class="form-control form-control-sm" id="txtModelo" maxlength="100" />
+                    </div>
+                </div>
+                <div class="d-none" id="divNeumatico">
+                    <div class="row">
+                        <div class="form-group col-sm-12 col-md-4">
+                            <label for="txtMedidasNeuma">Medidas neumático</label>
+                            <input type="text" class="form-control form-control-sm" id="txtMedidasNeuma" maxlength="50" />
+                        </div>
+                        <div class="form-group col-sm-12 col-md-8">
+                            <label for="txtTipoNeuma">Tipo neumático</label>
+                            <input type="text" class="form-control form-control-sm" id="txtTipoNeuma" maxlength="50" />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group col-sm-12 col-md-6">
+                            <label for="cmbCondNeuma">Condición</label>
+                            <select class="form-control form-control-sm selectpicker" id="cmbCondNeuma"></select>
+                        </div>
+                        <div class="form-group col-sm-12 col-md-6">
+                            <label for="txtMotivoBaja">Motivo de baja</label>
+                            <input type="text" class="form-control form-control-sm" id="txtMotivoBaja" maxlength="100" />
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-3">
+                        <label for="txtFechaCompra">Fecha compra</label>
+                        <input type="text" class="form-control form-control-sm datepicker" id="txtFechaCompra" />
+                    </div>
+                    <div class="form-group col-sm-12 col-md-3">
+                        <label for="txtFechaFabricacion">Fecha fabric.</label>
+                        <input type="text" class="form-control form-control-sm datepicker" id="txtFechaFabricacion" />
+                    </div>
+                    <div class="form-group col-sm-12 col-md-3">
+                        <label for="txtFechaBaja">Fecha de baja</label>
+                        <input type="text" class="form-control form-control-sm datepickerClear" id="txtFechaBaja" />
+                    </div>
+                    <div class="form-group col-sm-12 col-md-3">
+                        <label for="txtImporteTotal">Importe total</label>
+                        <input type="text" class="form-control form-control-sm" id="txtImporteTotal" onkeypress="return ValidarEnterosYDecimales(event,this,16,2)" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-md-12">
+                        <label for="txtObservaciones">Observaciones</label>
+                        <textarea class="form-control form-control-sm" id="txtObservaciones" maxlength="500" rows="2"></textarea>
+                    </div>
+                </div>
+                <!-- <div class="row d-none" id="actionSeccion">
+                    <div class="col-12 text-center">
+                        <div class="custom-control custom-switch ml-1">
+                            <input type="checkbox" class="custom-control-input" id="chbActivo" />
+                            <label class="custom-control-label" for="chbActivo">Activo</label>
+                        </div>
+                    </div>
+                </div> -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="CerrarModal()">Cancelar</button>
+                <button type="button" class="btn btn-success" id="btnAccion">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- MODAL -->
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+
+    $(document).ready(async () => {
+        await ObtenerCmbDepositos('cmbUbicacionFiltro', true)
+        await ObtenerCmbRepuestos('cmbRepuestoFiltro', true)
+        await ObtenerCmbCondicion('cmbCondNeumaFiltro', true)
+        await ObtenerCmbMarcas('cmbMarcaFiltro', true)
+        getLista()
+    })
+
+    const getLista = async () => {
+        $("#preloaderAPP").show()
+        const res = await $.post('/fichasRepuestos/listaAjax', {
+            ubicacion: $('#cmbUbicacionFiltro').val(),
+            repuesto: $('#cmbRepuestoFiltro').val(),
+            neumatico: $('#cmbNeumaticosFiltro').val(),
+            condicion: $('#cmbCondNeumaFiltro').val(),
+            marca: $('#cmbMarcaFiltro').val()
+        })
+        let html = ""
+        if(res.status){
+            for (let i = 0; i < res.data.length; i++) {
+                html += `
+                <tr>
+                    <td>
+                        <div style="display: flex; gap: 2px;">
+                            {% if permisos.m %}
+                                <button class="btn btn-round btn-sm btn-warning" data-accion="m"
+                                    data-toggle="tooltip" data-placement="top" title="Modificar" onclick="ModalAccion('m', ${res.data[i].id})">
+                                    <i class="fa fa-pen"></i>
+                                </button>
+                            {% endif %}
+
+                            {% if permisos.b %}
+                                <button class="btn btn-round btn-sm btn-danger" onclick="Eliminar(${res.data[i].id})"
+                                    data-toggle="tooltip" data-placement="top" title="Eliminar">
+                                    <i class="fa fa-trash-alt"></i>
+                                </button>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td class="search">${res.data[i].respuestoTxt}</td>
+                    <td class="search">${res.data[i].marcaTxt}</td>
+                    <td class="search">${res.data[i].codigo}-${res.data[i].nro_serie}</td>
+                    <td class="search text-center" style="width: 180px;">${res.data[i].neumatico == 1 ? `Si (${res.data[i].medida_neumatico})` : 'No'}</td>
+                    <td class="search">${res.data[i].condicionTxt}</td>
+                </tr>`
+            }
+        }else{
+            html = `<tr><td class="font-weight-bold" colspan="15">${res.text}</td></tr>`
+        }
+        $('#tablaDatos tbody').html(html)
+        $('[data-toggle="tooltip"]').tooltip()
+        $("#preloaderAPP").hide()
+    }
+
+    const ModalAccion = async (accion, id) => {
+        $("#preloaderAPP").show()
+        $('#txtFecha').val(generateTodayDate())
+        await ObtenerCmbProveedores('cmbProveedor')
+        await ObtenerCmbRepuestos('cmbRepuesto')
+        await ObtenerCmbDepositos('cmbDeposito')
+        await ObtenerCmbCondicion('cmbCondNeuma', false)
+        if (accion === 'a') {
+            $('#modalLabel').text('Nueva ficha de repuesto')
+            $('#btnAccion').attr('onclick', `PostRegistro("a")`)
+            $('#btnAccion').text('Guardar')
+            $("#preloaderAPP").hide()
+            $('#modal').modal('show')
+        }else if (accion == 'm') {
+            const res = await $.post(`/fichasRepuestos/getByIdAjax`, {id})
+            if(res.status != 0){
+                if(res.data.neumatico == 1){
+                    $('#cmbCondNeuma').selectpicker('val', res.data.id_condicion_fk)
+                    $('#cmbCondNeuma').selectpicker('refresh')
+                    $('#txtTipoNeuma').val(res.data.tipo_neumatico)
+                    $('#txtMotivoBaja').val(res.data.motivo_baja)
+                    $('#txtMedidasNeuma').val(res.data.medida_neumatico)
+                    $('#divNeumatico').removeClass('d-none')
+                }else{
+                    $('#divNeumatico').addClass('d-none')
+                    $('#cmbCondNeuma').html('')
+                    $('#txtTipoNeuma').val('')
+                    $('#txtMotivoBaja').val('')
+                    $('#txtMedidasNeuma').val('')
+                }
+                
+                $('#cmbRepuesto').selectpicker('val', res.data.id_repuesto_fk)
+                $('#cmbRepuesto').selectpicker('refresh')
+                $('#cmbProveedor').selectpicker('val', res.data.id_proveedor_fk)
+                $('#cmbProveedor').selectpicker('refresh')
+                $('#cmbDeposito').selectpicker('val', res.data.id_deposito_fk)
+                $('#cmbDeposito').selectpicker('refresh')
+                $('#txtNroSerie').val(res.data.nro_serie)
+                $('#txtNroChas').val(res.data.chas)
+                $('#txtFechaCompra').val(res.data.fecha_compra == null ? '' : changeDateDMY(res.data.fecha_compra))
+                $('#txtFechaFabricacion').val(res.data.fecha_fabricacion == null ? '' : changeDateDMY(res.data.fecha_fabricacion))
+                $('#txtFechaBaja').val(res.data.fecha_baja == null ? '' : changeDateDMY(res.data.fecha_baja))
+                $('#txtModelo').val(res.data.modelo)
+                $('#txtImporteTotal').val(res.data.valor_compra)
+                $('#txtObservaciones').val(res.data.observaciones)
+            }
+            $('#modalLabel').text('Modificar ficha de repuesto')
+            $('#btnAccion').text('Guardar')
+            $('#btnAccion').attr('onclick', `PostRegistro("m", ${id})`)
+            $('#actionSeccion').removeClass('d-none')
+            $('#actionSeccionDivider').removeClass('d-none')
+            $("#preloaderAPP").hide()
+            $('#modal').modal('show')
+        }
+    }
+
+    const PostRegistro = async (accion, Id) => {
+        $("#preloaderAPP").show()
+        let url = '/fichasRepuestos/alta', 
+            body = {
+                repuesto: $('#cmbRepuesto').val(),
+                proveedor: $('#cmbProveedor').val(),
+                deposito: $('#cmbDeposito').val(),
+                nroSerie: $('#txtNroSerie').val(),
+                nroChas: $('#txtNroChas').val(),
+                fechaCompra: $('#txtFechaCompra').val(),
+                fechaFab: $('#txtFechaFabricacion').val(),
+                fechaBaja: $('#txtFechaBaja').val(),
+                motivoBaja: $('#txtMotivoBaja').val(),
+                medidasNeu: $('#txtMedidasNeuma').val(),
+                condicion: $('#cmbCondNeuma').val(),
+                tipoNeu: $('#txtTipoNeuma').val(),
+                modelo: $('#txtModelo').val(),
+                importe: $('#txtImporteTotal').val(),
+                observaciones: $('#txtObservaciones').val()
+            }
+
+        if (accion === 'm') {
+            url = '/fichasRepuestos/modificar'
+            body.activo = $('#chbActivo').prop('checked')
+            body.id = Id
+        }
+
+        const res = await $.post(url, body)
+        $("#preloaderAPP").hide()
+        Swal.fire({
+            icon: res.icon,
+            title: res.title, 
+            text: res.text, 
+            timer: 2500
+        }).then(() => {
+            if(res.status){
+                CerrarModal()
+                getLista()
+            }
+        })        
+    }
+
+    const Eliminar = id => {
+        Swal.fire({
+            title: 'Confirmar',
+            text: "¿Desea borrar este registro?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar.',
+            cancelButtonColor: '#d33',
+            cancelButtonText: 'No, cancelar.'
+        }).then(async result => {
+            if (result.isConfirmed) {
+                $("#preloaderAPP").show()
+                let res = await $.post('/fichasRepuestos/borrar', { id })
+                $("#preloaderAPP").hide()
+                Swal.fire({
+                    type: res.type,
+                    icon: res.icon,
+                    title: res.title,
+                    text: res.text,
+                    timer: 2000
+                }).then(() => {
+                    if(res.status){
+                        CerrarModal()
+                        getLista()
+                    }
+                })
+            }    
+        })
+    }
+
+    const Filtrar = () => {
+        $('#tablaDatos tbody tr').each(function () {
+            if ($(this).find('td.search').text().toUpperCase().indexOf($('#txtFiltro').val().toUpperCase()) > -1)
+                $(this).closest('tr').show();
+            else
+                $(this).closest('tr').hide();
+        });
+    }
+
+    const CerrarModal = () => {
+        $('#modal').modal('hide')
+        $('#actionSeccion').addClass('d-none')
+        $('#actionSeccionDivider').addClass('d-none')
+        LimpiarCampos()
+    }
+
+    const LimpiarCampos = () => {
+        $('#txtCodigo').val('')
+        $('#txtCodigoOri').val('')
+        $('#txtDescripcion').val('')
+        $('#cmbRubro').html('')
+        $('#cmbRubro').selectpicker('refresh')
+        $('#cmbMarca').html('')
+        $('#cmbMarca').selectpicker('refresh')
+        $('#cmbDeposito').html('')
+        $('#cmbDeposito').selectpicker('refresh')
+        $('#txtMinimo').val('')
+        $('#txtPedido').val('')
+        $('#txtMaximo').val('')
+        $('#chbFicha').prop('checked', false)
+        $('#chbNeumatico').prop('checked', false)
+        $('#txtObservaciones').val('')
+        $('#chbActivo').prop('checked', false)
+        $('#actionSeccion').addClass('d-none')
+    }
+
+    $("#txtFiltro").keyup(async function () {
+        Filtrar()
+    })
+
+    const ValidarRepuestoEsNeumatico = id => {
+        return new Promise(async (resolve, reject) => {
+            $("#preloaderAPP").show()
+            const res = await $.post('/repuestos/getByIdAjax', {id})
+            if(!res.status){
+                $("#preloaderAPP").hide()
+                Swal.fire(res.title, res.text, res.icon)
+                return resolve()
+            }
+            res.data.es_neumatico == 1 ? $('#divNeumatico').removeClass('d-none') : $('#divNeumatico').addClass('d-none')
+            $("#preloaderAPP").hide()
+            return resolve()
+        })
+    }
+
+</script>
+{% endblock %}

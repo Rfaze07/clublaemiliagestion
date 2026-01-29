@@ -1,0 +1,187 @@
+{% extends '../../template.html' %}
+
+{% block styles %}
+<style>
+    .textAreaSize {
+        resize: vertical;
+        min-height: 48px;
+        max-height: 100px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+    <h2>{{ pagename }}</h2>
+    <div class="d-flex align-items-end justify-content-end mb-3" style="gap: 0.2rem;">
+        <input type="text" class="form-control form-control-sm" id="txtFiltro" placeholder="Buscar" style="width: 10rem;" />
+        <div class="col-xs-12 col-md-3">
+            <label for="txtDesde">Fecha desde</label>
+            <input type="text" class="form-control form-control-sm datepicker" autocomplete="off" id="txtDesde">
+        </div>
+        <div class="col-xs-12 col-md-3">
+            <label for="txtHasta">Fecha hasta</label>
+            <input type="text" class="form-control form-control-sm datepicker" autocomplete="off" id="txtHasta">
+        </div>
+    </div>
+</div>
+<div class="table-responsive" style="height: calc(100vh - 200px)" id="tablaDatos">
+    <table class="table table-sm table-fix table-hover tableFixHead">
+        <thead>
+            <tr>
+                <th scope="col">Acciones</th>
+                <th scope="col">Fecha hs. cargada</th>
+                <th scope="col">Proyecto</th>
+                <th scope="col">Empleado</th>
+                <th scope="col">Cargo</th>
+                <th scope="col" class="text-center" >Hs. trabajadas</th>
+                <th scope="col" class="text-center" >Hs. proyecto</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<!-- MODAL -->
+<div class="modal fade modal-m" data-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    aria-labelledby="staticBackdropLabel" aria-hidden="true" id="modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabel"></h5>
+                <button type="button" class="close" aria-label="Close" onclick="CerrarModal()">
+                    <span aria-hidden=" true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col">
+                        <label for="descripcion">Descripción</label>
+                        <input type="text" class="form-control form-control-sm" id="descripcion" maxlength="80">
+                    </div>
+                    <div class="col">
+                        <label for="desc_corta">Desc. Corta</label>
+                        <input type="text" class="form-control form-control-sm" id="desc_corta" maxlength="4">
+                    </div>
+                </div>
+                <div class="dropdown-divider d-none" id="actionSeccionDivider"></div>
+
+                <div class="row d-none" id="actionSeccion">
+                    <div class="col">
+                        <div class="custom-control custom-switch ml-1">
+                            <input type="checkbox" class="custom-control-input" id="chbActivo" />
+                            <label class="custom-control-label" for="chbActivo">Activo</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                    onclick="CerrarModal()">Cancelar</button>
+                <button type="button" class="btn btn-success" id="btnAccion">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $('#txtDesde').val(generateFirstDateActualMonth())
+    $('#txtHasta').val(generateTodayDateDMY())
+
+    $(document).ready(() => {
+        getLista()
+    })
+
+    $("#txtFiltro").keyup(async function () {
+        Filtrar();
+    });
+    
+    const getLista = async () => {
+        $("#preloaderAPP").show()
+        const res = await $.post('/tableroControl/getlistaAjax', { desde: $('#txtDesde').val(), hasta: $('#txtHasta').val() })
+        console.log(res)
+        let html = ""
+        if(res.status){
+            for (let i = 0; i < res.data.length; i++) {
+                html += `
+                    <tr>
+                        <td>
+                            <div style="display: flex; gap: 2px;">
+                                {% if permisos.m %}
+                                    <button class="btn btn-round btn-sm btn-warning" data-accion="m"
+                                        data-toggle="tooltip" data-placement="top" title="Modificar cargo" onclick="ActualizarCargo(${res.data[i].id})">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="search">${changeDateDMYHMS(res.data[i].fechaHoraTxt)}</td>
+                        <td class="search">${res.data[i].proyectoTxt}</td>
+                        <td class="search">${res.data[i].empleadoTxt}</td>
+                        <td class="search">${res.data[i].cargoTxt}</td>
+                        <td class="search text-center">${formatCurrency(res.data[i].horasTrabajadas)}</td>
+                        <td class="search text-center">${formatCurrency(res.data[i].horasTareas)}</td>
+                    </tr>`
+            }
+        }else{
+            html = `<tr><td class="font-weight-bold" colspan="4">${res.text}</td></tr>`
+        }
+        $('#tablaDatos tbody').html(html)
+        $("#preloaderAPP").hide()
+    }
+
+
+    const ActualizarCargo = async id => {
+        $("#preloaderAPP").show()
+        let html='',
+            htmlOpCargos='<option value="" selected disabled>Seleccione un cargo</option>',
+            cargos = await $.post(`/tableroControl/getCargosByProyectosDetalles`,{id})
+        
+        if(!cargos.status) Swal.showValidationMessage(`${res.text}`)
+        if(cargos.data.length > 0){
+            cargos.data.map(el => htmlOpCargos += `<option value="${el.id}">(${el.desc_corta}) - ${el.descripcion}</option>`)
+        }
+        html = `
+            <div class="row">
+                <div class="col-sm-12">
+                    <select class="form-control form-control-sm" id="cmbCargosProyecto">${htmlOpCargos}</select>
+                </div>
+            </div>
+        `
+        $('#cmbCargosProyecto').html(htmlOpCargos)
+        $("#preloaderAPP").hide()
+
+        Swal.fire({
+            title: "Seleccione un cargo",
+            html,
+            showCancelButton: true,
+            cancelButtonText: "No, cancelar",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Si, modificar",
+            confirmButtonColor: "#28a745",
+            showLoaderOnConfirm: true,
+            preConfirm: async () => {
+                try {
+                    $("#preloaderAPP").show()
+                    let res = await $.post(`/tableroControl/postModificarCargo`, { id, idCargo: $('#cmbCargosProyecto').val() })
+                    $("#preloaderAPP").hide()
+                    if(!res.status) return Swal.showValidationMessage(`${res.title}: ${res.text}`)
+                    return res
+                } catch (error) {
+                   Swal.showValidationMessage(`Request failed: ${error}`)
+                }
+            },
+            allowOutsideClick: () => !Swal.isLoading()
+        }).then(result => {
+            if(result.isConfirmed){
+                getLista()
+                Swal.fire(result.value.title, result.value.text, result.value.icon)
+            }
+        })
+    }
+
+</script>
+{% endblock %}

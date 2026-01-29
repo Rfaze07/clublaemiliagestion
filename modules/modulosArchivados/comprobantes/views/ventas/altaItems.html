@@ -1,0 +1,517 @@
+{% extends '../../../template.html' %}
+
+{% block styles %}
+<style>
+    .sinBorderTop { border-top: 0px!important; }
+    .switch { zoom: .91; }
+    .lbl { font-weight: 700; }
+    .titulo { font-size: 1rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+    <h4>{{ pagename }}</h4>
+    <a class="btn btn-primary ml-auto mr-3" href="/comprobantesVentas" role="button" data-toggle="tooltip" data-placement="top" title="Volver">
+        <i class="fa fa-arrow-left"></i>
+    </a>
+
+    {% if comprobante.cae == 0 %}
+        <button class="btn btn-round btn-secondary mr-2" data-toggle="tooltip" data-placement="top" title="Agregar item" onclick="AbrirModal()">
+            <i class="fa fa-plus"></i>
+        </button>
+        <button class="btn btn-round btn-success" data-toggle="tooltip" data-placement="top" title="Finalizar comprobante" onclick="Facturar()">
+            <i class="fa fa-save"></i>
+        </button>
+    {% else %}
+        <a class="btn btn-round btn-success" data-toggle="tooltip" data-placement="top" title="Imprimir Factura" 
+            href="/comprobantesVentas/imprimir?id={{ comprobante.id }}" role="button" target="_blank">
+            <i class="fa fa-print"></i>
+        </a>
+    {% endif %}
+</div>
+
+<div class="row justify-content-between p-3">
+    <div class="titulo">
+        <span class="lbl">Empresa: </span>
+        {{ comprobante.empresaTxt }}
+    </div>
+    <div class="titulo">
+        <span class="lbl">Tipo comprobante: </span>
+        ({{ comprobante.letra }}) {{ comprobante.tipo_comp }}
+    </div>
+    <div class="titulo">
+        <span class="lbl">Cliente: </span>
+        {{ comprobante.clienteTxt }}
+    </div>
+    <div class="titulo">
+        <span class="lbl">Fecha: </span>
+        {{ comprobante.fecha_comprobante | date('d/m/Y') }}
+    </div>
+</div>
+<div class="card">
+    <div class="card-header">
+        <h5 class="m-0">Detalles del comprobante</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive" style="min-height: calc(100vh - 318px);">
+            <table class="table table-sm table-fix table-hover tableFixHead" id="tablaItems">
+                <thead>
+                    <tr>
+                        {% if permisos.b && comprobante.cae == 0 %}<th scope="col" style="width: 50px;">Acciones</th>{% endif %}                        
+                        <th scope="col">Descripción</th>
+                        <th scope="col" class="text-center" style="width: 100px;">Cantidad</th>
+                        <th scope="col" class="text-center">% IVA</th>
+                        <th scope="col" class="text-right">Precio Unit.</th>
+                        <th scope="col" class="text-right">Precio Unit. IVA</th>
+                        <th scope="col" class="text-right">SubTotal IVA</th>
+                        <th scope="col" class="text-right">SubTotal Total</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<div class="card mt-1">
+    <div class="card-header">
+        <div class="row align-items-center">
+            <div class="col-sm-12 col-md-3"><h6 class="m-0 p-0 text-left font-weight-bold">Imp. Neto $ <span id="divNeto"></span></h6></div>
+            <div class="col-sm-12 col-md-3"><h6 class="m-0 p-0 text-left font-weight-bold">IVA 10,5%  $ <span id="div105"></span></h6></div>
+            <div class="col-sm-12 col-md-3"><h6 class="m-0 p-0 text-center font-weight-bold">IVA 21%  $ <span id="div21"></span></h6></div>
+            <div class="col-sm-12 col-md-3"><h5 class="m-0 p-0 text-right font-weight-bold">TOTAL  $ <span id="divTotales"></span></h5></div>
+        </div>
+    </div>
+</div>
+
+
+<!-- MODAL -->
+<div class="modal fade" id="modalAgregar" data-backdrop="static" tabindex="-1" aria-labelledby="modalAgregarStatic" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Argegar nuevo item</h5>
+                <button type="button" class="close" aria-label="Close">
+                    <span aria-hidden=" true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <label for="cmbTipoItem">Tipo</label>
+                        <select class="form-control form-control-sm" id="cmbTipoItem" onchange="CargarTipoItem(this.value)">
+                            <option value="" disabled selected>Seleccione el tipo...</option>
+                            <option value="t">Tareas</option>
+                            <option value="a">Artículos</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="d-none mt-2" id="divArticulos">
+                    <div class="row">
+                        <div class="col-sm-12 col-md-8">
+                            <label for="cmbArticulo">Artículo</label>
+                            <select class="form-control form-control-sm selectpicker" id="cmbArticulo" onchange="ObtenerArticulo(this.value)"></select>
+                        </div>
+                        <div class="col-sm-12 col-md-4">
+                            <label for="txtCantidad">Cantidad</label>
+                            <input type="text" class="form-control form-control-sm" id="txtCantidad" onkeypress="return ValidarEnterosYDecimales(event,this,10,1)" autocomplete="off">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <label for="txtDescripcion">Descripción</label>
+                            <input type="text" class="form-control form-control-sm" id="txtDescripcion">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-12 col-md-4">
+                            <label for="txtPrecio">Precio</label>
+                            <input type="text" class="form-control form-control-sm" id="txtPrecio" onkeypress="return ValidarEnterosYDecimales(event,this,10,1)" autocomplete="off">
+                        </div>
+                        <div class="col-sm-12 col-md-4">
+                            <label for="txtTotal">Total</label>
+                            <input type="text" class="form-control form-control-sm" id="txtTotal" disabled>
+                        </div>
+                        <div class="col-sm-12 col-md-4">
+                            <label for="txtIva">% IVA</label>
+                            <input type="text" class="form-control form-control-sm" id="txtIva" disabled readonly >
+                        </div>
+                        <div class="col-sm-12 col-md-3">
+                            <label for="txtDescuento">% Dto.</label>
+                            <input type="text" class="form-control form-control-sm" id="txtDescuento" value="0" onkeypress="return ValidarEnterosYDecimales(event,this,2,2)" autocomplete="off">
+                        </div>
+                        <div class="col-sm-12 col-md-9 mt-4 d-flex justify-content-center align-items-center">
+                            <div class="custom-control custom-switch ml-1">
+                                <input type="checkbox" class="custom-control-input" id="chbPrecioConIva" />
+                                <label class="custom-control-label" for="chbPrecioConIva">Precio con IVA</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-none mt-2" id="divTareas">
+                    <div class="row d-none" id="divRowTarea">
+                        <div class="col-sm-12">
+                            <label for="cmbTareas">Tarea</label>
+                            <select class="form-control form-control-sm selectpicker" id="cmbTareas" onchange="ObtenerTarea(this.value)"></select>
+                        </div>
+                    </div>
+                    <div class="row d-none" id="divAltaTareas">
+                        <div class="col-sm-12 col-md-3 text-center">
+                            <label for="chbAdicional">Es adicional?</label>
+                            <div class="switch">
+                                <label class="switch">
+                                    <input type="checkbox" id="chbAdicional" onchange="AgregarTextoDescripcion()">
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-sm-12 col-md-3">
+                            <label for="txtCantidad">Cantidad</label>
+                            <input type="text" class="form-control form-control-sm" id="txtCantidadT" onkeypress="return soloNumeros(event)" autocomplete="off" maxlength="5">
+                        </div>
+                        <div class="col-sm-12 col-md-3">
+                            <label for="txtPrecio">Precio</label>
+                            <input type="text" class="form-control form-control-sm" id="txtPrecioT" onkeypress="return ValidarEnterosYDecimales(event,this,10,2)" autocomplete="off">
+                        </div>
+                        <div class="col-sm-12 col-md-3">
+                            <label for="txtDescuento">% Dto.</label>
+                            <input type="text" class="form-control form-control-sm" id="txtDescuentoT" value="0" onkeypress="return ValidarEnterosYDecimales(event,this,2,2)" autocomplete="off">
+                        </div>
+                        <div class="col-sm-12">
+                            <label for="txtDescripcion">Descripción</label>
+                            <textarea type="text" class="form-control form-control-sm" id="txtDescripcionT" rows="2" maxlength="60"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success d-none" id="btnAccion" onclick="PostRegistro()">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let _cantTareas = 0
+    const idEmpresa = '{{ comprobante.id_empresa_fk }}', 
+          idComprobante = '{{ comprobante.id }}', 
+          idProyectoTitulo = '{{ comprobante.id_proyectotitulo_fk }}'
+
+    $(document).ready(async () => {
+        getLista()
+    })
+
+    const Facturar = async () => {
+        Swal.fire({
+            icon: 'info',
+            title: 'Confirmar',
+            text: 'Desea finalizar y generar el comprobante?',
+            confirmButtonText: 'Si, facturar',
+            confirmButtonColor: "#28a745",
+            showCancelButton: true,
+            cancelButtonText: 'No, cancelar',
+            cancelButtonColor: "#dc3545",
+        }).then(async resultSwal => {
+            if(resultSwal.isConfirmed){
+                $("#preloaderAPP").show()
+                let res = await $.post('/comprobantesVentas/facturar', { idEmpresa, idComprobante })
+                $("#preloaderAPP").hide()
+                if(!res.status){
+                    return Swal.fire({ icon: res.icon, title: res.title, text: res.error })
+                }else if(res.error.length > 0){
+                    return Swal.fire({ icon: 'error', title: 'Error', text: res.error })
+                }else if(res.status){
+                    Swal.fire({
+                        icon: res.icon,
+                        title: res.title,
+                        html: res.html,
+                        showDenyButton: true,
+                        denyButtonText: 'Imprimir',
+                        denyButtonColor: "#007bff"
+                    }).then(resSwal => {
+                        if(resSwal.isDenied){
+                            window.open(`/comprobantesVentas/imprimir?id=${idComprobante}`, '_blank')
+                            window.location.reload()
+                        }else{
+                            if(res.status) window.location = '/comprobantesVentas'
+                        }
+                    })
+                }
+            }
+        })        
+    }
+
+    const ObtenerCmbTareasByProyecto = () => {
+        return new Promise(async (resolve, reject) => {
+            const res = await $.post('/comprobantesVentas/getListaTareasAjax', {idProyectoTitulo})
+            let htmlOP='<option value="" selected disabled>Seleccione una tarea...</option>'
+            $('#divTareas').addClass('d-none')
+            if(!res.status){
+                $('#divTareas').addClass('d-none')
+                $('#cmbTareas').html('<option value="" selected disabled>No existen tareas cargadas.</option>')
+                $('#cmbTareas').prop('disabled', true)
+                $('#cmbTareas').selectpicker('refresh')
+                return Swal.fire(res.title, res.text, res.icon)
+            }else if(res.data == undefined){
+                $('#divTareas').addClass('d-none')
+                $('#cmbTareas').html('<option value="" selected disabled>No existen tareas cargadas.</option>')
+                $('#cmbTareas').prop('disabled', true)
+                $('#cmbTareas').selectpicker('refresh')
+                return Swal.fire(res.title, res.text, res.icon)
+            }else{
+                res.data.map(el => {
+                    htmlOP += `<option value="${el.id_tarea_fk}">${el.tarea}</option>`
+                })
+                $('#btnAccion').removeClass('d-none')
+                $('#divTareas').removeClass('d-none')
+                $('#divRowTarea').removeClass('d-none')
+                $('#cmbTareas').prop('disabled', false)
+                $('#cmbTareas').html(htmlOP)
+                $('#cmbTareas').selectpicker('refresh')
+            }
+            resolve()
+        })
+    }
+
+    const ObtenerTarea = id => {
+        return new Promise(async (resolve, reject) => {
+            let res = await $.post('/comprobantesVentas/getTareaAjax', {id, idProyectoTitulo})
+            if(res.status){
+                _cantTareas = parseInt(res.data.cantidad) - parseFloat(res.data.cantFacturado)
+                $('#txtCantidadT').val(_cantTareas)
+                $('#txtDescripcionT').val(res.data.tarea)
+                $('#txtPrecioT').val(res.data.precio)
+                $('#divAltaTareas').removeClass('d-none')
+            }else{
+                Swal.fire(res.title, res.text, res.icon)
+            }
+            resolve()
+        })
+    }
+
+    const ObtenerCmbArticulos = () => {
+        return new Promise(async (resolve, reject) => {
+            const res = await $.post('/articulos/getlistaAjax', {activo: 1})
+            let htmlOP='<option value="" selected disabled>Seleccione un articulo...</option>'
+            if(!res.status){
+                $('#divArticulos').addClass('d-none')
+                // $('#cmbArticulo').html(htmlOP)
+                return Swal.fire(res.title, res.text, res.icon)
+            }
+            res.data.map(el => {
+                htmlOP += `<option value="${el.id}">(${el.desc_corta}) ${el.descripcion}</option>`
+            })
+            $('#btnAccion').removeClass('d-none')
+            $('#divArticulos').removeClass('d-none')
+            $('#cmbArticulo').html(htmlOP)
+            $('#cmbArticulo').selectpicker('refresh')
+            resolve()
+        })
+    }
+
+    const CargarTipoItem = async tipo => {
+        $('#btnAccion').addClass('d-none')
+        if(tipo === 'a'){
+            $('#divArticulos').removeClass('d-none')
+            $('#divTareas').addClass('d-none')
+            await ObtenerCmbArticulos()
+        }else if(tipo === 't'){
+            $('#divTareas').removeClass('d-none')
+            $('#divRowTarea').removeClass('d-none')
+            $('#divArticulos').addClass('d-none')
+            await ObtenerCmbTareasByProyecto()
+        }
+    }
+
+    const AbrirModal = async () => {
+        $('#modalAgregar').modal('show')
+    }
+
+    const getLista = async () => {
+        $("#preloaderAPP").show();
+        let res = await $.post('/comprobantesVentas/getlistaItemsAjax', { idComprobante })
+        console.log(res)
+        let html = ""
+        if(res.status){
+            for (let i = 0; i < res.data.length; i++) {
+                html += `
+                    <tr>
+                        {% if comprobante.cae == 0 %}
+                            <td class="text-center">
+                                {% if permisos.b %}
+                                    <button class="btn btn-round btn-sm btn-danger" onclick="Eliminar(${res.data[i].id})"
+                                        data-toggle="tooltip" data-placement="top" title="Eliminar">
+                                        <i class="fa fa-trash-alt"></i>
+                                    </button>
+                                {% endif %}
+                            </td>
+                        {% endif %}
+                        <td>${res.data[i].descripcion}</td>
+                        <td class="text-center">${res.data[i].cantidad}</td>
+                        <td class="text-center">${formatCurrency(res.data[i].iva)}%</td>
+                        <td class="text-right">$ ${formatCurrency(res.data[i].precio)}</td>
+                        <td class="text-right">$ ${formatCurrency(res.data[i].precioUniIva)}</td>
+                        <td class="text-right">$ ${formatCurrency(res.data[i].subtotalIva)}</td>
+                        <td class="text-right">$ ${formatCurrency(res.data[i].subtotalTotal)}</td>
+                    </tr>`
+            }
+
+            $('#divNeto').text(formatCurrency(res.importeNeto))
+            $('#div105').text(formatCurrency(res.iva105))
+            $('#div21').text(formatCurrency(res.iva21))
+            $('#divTotales').text(formatCurrency(res.total))
+        }else{
+            html = `<tr><td class="font-weight-bold" colspan="12">${res.text}</td></tr>`
+            $('#divNeto').text(formatCurrency(res.importeNeto))
+            $('#div105').text(formatCurrency(res.iva105))
+            $('#div21').text(formatCurrency(res.iva21))
+            $('#divTotales').text(formatCurrency(res.total))
+        }
+        
+        $('#tablaItems tbody').html(html)
+        $('[data-toggle="tooltip"]').tooltip()
+        $("#preloaderAPP").hide()
+    }
+
+    const ObtenerArticulo = async id => {
+        let res = await $.post('/articulos/getByIdAjax', {id})
+        if(!res.status) return Swal.fire(res.title, res.text, res.icon)
+        $('#txtDescripcion').val(res.data.descripcion)
+        $('#txtPrecio').val(res.data.precio1)
+        $('#txtIva').val(res.data.alicuotaIvaValor)
+        const total = parseFloat(res.data.precio1) * parseFloat($('#txtCantidad').val())
+        $('#txtTotal').val(isNaN(total) ? 0 : total)
+        Calcular()
+    }
+
+    const Calcular = () => {
+        let total=0
+        if($('#chbPrecioConIva').is(':checked')){
+            let iva = (parseFloat($('#txtIva').val())/100)+1
+            total = parseFloat((parseFloat($('#txtPrecio').val() * parseFloat($('#txtCantidad').val())) * iva))
+        }else{
+            total = parseFloat($('#txtPrecio').val()) * parseFloat($('#txtCantidad').val())
+        }
+        $('#txtTotal').val(isNaN(total) ? 0 : total)
+    }
+
+    $('#txtCantidad').on('input', function(){
+        Calcular()
+    })
+
+    $('#chbPrecioConIva').on('change', async function(){
+        if(!$('#cmbArticulo').val()) return Swal.fire('Error', 'Debe seleccionar el artículo', 'error')
+        let res = await $.post('/articulos/getByIdAjax', {id:$('#cmbArticulo').val()})
+        if(!res.status) return Swal.fire(res.title, res.text, res.type)
+        $('#txtPrecio').val(res.data.precio1)
+        $('#txtIva').val(res.data.alicuotaIvaValor)
+        Calcular()
+    })
+
+    const PostRegistro = async () => {
+        $("#preloaderAPP").show()
+        const body = {
+                idComprobante,
+                idProyectoTitulo,
+                tipoItem: $('#cmbTipoItem').val(),
+                idArticulo: $('#cmbArticulo').val(),
+                descripcion: $('#txtDescripcion').val(),
+                descuento: $('#txtDescuento').val(),
+                cantidad: $('#txtCantidad').val(),
+                precio: $('#txtPrecio').val(),
+                precioConIva: $('#chbPrecioConIva').is(':checked'),
+                tarea: $('#cmbTareas').val(),
+                cantidadT: $('#txtCantidadT').val(),
+                precioT: $('#txtPrecioT').val(),
+                descripcionT: $('#txtDescripcionT').val(),
+                descuentoT: $('#txtDescuentoT').val(),
+                esAdicional: $('#chbAdicional').is(':checked')
+            }
+
+        const res = await $.post('/comprobantesVentas/altaItems', body)
+        $("#preloaderAPP").hide()
+        Swal.fire({
+            icon: res.icon,
+            title: res.title, 
+            text: res.text, 
+            timer: 3000
+        }).then(() => {
+            if(res.status){
+                getLista()
+                CerrarModal()
+            }
+        })        
+    }
+
+    const CerrarModal = () => {
+        $('#modalAgregar').modal('hide')
+        LimpiarCampos()
+    }
+
+    const LimpiarCampos = async () => {
+        $('#btnAccion').addClass('d-none')
+        $('input[type="text"], .selectpicker').val('')
+        $('textarea').val('')
+        $('input[type="checkbox"]').prop('checked', false)
+        $('input[type="radio"]').prop('checked', false)
+        $('#divArticulos').addClass('d-none')
+        $('#divTareas').addClass('d-none')
+        $('#cmbTipoItem').val('')
+        $('#divAltaTareas').addClass('d-none')
+        $('.selectpicker').selectpicker('refresh')
+    }
+
+    $('#modalAgregar').on('hidden.bs.modal', function (event) {
+        LimpiarCampos()
+    })
+
+    const Eliminar = id => {
+        Swal.fire({
+            title: 'Confirmar',
+            text: "¿Desea borrar este registro?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonColor: '#d33',
+            cancelButtonText: 'No, cancelar'
+        }).then(async result => {
+            if (result.isConfirmed) {
+                $("#preloaderAPP").show()
+                let res = await $.post('/comprobantesVentas/eliminarItem', { id })
+                $("#preloaderAPP").hide()
+                Swal.fire({
+                    type: res.type,
+                    icon: res.icon,
+                    title: res.title,
+                    text: res.text,
+                    timer: 2000
+                }).then(async () => {
+                    if(res.status){
+                        getLista()
+                        await ObtenerCmbTareasByProyecto()
+                        CargarTipoItem('t')
+                    }
+                })
+            }    
+        })
+    }
+
+    const AgregarTextoDescripcion = () => {
+        let desc = $('#txtDescripcionT').val()
+        if($('#chbAdicional').is(':checked')){
+            $('#txtDescripcionT').val(`Adicional: ${desc}`)
+            $('#txtCantidadT').val('')
+            $('#txtCantidadT').focus()
+        }else{
+            $('#txtDescripcionT').val(desc.replaceAll('Adicional: ', ''))
+            $('#txtCantidadT').val(_cantTareas)
+            $('#txtCantidadT').focus()
+        }
+    }
+
+</script>
+{% endblock %}

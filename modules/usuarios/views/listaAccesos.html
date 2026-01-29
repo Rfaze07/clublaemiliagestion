@@ -1,0 +1,264 @@
+{% extends '../../template.html' %}
+
+{% block styles %}
+<style type="text/css">
+    .thSwitch {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12 d-flex">
+        <h4 id="title"><i class="fa fa-shield-alt"></i>&nbsp;Accesos para usuario </h4>
+        <div class="d-flex align-items-end">
+            <div class="mr-3">
+                <label for="chbUsuarios">Usuarios</label>
+                <select name="chbUsuarios" id="chbUsuarios" class="form-control selectpicker">
+                    <option value="x">Elegir uno...</option>
+                    {% for u in usuarios %}
+                    <option value="{{u.unica}}">{{u.usuario}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="d-flex align-bottom h-50">
+                <button class="btn btn-round btn-success  justify-content-between mr-1 d-flex align-items-center" data-toggle="tooltip" data-placement="top"
+                    title="Copiar permisos" onclick="CopiarAccesos()" style="gap: 5px;"><i class="fa-solid fa-copy"></i>
+                    acessos</button>
+                <a id="btnNuevo" href="/usuarios" class="btn btn-round btn-danger ml-auto d-flex align-items-center" style="gap: 5px;"><i
+                        class="fa fa-arrow-left"></i>
+                    Volver</a>
+            </div>
+        </div>
+    </div>
+    <input type="hidden" name="idUsuario" value="{{idUsuario}}">
+    <div class="col-12 mt-4" style="overflow-x: auto; max-height: calc(100vh - 200px);">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>
+                        <div class="row mb-0">
+                            <div class="col-sm-6">Módulo</div>
+                        </div>
+                    </th>
+                    <th style="min-width: 90px;">
+                        <div class="row mb-0 thSwitch">
+                            <div class="col">Consulta</div>
+                            <div class="col">
+                                <div class="switch">
+                                    <label class="switch">
+                                        <input type="checkbox" class="chbItem" onchange="selectAll(this, 'consulta')">
+                                        <span class="slider round"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </th>
+                    <th style="min-width: 90px;">
+                        <div class="row mb-0 thSwitch ">
+                            <div class="col">Alta</div>
+                            <div class="col">
+                                <div class="switch">
+                                    <label class="switch">
+                                        <input type="checkbox" class="chbItem" onchange="selectAll(this, 'alta')">
+                                        <span class="slider round"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </th>
+                    <th style="min-width: 90px;">
+                        <div class="row mb-0 thSwitch">
+                            <div class="col">Modificar</div>
+                            <div class="col">
+                                <div class="switch">
+                                    <label class="switch">
+                                        <input type="checkbox" class="chbItem" onchange="selectAll(this, 'modificar')">
+                                        <span class="slider round"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </th>
+                    <th style="min-width: 90px;">
+                        <div class="row mb-0 thSwitch">
+                            <div class="col">Borrar</div>
+                            <div class="col">
+                                <div class="switch">
+                                    <label class="switch">
+                                        <input type="checkbox" class="chbItem" onchange="selectAll(this, 'baja')">
+                                        <span class="slider round"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </th>
+                    <th style="min-width: 90px;">
+                        <div class="row mb-0 thSwitch">
+                            <div class="col">Extra</div>
+                            <div class="col">
+                                <div class="switch">
+                                    <label class="switch">
+                                        <input type="checkbox" class="chbItem" onchange="selectAll(this, 'extra')">
+                                        <span class="slider round"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for menu in menues %}
+                {% if menu.id != 1 %}
+                <tr>
+                    <td hidden>{{ menu.id }}</td>
+                    <td>
+                        <div class="row mb-0">
+                            <div class="col-12">{{ menu.titulo }}</div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="row mb-0">
+                            <div class="col-12">
+                                <div class="switch">
+                                    <label>
+                                        <label class="switch">
+                                            <input class="consulta chbTabla" type="checkbox" {% if
+                                                usuario_accesos[loop.index0].c==1 %} checked {% endif %}
+                                                onchange="CheckboxHandler(this, '{{menu.id}}', 'c', '{{idUsuario}}')">
+                                            <span class="slider round"></span>
+                                        </label>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="row mb-0">
+                            <div class="col-12">
+                                <div class="switch">
+                                    <label>
+                                        <input class="alta chbTabla" type="checkbox" {% if
+                                            usuario_accesos[loop.index0].a==1 %} checked {% endif %}
+                                            onchange="CheckboxHandler(this, '{{menu.id}}', 'a', '{{idUsuario}}')">
+                                        <span class="slider round"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="row mb-0">
+                            <div class="col-12">
+                                <div class="switch">
+                                    <label>
+                                        <input class="modificar chbTabla" type="checkbox" {% if
+                                            usuario_accesos[loop.index0].m==1 %} checked {% endif %}
+                                            onchange="CheckboxHandler(this, '{{menu.id}}', 'm', '{{idUsuario}}')">
+                                        <span class="slider round"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="row mb-0">
+                            <div class="col-12">
+                                <div class="switch">
+                                    <label>
+                                        <input class="baja chbTabla" type="checkbox" {% if
+                                            usuario_accesos[loop.index0].b==1 %} checked {% endif %}
+                                            onchange="CheckboxHandler(this, '{{menu.id}}', 'b', '{{idUsuario}}')">
+                                        <span class="slider round"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="row mb-0">
+                            <div class="col-12">
+                                <div class="switch">
+                                    <label>
+                                        <input class="extra chbTabla" type="checkbox" {% if
+                                            usuario_accesos[loop.index0].x==1 %} checked {% endif %}
+                                            onchange="CheckboxHandler(this, '{{menu.id}}', 'x', '{{idUsuario}}')">
+                                        <span class="slider round"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+
+                </tr>
+                {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endblock %}
+
+    {% block scripts %}
+    <script type="text/javascript">
+
+        console.log(JSON.parse('{{ usuario_accesos | json | raw }}'))
+
+
+        function selectAll(obj, accion) {
+            if (obj.checked) {
+                $('.' + accion).prop("checked", true);
+            }
+            else {
+                $('.' + accion).prop("checked", false);
+            }
+            $('.' + accion).trigger("onchange");
+        }
+
+        async function CheckboxHandler(checkbox, menu, acceso, usuario) {
+            let checked = $(checkbox).prop("checked") ? 1 : 0;
+            const data = await $.post(`/usuarios/updateacceso/${usuario}/${menu}/${acceso}/${checked}`);
+            if (data.type != "success") {
+                Swal.fire({
+                    icon: data.type,
+                    title: data.title,
+                    text: data.text
+                });
+            }
+        };
+        async function CopiarAccesos() {
+            const idUsuarioSelec = document.getElementById('chbUsuarios').value
+            if(idUsuarioSelec != 'x'){
+                const idUsuario = '{{usuario.unica}}'
+                const arrAccesos = ['a', 'b', 'c', 'm', 'x']
+                let body = {
+                    idUsuarioSelec
+                }
+
+
+                const response = await fetch('/usuarios/getaccesos', {
+                    method: 'POST',
+                    body: JSON.stringify(body),
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                })
+                const res = await response.json()
+                for (const acceso of res) {
+                    for (const accesoLista of arrAccesos) {
+                        await $.post(`/usuarios/updateacceso/${idUsuario}/${acceso.menu}/${accesoLista}/${acceso[accesoLista]}`)
+                    }
+                }
+
+                Swal.fire({ icon: 'success', title: 'Exito', text: 'Se Actualizaron permisos correctamente' })
+                location.reload(true)
+            }else{
+                Swal.fire({ icon: 'error', title: 'Error', text: 'Seleccione un usuario antes de copiar' })
+            }
+        }
+    </script>
+    {% endblock %}

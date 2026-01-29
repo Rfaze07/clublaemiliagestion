@@ -1,0 +1,216 @@
+/* *********** PERSONALIZO NAVBAR *********** */
+
+.navbar.navbar-dark .navbar-nav .nav-link {
+    color: white;
+}
+
+.bg-navbar{ background-color: #6d0c35!important; }
+
+@media (min-width: 576px){
+    .navbar.navbar-expand-sm{
+        height: 56px;
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+    .navbar.navbar-expand-sm .collapse.navbar-collapse{
+        margin-left: 3rem!important;
+        height: 100%!important;
+    }
+    .navbar.navbar-expand-sm .collapse.navbar-collapse ul.navbar-nav,
+    .navbar.navbar-expand-sm .collapse.navbar-collapse ul.navbar-nav li.nav-item{
+        display: flex;
+        height: 100%;
+        align-items: center;
+    }
+    .navbar.navbar-expand-sm .collapse.navbar-collapse .navbar-nav li.nav-item:hover{
+        /* background: #042041 !important; */
+    }
+}
+
+@media (min-width: 768px){
+    .navbar.navbar-expand-md{
+        height: 56px;
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+    .navbar.navbar-expand-md .collapse.navbar-collapse{
+        margin-left: 3rem!important;
+        height: 100%!important;
+    }
+    .navbar.navbar-expand-md .collapse.navbar-collapse ul.navbar-nav,
+    .navbar.navbar-expand-md .collapse.navbar-collapse ul.navbar-nav li.nav-item{
+        display: flex;
+        height: 100%;
+        align-items: center;
+    }
+    .navbar.navbar-expand-md .collapse.navbar-collapse .navbar-nav li.nav-item:hover{
+        /* background: #042041 !important; */
+    }
+}
+
+@media (min-width: 992px){
+    .navbar.navbar-expand-lg{
+       /*  height: 56px; */
+        height: auto;
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+    .navbar.navbar-expand-lg .collapse.navbar-collapse{
+        height: 100%!important;
+    }
+    .navbar.navbar-expand-lg .collapse.navbar-collapse ul.navbar-nav,
+    .navbar.navbar-expand-lg .collapse.navbar-collapse ul.navbar-nav li.nav-item{
+        display: flex;
+        height: 100%;
+        align-items: center;
+    }
+    .navbar.navbar-expand-lg .collapse.navbar-collapse .navbar-nav li.nav-item:hover{
+        /* background: #042041 !important; */
+    }
+}
+
+@media (min-width: 1200px){
+    .navbar.navbar-expand-xl{
+        height: 56px;
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+    .navbar.navbar-expand-xl .collapse.navbar-collapse{
+        margin-left: 3rem!important;
+        height: 100%!important;
+    }
+    .navbar.navbar-expand-xl .collapse.navbar-collapse ul.navbar-nav,
+    .navbar.navbar-expand-xl .collapse.navbar-collapse ul.navbar-nav li.nav-item{
+        display: flex;
+        height: 100%;
+        align-items: center;
+    }
+    .navbar.navbar-expand-xl .collapse.navbar-collapse .navbar-nav li.nav-item:hover{
+        /* background: #042041 !important; */
+    }
+}
+
+/* *********** FIN NAVBAR *********** */
+
+#btnAyuda{
+  height: 37px;
+  width: 37px;
+  padding: 0;
+  padding-left: 2px;
+  font-size: 19px;
+  margin-left: 8px;
+}
+
+.ops{
+    text-align: center;
+    padding: 0.1rem .75rem !important;
+    vertical-align: middle !important;
+}
+.ops [disabled]{
+    opacity: 0.2;
+}
+
+span.d-inline-block[data-toggle="tooltip"] input[disabled],
+span.d-inline-block[data-toggle="tooltip"] select[disabled],
+span.d-inline-block[data-toggle="tooltip"] textarea[disabled]{
+    pointer-events: none;
+}
+#bodyModalInfo .container .row .col-12 .form-group{
+    margin-bottom: 1rem;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+#bodyModalInfo .container .row .col-12, #bodyModalInfo .container .row .col-6, #bodyModalInfo .container .row .col-3{
+    padding-left: 0px;
+    margin-bottom: 10px;
+}
+    
+/*--------------------------------------------------------------
+# Preloader
+--------------------------------------------------------------*/
+.preloader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9999;
+    overflow: hidden;
+    background: #ffffff7a;
+  }
+  
+  .preloader:before {
+    content: "";
+    position: fixed;
+    top: calc(50% - 30px);
+    left: calc(50% - 30px);
+    border: 6px solid #2d3d4c;
+    border-top-color: #bfe0fd;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    -webkit-animation: animate-preloader 1s linear infinite;
+    animation: animate-preloader 1s linear infinite;
+  }
+  
+  @-webkit-keyframes animate-preloader {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+  
+  @keyframes animate-preloader {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+
+/*--------------------------------------------------------------
+# tabla
+--------------------------------------------------------------*/
+
+
+/* paper */
+.card {
+    border-radius: 6px;
+    box-shadow: 0 2px 2px rgb(204 197 185 / 50%);
+    background-color: #fff;
+    color: #252422;
+    position: relative;
+
+}
+body{
+    background-color: #f4f3ef;
+}
+.card table.table{
+    margin: 0!important;
+}
+/* fin */
+
+/* head fijo de tabla */
+.tableFixHead thead th { 
+    position: sticky; 
+    top: 0; z-index: 1; 
+    background-color: #FFF;
+    border: none;
+    box-shadow: inset 0 1px 0 0 #dee2e6, inset 0 -2px 0 0 #dee2e6;
+    padding: calc(.75rem + 1.5px) .75rem;
+}
+
+.tableFixHead tbody tr:first-child td,
+.tableFixHead tbody tr:first-child th{
+    border-top: 0;
+}
+/* fin */
+
+.table-responsive, .table {
+    max-height: calc(100vh - 180px) !important;
+    border-radius: 0 0 5px 5px;
+}

@@ -1,0 +1,215 @@
+{% extends '../../template.html' %}
+
+{% block styles %}
+<style type="text/css">
+    .thSwitch-sm {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12 d-flex">
+        <h4 id="title">
+            <i class="fa fa-shield-alt"></i> {{ pagename }}
+        </h4>
+        <a id="btnNuevo" href="/cargos" class="btn btn-round btn-danger ml-auto d-flex align-items-center" style="gap: 5px;">
+            <i class="fa fa-arrow-left"></i>Volver
+        </a>
+    </div>
+    <input type="hidden" name="idCargo" value="{{ idCargo }}">
+    <div class="col-12 mt-4" style="overflow-x: auto; max-height: calc(100vh - 200px);">
+        <table class="table table-hover table-sm tableFixHead">
+            <thead>
+                <tr>
+                    <th>
+                        <div class="row mb-0">
+                            <div class="col-sm-6">Módulo</div>
+                        </div>
+                    </th>
+                    <th style="min-width: 90px;">
+                        <div class="row mb-0 thSwitch-sm">
+                            <div class="col">Consulta</div>
+                            <div class="col">
+                                <div class="switch-sm">
+                                    <label class="switch-sm">
+                                        <input type="checkbox" class="chbItem" onchange="selectAll(this, 'consulta')">
+                                        <span class="slider-sm round-sm"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </th>
+                    <th style="min-width: 90px;">
+                        <div class="row mb-0 thSwitch-sm">
+                            <div class="col">Alta</div>
+                            <div class="col">
+                                <div class="switch-sm">
+                                    <label class="switch-sm">
+                                        <input type="checkbox" class="chbItem" onchange="selectAll(this, 'alta')">
+                                        <span class="slider-sm round-sm"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </th>
+                    <th style="min-width: 90px;">
+                        <div class="row mb-0 thSwitch-sm">
+                            <div class="col">Modificar</div>
+                            <div class="col">
+                                <div class="switch-sm">
+                                    <label class="switch-sm">
+                                        <input type="checkbox" class="chbItem" onchange="selectAll(this, 'modificar')">
+                                        <span class="slider-sm round-sm"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </th>
+                    <th style="min-width: 90px;">
+                        <div class="row mb-0 thSwitch-sm">
+                            <div class="col">Borrar</div>
+                            <div class="col">
+                                <div class="switch-sm">
+                                    <label class="switch-sm">
+                                        <input type="checkbox" class="chbItem" onchange="selectAll(this, 'baja')">
+                                        <span class="slider-sm round-sm"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </th>
+                    <th style="min-width: 90px;">
+                        <div class="row mb-0 thSwitch-sm">
+                            <div class="col">Extra</div>
+                            <div class="col">
+                                <div class="switch-sm">
+                                    <label class="switch-sm">
+                                        <input type="checkbox" class="chbItem" onchange="selectAll(this, 'extra')">
+                                        <span class="slider-sm round-sm"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for menu in menues %}
+                    {% if menu.id != 1 %}
+                    <tr>
+                        <td hidden>{{ menu.id }}</td>
+                        <td>
+                            <div class="row mb-0">
+                                <div class="col-12">{{ menu.titulo }}</div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="row mb-0">
+                                <div class="col-12">
+                                    <div class="switch-sm">
+                                        <label>
+                                            <label class="switch-sm">
+                                                <input class="consulta chbTabla" type="checkbox" 
+                                                    {% if usuario_accesos[loop.index0].c == 1 %} checked {% endif %}
+                                                    onchange="CheckboxHandler(this, '{{menu.id}}', 'c', '{{idCargo}}')">
+                                                <span class="slider-sm round-sm"></span>
+                                            </label>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="row mb-0">
+                                <div class="col-12">
+                                    <div class="switch-sm">
+                                        <label>
+                                            <input class="alta chbTabla" type="checkbox" 
+                                                {% if usuario_accesos[loop.index0].a == 1 %} checked {% endif %}
+                                                onchange="CheckboxHandler(this, '{{menu.id}}', 'a', '{{idCargo}}')">
+                                            <span class="slider-sm round-sm"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="row mb-0">
+                                <div class="col-12">
+                                    <div class="switch-sm">
+                                        <label>
+                                            <input class="modificar chbTabla" type="checkbox" 
+                                                {% if usuario_accesos[loop.index0].m == 1 %} checked {% endif %}
+                                                onchange="CheckboxHandler(this, '{{menu.id}}', 'm', '{{idCargo}}')">
+                                            <span class="slider-sm round-sm"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="row mb-0">
+                                <div class="col-12">
+                                    <div class="switch-sm">
+                                        <label>
+                                            <input class="baja chbTabla" type="checkbox" 
+                                                {% if usuario_accesos[loop.index0].b == 1 %} checked {% endif %}
+                                                onchange="CheckboxHandler(this, '{{menu.id}}', 'b', '{{idCargo}}')">
+                                            <span class="slider-sm round-sm"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="row mb-0">
+                                <div class="col-12">
+                                    <div class="switch-sm">
+                                        <label>
+                                            <input class="extra chbTabla" type="checkbox" 
+                                                {% if usuario_accesos[loop.index0].x == 1 %} checked {% endif %}
+                                                onchange="CheckboxHandler(this, '{{menu.id}}', 'x', '{{idCargo}}')">
+                                            <span class="slider-sm round-sm"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+
+                    </tr>
+                    {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript">
+
+    const selectAll = (obj, accion) => {
+        if (obj.checked) {
+            $('.' + accion).prop("checked", true);
+        }
+        else {
+            $('.' + accion).prop("checked", false);
+        }
+        $('.' + accion).trigger("onchange");
+    }
+
+    const CheckboxHandler = async (checkbox, menu, acceso, cargo) => {
+        let checked = $(checkbox).prop("checked") ? 1 : 0;
+        const data = await $.post(`/cargos/updateacceso/${cargo}/${menu}/${acceso}/${checked}`);
+        if (data.type != "success") {
+            Swal.fire({ icon: data.type, title: data.title, text: data.text })
+        }
+    }
+
+</script>
+{% endblock %}

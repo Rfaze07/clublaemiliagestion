@@ -1,0 +1,279 @@
+{% extends '../../template.html' %}
+
+{% block styles %}
+<style>
+    .textAreaSize {
+        resize: vertical;
+        min-height: 48px;
+        max-height: 100px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+    <h2>{{ pagename }}</h2>
+    <div class="d-flex align-items-end mb-3" style="gap: 0.2rem;">
+        <input type="text" class="form-control" id="txtFiltro" placeholder="Buscar" style="width: 10rem;" />
+        <div>
+            <label>Desde</label>
+            <input type="text" class="form-control datepicker" id="txtDesde" style="width: 7rem;" />
+        </div>
+        <div>
+            <label>Hasta</label>
+            <input type="text" class="form-control datepicker" id="txtHasta" style="width: 7rem;" />
+        </div>
+        <button class="btn btn-round btn-primary modalAccion mr-3" onclick='getLista()' data-toggle="tooltip" data-placement="top" title="Filtrar">
+            <i class="fa fa-search"></i>
+        </button>
+        {% if permisos.a == 1 %}
+            <button class="btn btn-round btn-success modalAccion mr-1" onclick='ModalAccion("a")' data-toggle="tooltip" data-placement="top" title="Nuevo">
+                <i class="fa fa-plus"></i>
+            </button>
+        {% endif %}
+    </div>
+</div>
+<div class="table-responsive" style="height: calc(100vh - 200px)" id="tablaDatos">
+    <table class="table table-sm table-fix table-hover tableFixHead">
+        <thead>
+            <tr>
+                <th scope="col" class="text-center">Acciones</th>
+                <th scope="col" class="text-center">Nro. de vale</th>
+                <th scope="col">Fecha y hora</th>
+                <th scope="col">Chofer</th>
+                <th scope="col">Vehiculo</th>
+                <th scope="col">Litros</th>
+                <th scope="col">Kms</th>
+                <th scope="col">Tanque</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<!-- MODAL -->
+<div class="modal fade modal-m" data-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    aria-labelledby="staticBackdropLabel" aria-hidden="true" id="modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabel"></h5>
+                <button type="button" class="close" aria-label="Close" onclick="CerrarModal()">
+                    <span aria-hidden=" true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-5">
+                        <label for="txtFechaCarga">Fecha y hora de carga</label>
+                        <div class="d-flex">
+                            <input type="text" style="width: 6rem;" class="form-control form-control-sm datepicker" id="txtFechaCarga" autocomplete="off">
+                            <input type="text" style="width: 4.05rem;" class="form-control form-control-sm ml-1 maskHM" id="txtHoraCarga" placeholder="HH:MM" onblur="ValidarHoraHM(this.value, this.id)" autocomplete="off">
+                        </div>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-7">
+                        <label for="cmbTanque">Tanque</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbTanque"></select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12">
+                        <label for="cmbCamion">Camión</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbCamion"></select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-3">
+                        <label for="txtLitrosHist">Litros hist.</label>
+                        <input type="text" class="form-control form-control-sm" id="txtLitrosHist" maxlength="12" onkeypress="return soloNumeros(event)" />
+                    </div>
+                    <div class="form-group col-sm-12 col-md-3">
+                        <label for="txtLitros">Litros</label>
+                        <input type="text" class="form-control form-control-sm" id="txtLitros" maxlength="6" onkeypress="return soloNumeros(event)" />
+                    </div>
+                    <div class="form-group col-sm-12 col-md-3">
+                        <label for="txtOdometro">Odómetro</label>
+                        <input type="text" class="form-control form-control-sm" id="txtOdometro" maxlength="12" onkeypress="return soloNumeros(event)" />
+                    </div>
+                    <div class="form-group col-sm-12 col-md-3">
+                        <label for="txtKms">Kms.</label>
+                        <input type="text" class="form-control form-control-sm" id="txtKms" maxlength="6" onkeypress="return soloNumeros(event)" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12">
+                        <label for="txtObservaciones">Observaciones</label>
+                        <textarea class="form-control form-control-sm" id="txtObservaciones" rows="2" maxlength="3000"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="CerrarModal()">Cancelar</button>
+                <button type="button" class="btn btn-success" id="btnAccion">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+
+    $(document).ready(() => {
+        $('#txtDesde').val(generateTodayDate())
+        $('#txtHasta').val(generateTodayDate())
+        getLista()
+    })
+
+    $("#txtFiltro").keyup(async function () {
+        Filtrar()
+    })
+    
+    const getLista = async () => {
+        $("#preloaderAPP").show()
+        const res = await $.post('/combustiblesVales/getlistaAjax', { 
+            desde: $('#txtDesde').val(), hasta: $('#txtHasta').val()
+        })
+        let html = ""
+        if(res.status){
+            for (let i = 0; i < res.data.length; i++) {
+                html += `
+                <tr>
+                    <td style="width: 85px;">
+                        <div style="display: flex; gap: 2px; justify-content: center;">
+                            {% if permisos.b %}
+                                <button class="btn btn-round btn-sm btn-danger" onclick="Eliminar(${res.data[i].id}, ${res.data[i].id_vehiculo_fk})"
+                                    data-toggle="tooltip" data-placement="top" title="Eliminar">
+                                    <i class="fa fa-trash-alt"></i>
+                                </button>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td class='search text-center'>${String(res.data[i].nro_vale).padStart(10, '0')}</td>
+                    <td>${changeDateDMYHM(res.data[i].fecha_hora)}</td>
+                    <td class='search'>${res.data[i].choferTxt}</td>
+                    <td class='search'>${res.data[i].patente} - ${res.data[i].marcaTxt}</td>
+                    <td class='search'>${res.data[i].litros}</td>
+                    <td class='search'>${res.data[i].km}</td>
+                    <td class='search'>${res.data[i].tanqueTxt}</td>
+                </tr>`
+            }
+        }else{
+            html = `<tr><td class="font-weight-bold" colspan="10">${res.text}</td></tr>`
+        }
+        $('#tablaDatos tbody').html(html)
+        $("#preloaderAPP").hide()
+        $('[data-toggle="tooltip"]').tooltip()
+    }
+
+    const ModalAccion = async (accion, id) => {
+        $("#preloaderAPP").show()
+        $('#txtFechaCarga').val(generateTodayDate())
+        await ObtenerCmbVehiculosChofer('cmbCamion')
+        await ObtenerCmbTanques('cmbTanque')
+        if (accion === 'a') {
+            $('#modalLabel').text('Nuevo vale de combustible')
+            $('#btnAccion').attr('onclick', `PostRegistro("a")`)
+            $('#btnAccion').text('Guardar')
+        }
+        $("#preloaderAPP").hide()
+        $('#modal').modal('show')
+    }
+
+    const PostRegistro = async (accion, Id) => {
+        $("#preloaderAPP").show()
+        let url = '/combustiblesVales/alta',
+            body = {
+                fecha: $('#txtFechaCarga').val(),
+                hora: $('#txtHoraCarga').val(),
+                camion: $('#cmbCamion').val(),
+                tanque: $('#cmbTanque').val(),
+                ltsHistorico: $('#txtLitrosHist').val(),
+                litros: $('#txtLitros').val(),
+                odometro: $('#txtOdometro').val(),
+                kms: $('#txtKms').val(),
+                observaciones: $('#txtObservaciones').val()
+            }
+
+        if (accion === 'm') {
+            url = '/combustiblesVales/modificar'
+            body.activo = $('#chbActivo').prop('checked') ? 1 : 0
+            body.id = Id
+        }
+
+        const res = await $.post(url, body)
+        $("#preloaderAPP").hide()
+        Swal.fire({
+            icon: res.icon,
+            title: res.title, 
+            text: res.text, 
+            timer: 2500
+        }).then(() => {
+            if(res.status){
+                CerrarModal()
+                getLista()
+            }
+        })        
+    }
+
+    const Eliminar = (id, vehiculo) => {
+        Swal.fire({
+            title: 'Confirmar',
+            text: "¿Desea borrar este registro?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar.',
+            cancelButtonColor: '#d33',
+            cancelButtonText: 'No, cancelar.'
+        }).then(async result => {
+            if (result.isConfirmed) {
+                $("#preloaderAPP").show()
+                let res = await $.post('/combustiblesVales/eliminar', { id, vehiculo })
+                $("#preloaderAPP").hide()
+                Swal.fire({
+                    icon: res.icon,
+                    title: res.title,
+                    text: res.text,
+                    timer: 3000
+                }).then(() => {
+                    if(res.status){
+                        CerrarModal()
+                        getLista()
+                    }
+                })
+            }    
+        })
+    }
+
+    const Filtrar = () => {
+        $('#tablaDatos tbody tr').each(function () {
+            if ($(this).find('td.search').text().toUpperCase().indexOf($('#txtFiltro').val().toUpperCase()) > -1)
+                $(this).closest('tr').show();
+            else
+                $(this).closest('tr').hide();
+        })
+    }
+
+    const CerrarModal = () => {
+        $('#modal').modal('hide')
+        LimpiarCampos()
+    }
+
+    const LimpiarCampos = () => {
+        $('#txtFechaCarga').val('')
+        $('#txtHoraCarga').val('')
+        $('#cmbTanque').html('')
+        $('#cmbTanque').selectpicker('refresh')
+        $('#cmbCamion').html('')
+        $('#cmbCamion').selectpicker('refresh')
+        $('#txtLitrosHist').val('')
+        $('#txtLitros').val('')
+        $('#txtOdometro').val('')
+        $('#txtKms').val('')
+        $('#txtObservaciones').val('')
+    }
+
+</script>
+{% endblock %}

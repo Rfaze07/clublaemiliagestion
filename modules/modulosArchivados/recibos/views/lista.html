@@ -1,0 +1,483 @@
+{% extends '../../template.html' %}
+
+{% block styles %}
+<style>
+    .textAreaSize {
+        resize: vertical;
+        min-height: 48px;
+        max-height: 100px;
+    }
+
+    .heightTablas { max-height: calc(100vh - 415px); overflow: auto; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+    <h2>{{ pagename }}</h2>
+    <div class="d-flex align-items-end mb-3" style="gap: 0.2rem;">
+        <input type="text" class="form-control" id="txtFiltro" placeholder="Buscar" style="width: 10rem;" />
+        <div>
+            <label>Fecha desde</label>
+            <input type="text" class="form-control datepicker" id="txtDesde" style="width: 10rem;" />
+        </div>
+        <div>
+            <label>Fecha hasta</label>
+            <input type="text" class="form-control datepicker" id="txtHasta" style="width: 10rem;" />
+        </div>
+        <button class="btn btn-round btn-primary" data-toggle="tooltip" data-placement="top" title="Buscar" onclick="getLista()">
+            <i class="fa fa-search"></i>
+        </button>
+        {% if permisos.a %}
+            <button class="btn btn-round btn-success modalAccion" data-toggle="tooltip" data-placement="top" title="Nuevo" data-accion="a" onclick='ModalAccion("a")'>
+                <i class="fa fa-plus"></i>
+            </button>
+        {% endif %}
+    </div>
+</div>
+<div class="table-responsive" style="height: calc(100vh - 200px)" id="tablaDatos">
+    <table class="table table-sm table-fix table-hover tableFixHead">
+        <thead>
+            <tr>
+                <th scope="col">Acciones</th>
+                <th scope="col">Número</th>
+                <th scope="col">Fecha</th>
+                <th scope="col">Empresa</th>
+                <th scope="col">Cliente</th>
+                <th scope="col">Impreso?</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<!-- MODAL -->
+<div class="modal fade modal-m" data-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true" id="modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabel"></h5>
+                <button type="button" class="close" aria-label="Close" onclick="CerrarModal()">
+                    <span aria-hidden=" true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="form-group col-sm-12">
+                        <label for="cmbEmpresa">Empresa</label>
+                        <select class="form-control form-control-sm" id="cmbEmpresa" onchange="SeleccionoEmpresa()">
+                            <option value="" selected disabled>Seleccione una opción...</option>
+                            {% for e in empresas %}
+                                <option value="{{ e.id }}">({{ e.cuit }}) - {{ e.razon_social }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="d-none" id="divReciboNum">
+                    <div class="row">
+                        <div class="form-group col-sm-8">
+                            <label for="cmbPuntoVenta">Punto de venta</label>
+                            <select class="form-control form-control-sm" id="cmbPuntoVenta"></select>
+                        </div>
+                        <div class="form-group col-sm-12 col-md-4">
+                            <label for="txtFecha">Fecha</label>
+                            <input type="text" class="form-control form-control-sm datepicker" id="txtFecha">
+                        </div>
+                    </div>
+                </div>
+                <div class="d-none" id="divReciboCliente">
+                    <div class="row">
+                        <div class="form-group col-sm-12">
+                            <label for="cmbCliente">Cliente</label>
+                            <select class="form-control form-control-sm selectpicker" id="cmbCliente"></select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group col-sm-12">
+                            <label for="txtObservaciones">Observaciones</label>
+                            <textarea class="form-control form-control-sm" id="txtObservaciones"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="CerrarModal()">Cancelar</button>
+                <button type="button" class="btn btn-success d-none" id="btnAccion">Guardar y continuar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- MODAL VER -->
+<div class="modal fade modal-m" tabindex="-1" aria-hidden="true" id="modalVer">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabelVer"></h5>
+                <button type="button" class="close" aria-label="Close" onclick="CerrarModal()">
+                    <span aria-hidden=" true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="divBodyMadalVer"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- MODAL VER -->
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+
+    $(document).ready(async () => {
+        $('#txtDesde').val(generateFirstDateActualMonth())
+        $('#txtHasta').val(generateTodayDate())
+        getLista()
+        await CargarCmbClientes()
+    })
+
+    $("#txtFiltro").keyup(async function () {
+        Filtrar()
+    })
+    
+    const getLista = async () => {
+        $("#preloaderAPP").show()
+        
+        const body = {  desde: $('#txtDesde').val(), hasta: $('#txtHasta').val() }
+        const res = await $.post('/recibos/getlistaAjax', body)
+        let html = '<tr><td colspan="15">Sin registros para el rango de fechas seleccionado.</td></tr>'
+        if(res.status){
+            if(res.data.length > 0){
+                html = ''
+                for (let i = 0; i < res.data.length; i++) {
+                    html += `
+                        <tr>
+                            <td>
+                                <div style="display: flex; gap: 2px;">
+                                    <button class="btn btn-round btn-sm btn-info" onclick="Ver(${res.data[i].id})"
+                                            data-toggle="tooltip" data-placement="top" title="Ver">
+                                        <i class="fa fa-eye"></i>
+                                    </button>
+                                    <button class="btn btn-round btn-sm btn-primary" data-toggle="tooltip" data-placement="top" title="Imprimir" onclick="Imprimir(${res.data[i].id})">
+                                        <i class="fa fa-print"></i>
+                                    </button>
+                                    
+                                    {% if permisos.m %}
+                                    ${
+                                         res.data[i].blindado == 0 && res.data[i].impreso == 0 ?
+                                            `<button class="btn btn-round btn-sm btn-warning" onclick="ModalAccion('m', ${res.data[i].id})"
+                                                    data-toggle="tooltip" data-placement="top" title="Modificar orden de pago">
+                                                <i class="fa fa-pen"></i>
+                                            </button>
+                                            <a class="btn btn-round btn-sm btn-secondary" role="button" data-accion="m" data-toggle="tooltip" 
+                                                        data-placement="top" title="Comprobantes y pagos" href="/recibos/detalles/${res.data[i].id}">
+                                                <i class="fa fa-file-lines"></i>
+                                            </a>`
+                                        :
+                                            ''
+                                    }
+                                    {% endif %}                                    
+
+                                    {% if permisos.b %}
+                                    ${
+                                        res.data[i].blindado == 0 && res.data[i].impreso == 0 ? 
+                                            `<button class="btn btn-round btn-sm btn-danger" onclick="Eliminar(${res.data[i].id})"
+                                                data-toggle="tooltip" data-placement="top" title="Eliminar">
+                                                <i class="fa fa-trash-alt"></i>
+                                            </button>`
+                                        :
+                                            ''
+                                    }
+                                        
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td class="search">${res.data[i].numeroTxt==null ? '' : `${res.data[i].puntoVentaTxt}-${res.data[i].numeroTxt}`}</td>
+                            <td class="search">${changeDateDMY(res.data[i].fecha_recibo)}</td>
+                            <td class="search">(${res.data[i].cuitEmpresa}) ${res.data[i].empresaTxt}</td>
+                            <td class="search">${res.data[i].clienteTxt}</td>
+                            <td class="search">${res.data[i].impreso ? 'Si' : 'No'}</td>
+                        </tr>`
+                }
+            }
+        }else{
+            html = `<tr><td class="font-weight-bold" colspan="15">${res.text}</td></tr>`
+        }
+        $('#tablaDatos tbody').html(html)
+        $('[data-toggle="tooltip"]').tooltip()
+        $("#preloaderAPP").hide()
+    }
+
+    const ModalAccion = async (accion, id) => {
+        $("#preloaderAPP").show()
+        CargarCmbClientes()
+        if (accion === 'a') {
+            $('#txtFecha').val(generateTodayDate())
+            $('#modalLabel').text('Nuevo recibo')
+            $('#btnAccion').attr('onclick', `PostRegistro("a")`)
+            $('#btnAccion').text('Guardar y continuar')
+        }
+        if (accion == 'm') {
+            let res = await $.post(`/recibos/getByIdAjax`,{id})
+            if (res.status != 0) {
+                $('#cmbProveedor').val(res.titulo.id_proveedor_fk)
+                $('#txtFecha').val(res.titulo.fecha)
+                $('#txtObservaciones').val(res.titulo.observacion)
+            }
+            $('#modalLabel').text('Modificar recibo')
+            $('#btnAccion').text('Guardar')
+            $('#btnAccion').attr('onclick', `PostRegistro("m",${id})`)
+            $('#actionSeccion').removeClass('d-none')
+            $('#actionSeccionDivider').removeClass('d-none')
+        }
+        $("#preloaderAPP").hide()
+        $('#modal').modal('show')
+    }
+
+    const PostRegistro = async (accion, Id) => {
+        $("#preloaderAPP").show()
+        let url = '/recibos/alta', 
+            body = {
+                empresa: $('#cmbEmpresa').val(),
+                puntoVenta: $('#cmbPuntoVenta').val(), 
+                fecha: $('#txtFecha').val(),
+                cliente: $('#cmbCliente').val(),
+                observaciones: $('#txtObservaciones').val()
+            }
+
+        if (accion === 'm') {
+            url = '/recibos/modificar'
+            body.activo = $('#chbActivo').prop('checked') ? 1 : 0
+            body.id = Id
+        }
+
+        const res = await $.post(url, body)
+        $("#preloaderAPP").hide()
+        Swal.fire({
+            icon: res.icon,
+            title: res.title, 
+            text: res.text,
+            confirmButtonText: res.status ? 'Continuar':'OK'
+        }).then(() => {
+            if(res.status){
+                CerrarModal()
+                location = `/recibos/detalles/${res.id}`
+            }
+        })        
+    }
+
+    const Eliminar = id => {
+        Swal.fire({
+            title: 'Confirmar',
+            text: "¿Desea borrar este registro?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar.',
+            cancelButtonColor: '#d33',
+            cancelButtonText: 'No, cancelar.'
+        }).then(async result => {
+            if (result.isConfirmed) {
+                $("#preloaderAPP").show();
+                let res = await $.post('/recibos/eliminar', { id })
+                $("#preloaderAPP").hide();
+                Swal.fire({
+                    type: res.type,
+                    icon: res.icon,
+                    title: res.title,
+                    text: res.text,
+                    timer: 2000
+                }).then(() => {
+                    if(res.status){
+                        CerrarModal()
+                        getLista()
+                    }
+                })
+            }    
+        })
+    }
+
+    const Ver = async idRecibo => {
+        let res = await $.post('/recibos/ver', {idRecibo})
+        console.log(res)
+        if(res.status){
+            let htmlTablaComp='', htmlTablaMP=''
+
+            res.comprobantes.map(el => {
+                htmlTablaComp += `
+                    <tr>
+                        <td>${el.tipoComprobanteTxt}</td>
+                        <td class="text-center">${changeDateDMY(el.fecha_comprobante)}</td>
+                        <td class="text-center">${el.puntoVentaTxt}-${el.numeroTxt}</td>
+                        <td class="text-right">$ ${formatCurrency(el.total)}</td>
+                    </tr>`
+            })
+
+            res.mediosPagos.map(el => {
+                htmlTablaMP += `
+                    <tr>
+                        <td>${changeDateDMY(el.fecha)}</td>
+                        <td>${el.medioPagoTxt}</td>
+                        <td class="text-right">$ ${formatCurrency(el.importe)}</td>
+                        <td>${el.descripcion}</td>
+                    </tr>`
+            })
+
+
+            const html = 
+            `
+            <div class="card w-100 mb-3">
+                <div class="card-header">
+                    <div class="row">
+                        <div class="col-sm-12 row">
+                            <div class="col-2" style="font-weight: 700;">Cliente</div>
+                            <div class="col-2">${res.titulo.clienteTxt}</div>
+                            <div class="col-2" style="font-weight: 700;">Fecha de alta</div>
+                            <div class="col-2">${changeDateDMY(res.titulo.fecha_recibo)}</div>
+                            <div class="col-2" style="font-weight: 700;">Blindado?</div>
+                            <div class="col-2">${res.titulo.blindado ? 'Si' : 'No'}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mb-1 mb-3">
+                <div class="col-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <span style="font-weight: 700;">Compobantes asociados</span>
+                        </div>
+                        <div class="card-body heightTablas p-0">
+                            <table class="table table-hover table-sm tableFixHead" id="tablaVerComprobantes">
+                                <thead>
+                                    <tr>
+                                        <th class="text-center">Tipo Comp.</th>
+                                        <th class="text-center">Fecha</th>
+                                        <th class="text-center">Número</th>
+                                        <th class="text-center">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>${htmlTablaComp}</tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <span style="font-weight: 700;">Pagos</span>
+                        </div>
+                        <div class="card-body heightTablas p-0">
+                            <table class="table table-hover table-sm tableFixHead" id="tablaVerMediosPagos">
+                                <thead>
+                                    <tr>
+                                        <th class="text-center">Fecha</th>
+                                        <th class="text-center">Medio de pago</th>
+                                        <th class="text-center">Importe</th>
+                                        <th class="text-center">Observaciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>${htmlTablaMP}</tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card w-100">
+                <div class="card-header">
+                    <div class="row">
+                        <div class="col-sm-12 row">
+                            <div class="col-4" style="font-weight: 700;">
+                                Total $ <span class="ml-2">${formatCurrency(res.totales.total)}</span>
+                            </div>
+                            <div class="col-4" style="font-weight: 700;">
+                                Total pagado $<span class="ml-2">${formatCurrency(res.totales.totalPagado)}</span>
+                            </div>
+                            <div class="col-4" style="font-weight: 700;">
+                                Saldo pendiente $ <span class="ml-2">${formatCurrency(res.totales.saldoPendiente)}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>`
+
+            $('#divBodyMadalVer').html(html)
+            $('#modalLabelVer').text('Más información')
+            $('#modalVer').modal('show')
+        }
+
+    }
+    
+    const CerrarModal = () => {
+        $('#modal').modal('hide')
+        $('#actionSeccion').addClass('d-none')
+        $('#actionSeccionDivider').addClass('d-none')
+        LimpiarCampos()
+    }
+
+    const LimpiarCampos = () => {
+        $('input[type="text"]').val('')
+        $('textarea').val('')
+        $('input[type="checkbox"]').prop('checked', false)
+        $('input[type="radio"]').prop('checked', false)
+        $('#btnAccion').addClass('d-none')
+        $('#txtDesde').val(generateFirstDateActualMonth())
+        $('#txtHasta').val(generateTodayDate())
+    }
+
+    const Imprimir = async idRecibo => {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Confirmar', 
+            text: 'Desea imprimir el recibo?',
+            showCancelButton: true,
+            cancelButtonText: "No, cerrar",
+            confirmButtonText: "Si, imprimir",
+        }).then(async res1 => {
+            if(res1.isConfirmed){
+                let res = await $.post('/recibos/imprimir', {idRecibo})
+                if(res.impreso == 1){
+                    window.open(res.url, '_blank')
+                }else{
+                    Swal.fire({
+                        icon: res.icon,
+                        title: res.title, 
+                        text: res.text,
+                        showCancelButton: true,
+                        cancelButtonText: "Ok",
+                        confirmButtonText: "Imprimir",
+                    }).then(res2 => {
+                        if(res2.isConfirmed && res.status){
+                            window.open(res.url, '_blank')
+                            location.reload()
+                        }
+                    })
+                }
+            }
+        })
+    }
+
+    const SeleccionoEmpresa = async () => {
+        const res = await $.post('/recibos/getNumeracionEmpresa', { empresa: $('#cmbEmpresa').val() })
+        if(!res.status){
+            $('#divReciboNum').addClass('d-none')
+            $('#divReciboCliente').addClass('d-none')
+            $('#btnAccion').addClass('d-none')
+            return Swal.fire(res.title, res.text, res.icon)
+        }
+        let html=``
+        res.data.map(el => {
+            html += `<option value="${el.id}">${el.puntoVentaTxt} - ${el.domicilio}</option>`
+        })
+
+        $('#btnAccion').removeClass('d-none')
+        $('#cmbPuntoVenta').html(html)
+        $('#divReciboNum').removeClass('d-none')
+        $('#divReciboCliente').removeClass('d-none')
+    }
+
+</script>
+{% endblock %}

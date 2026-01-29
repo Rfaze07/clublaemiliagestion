@@ -1,0 +1,799 @@
+{% extends '../../template.html' %}
+
+{% block styles %}
+<style>
+    .swal2-small-toast {
+        font-size: 14px !important;
+    }
+    .swal2-small-toast .swal2-title {
+        font-size: 16px !important;
+        margin: 5px 0 !important;
+    }
+    .swal2-small-toast .swal2-content {
+        font-size: 13px !important;
+        margin: 5px 0 !important;
+    }
+    .swal2-small-toast .swal2-icon {
+        width: 40px !important;
+        height: 40px !important;
+        margin: 5px auto !important;
+    }
+    
+    /* Estilos adicionales para mejorar la interfaz */
+    .table-hover tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+    }
+    
+    #tablaCarrito {
+        font-size: 0.9rem;
+    }
+    
+    #tablaCarrito th {
+        background-color: #f8f9fa;
+        border-top: none;
+        font-weight: 600;
+        font-size: 0.875rem;
+    }
+    
+    .text-total {
+        font-size: 1.25rem;
+        font-weight: bold;
+        color: #28a745;
+    }
+    
+    .bootstrap-select .dropdown-menu {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    
+    .form-control:focus {
+        border-color: #80bdff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+    .swal2-timer-progress-bar {
+        background: rgba(0, 123, 255, 0.8) !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+    <h2>{{ pagename }}</h2>
+</div>
+
+<!-- SECCION CLIENTE -->
+<div class="card mb-3">
+    <div class="card-header">
+        <h5><b>Datos del Proveedor</b></h5>
+    </div>
+    <div class="card-body row align-items-end">
+        <div class="col-sm-12 col-md-6">
+            <label>Proveedor</label>
+            <select class="form-control form-control-sm selectpicker" id="cmbProveedor" data-live-search="true"></select>
+        </div>
+        <!-- <div class="col-sm-12 col-md-2">
+            <button class="btn btn-success btn-sm mt-4" onclick="ModalClienteNuevo()" data-toggle="tooltip" title="Agregar nuevo proveedor">
+                <i class="fa fa-plus"></i> Nuevo
+            </button>
+        </div> -->
+    </div>
+</div>
+
+<!-- SECCION PRODUCTOS -->
+<div class="card mb-3">
+    <div class="card-header">
+        <h5><b>Selección de Productos</b></h5>
+    </div>
+    <div class="card-body row align-items-end">
+        <div>
+            <label>Codigo</label>
+            <input type="text" class="form-control form-control-sm" id="txtCodigo" maxlength="100" oninput="buscarPorCodigoDebounce()">
+        </div>
+        <div class="col-sm-12 col-md-6">
+            <label>Producto</label>
+            <div class="input-group">
+                <select class="form-control form-control-sm selectpicker" id="cmbProducto" data-live-search="true" onchange="manejarSeleccionProducto()"></select>
+            </div>
+        </div>
+        <div>
+            <button class="btn btn-success btn-sm mt-4" onclick="ModalAccion()" data-toggle="tooltip" title="Crear nuevo producto">
+                <i class="fa fa-plus"></i> Nuevo
+            </button>
+        </div>
+    </div>
+    <!-- TABLA CARRITO DENTRO DE LA CARD -->
+    <div class="table-responsive mb-3" style="max-height: 40vh; overflow-y: auto;">
+        <table class="table table-sm table-hover" id="tablaCarrito">
+            <thead>
+                <tr>
+                    <th>Acciones</th>
+                    <th>Código</th>
+                    <th>Descripción</th>
+                    <th>Cant.</th>
+                    <th>Precio Unit.</th>
+                    <th>IVA %</th>
+                    <th>Subtotal</th>
+                    <th class="d-none">id_alicuota_iva_fk</th>
+                    <th class="d-none">ID</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td colspan="7">Sin productos en el carrito.</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- SECCION PAGO -->
+<div class="card mb-3">
+    <div class="card-header">
+        <h5><b>Forma de Pago</b></h5>
+    </div>
+    <div class="card-body row align-items-end">
+        <div class="col-sm-12 col-md-4">
+            <label>Medio de Pago</label>
+            <select class="form-control form-control-sm selectpicker" id="cmbMedioPago"></select>
+        </div>
+        <div class="col-sm-12 col-md-4">
+            <h4 class="mt-3">TOTAL: $<span id="lblTotal">0.00</span></h4>
+        </div>
+    </div>
+</div>
+
+<!-- BOTONES FINALES -->
+<div class="d-flex justify-content-end align-items-end">
+    <div style="gap:0.5rem;" class="d-flex">
+        <button class="btn btn-secondary" onclick="CancelarCompra()" data-toggle="tooltip" title="Cancelar compra actual">
+            <i class="fa fa-times"></i> Cancelar
+        </button>
+        <button class="btn btn-success" id="btnConfirmar" data-toggle="tooltip" title="Confirmar compra (F12)">
+            <i class="fa fa-check"></i> Confirmar Compra
+        </button>
+    </div>
+</div>
+
+
+<!-- MODAL -->
+<div class="modal fade modal-m" data-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    aria-labelledby="staticBackdropLabel" aria-hidden="true" id="modal">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabel"></h5>
+                <button type="button" class="close" aria-label="Close" onclick="CerrarModal()">
+                    <span aria-hidden=" true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class = "row">
+                    <div class="col-sm-12 col-md-4">
+                        <label for="txtCodBarras">Codigo de Barras</label>
+                        <input type="text" class="form-control form-control-sm" id="txtCodBarras" maxlength="100">
+                    </div>
+                    <div class="col-sm-12 col-md-8">
+                        <label for="txtDescripcion">Descripción</label>
+                        <input type="text" class="form-control form-control-sm" id="txtDescripcion" maxlength="100">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 col-md-4">
+                        <label for="cmbUnidadMedida">Unidad de medida</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbUniMed"></select>
+                    </div>
+                    <div class="col-sm-12 col-md-4">
+                        <label for="cmbMarca">Marca</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbMarca"></select>
+                    </div>
+                    <div class="col-sm-12 col-md-4">
+                        <label for="cmbRubros">Rubros</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbRubros"></select>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-sm-12 col-md-2">
+                        <label for="txtCosto">Costo</label>
+                        <input type="text" class="form-control form-control-sm" id="txtCosto" min="0" step="0.01" onkeypress="return ValidarEnterosYDecimales(event, this, 9,2)" onkeyup="calcularPrecio()">
+                    </div>
+                    <div class="col-sm-12 col-md-2">
+                        <label for="txtPorcentaje">Porcentaje %</label>
+                        <input type="text" class="form-control form-control-sm" id="txtPorcentaje" min="0" step="0.01" onkeypress="return ValidarEnterosYDecimales(event, this, 9,2)" onkeyup="calcularPrecio()">
+                    </div>
+                    <div class="col-sm-12 col-md-2">
+                        <label for="cmbAlicuota">Alicuota %</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbAlicuota" onchange="calcularPrecio()">
+                            <option data-id="1" value="0" selected>0%</option>
+                            <option data-id="2" value="10.5">10.5%</option>
+                            <option data-id="3" value="21">21%</option>
+                            <option data-id="4" value="27">27%</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-12 col-md-3">
+                        <label for="txtPrecio">Precio</label>
+                        <input type="text" class="form-control form-control-sm" id="txtPrecio" min="0" step="0.01" disabled>
+                    </div>
+                    <div class="col-sm-12 col-md-3">
+                        <label for="txtPrecioConIva">Precio con IVA</label>
+                        <input type="text" class="form-control form-control-sm" id="txtPrecioConIva" min="0" step="0.01" disabled>
+                    </div>
+                </div>
+                <div class="dropdown-divider d-none" id="actionSeccionDivider"></div>
+                <div class="row d-none" id="actionSeccion">
+                    <div class="col">
+                        <div class="custom-control custom-switch ml-1">
+                            <input type="checkbox" class="custom-control-input" id="chbActivo" />
+                            <label class="custom-control-label" for="chbActivo">Activo</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                    onclick="CerrarModal()">Cancelar</button>
+                <button type="button" class="btn btn-success" id="btnAccion">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript">
+
+
+//documentready
+
+$(document).ready(() => {
+    // Inicialización de combos
+    ObtenerCmbProveedores2('cmbProveedor', false)
+    ObtenerCmbMediosPago('cmbMedioPago', false)
+    ObtenerCmbProductos('cmbProducto')
+    
+    // Configuración inicial
+    $('#txtCodigo').focus();
+    $('[data-toggle="tooltip"]').tooltip();
+    
+    // Configurar eventos de usabilidad
+    configurarEventosUsabilidad();
+})
+
+const configurarEventosUsabilidad = () => {
+    $('#txtCantidad').on('keypress', function(e) {
+        if (e.which === 13) {
+            e.preventDefault();
+            AgregarAlCarrito();
+        }
+    });
+    
+
+    $('#cmbProducto').on('changed.bs.select', function() {
+        const valor = $(this).val();
+        if (valor && valor !== '' && valor !== '0') {
+            setTimeout(() => {
+                $('#txtCantidad').focus().select();
+            }, 100);
+        }
+    });
+    
+    $('#btnConfirmar').on('click', function() {
+        // Contar filas que tienen botón de eliminar (filas de productos reales)
+        const productosEnCarrito = $('#tablaCarrito tbody tr button[onclick*="QuitarProducto"]').length;
+        
+        if (productosEnCarrito === 0) {
+            Swal.fire('Error', 'Debe agregar al menos un producto al carrito', 'error');
+            return;
+        }
+        ConfirmarCompra();
+    });
+    
+};
+
+
+    const manejarSeleccionProducto = () => {
+        const valor = $('#cmbProducto').val();
+        
+
+        if (valor && valor !== '' && valor !== '0') {
+            AgregarAlCarrito();
+        } else {
+        }
+    };
+
+     const AgregarAlCarrito = () => {
+        
+        const productoSeleccionado = $('#cmbProducto option:selected')
+        
+    
+        if (!productoSeleccionado.val() || productoSeleccionado.val() === '') {
+            Swal.fire('Error', 'Debe seleccionar un producto', 'error');
+            return;
+        }
+
+        const prod = productoSeleccionado.text()
+        const productoId = productoSeleccionado.val()
+        const costo = parseFloat(productoSeleccionado.data('costo') || 0)
+        const alicuotaIva = productoSeleccionado.data('alicuota') || 3 // Por defecto 21%
+        const porcentaje = parseFloat(productoSeleccionado.data('porcentaje') || 0)
+
+        Swal.fire({
+            title: `Agregar ${prod}`,
+            html: `
+                  <div class="form-group">
+                    <label for="cantidad">Cantidad:</label>
+                    <input type="text" id="cantidad" class="form-control" value="1" onkeypress="return validarEnterosyDecimales(event, this, 9, 0)">
+                </div>
+                <div class="form-group">
+                    <label for="costo">Costo Unitario:</label>
+                    <input type="text" id="costo" class="form-control" value="${costo.toFixed(2)}" onkeypress="return validarEnterosyDecimales(event, this, 9, 2)" oninput="calcularPrecioSwal()">
+                </div>
+                <div class="form-group">
+                    <label for="iva">IVA %:</label>
+                    <select id="iva" class="form-control" onchange="calcularPrecioSwal()">
+                        <option value="1" ${alicuotaIva == 1 ? 'selected' : ''}>0%</option>
+                        <option value="2" ${alicuotaIva == 2 ? 'selected' : ''}>10.5%</option>
+                        <option value="3" ${alicuotaIva == 3 ? 'selected' : ''}>21%</option>
+                        <option value="4" ${alicuotaIva == 4 ? 'selected' : ''}>27%</option>
+                    </select>
+                </div>
+                 <div class="form-group">
+                    <label for="porcentaje">Porcentaje %:</label>
+                    <input type="text" id="porcentaje" class="form-control" value="${porcentaje.toFixed(2)}" onkeypress="return validarEnterosyDecimales(event, this, 9, 2)" oninput="calcularPrecioSwal()">
+                </div>
+                <div class="form-group">
+                    <label for="precio">Precio Unitario:</label>
+                    <input type="text" id="precio" class="form-control" disabled>
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Agregar al carrito',
+            cancelButtonText: 'Cancelar',
+            didOpen: () => {
+                // Calcular precio inicial al abrir
+                calcularPrecioSwal();
+            },
+            preConfirm: () => {
+                const cantidad = $('#cantidad').val()
+                const costoInput = $('#costo').val()
+                const iva = $('#iva').val()
+                
+                
+                if (!cantidad || cantidad <= 0) {
+                    Swal.showValidationMessage('Ingrese una cantidad válida')
+                    return false
+                }
+                if (!costoInput || costoInput <= 0) {
+                    Swal.showValidationMessage('Ingrese un costo válido')
+                    return false
+                }
+                
+                return { 
+                    cantidad: parseFloat(cantidad), 
+                    costo: parseFloat(costoInput),
+                    iva: parseInt(iva)
+                }
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const cant = result.value.cantidad
+                const costoFinal = result.value.costo
+                const iva = result.value.iva
+                const subtotal = cant * costoFinal
+                const ivaValor = iva == 1 ? '0%' : iva == 2 ? '10.5%' : iva == 3 ? '21%' : '27%'
+
+                let html = `
+                <tr>
+                    <td><button class="btn btn-danger btn-sm" onclick="QuitarProducto(this)"><i class="fa fa-trash"></i></button></td>
+                    <td>${productoId}</td>
+                    <td>${prod}</td>
+                    <td>${cant}</td>
+                    <td>${costoFinal.toFixed(2)}</td>
+                    <td>${ivaValor}</td>
+                    <td>${subtotal.toFixed(2)}</td>
+                    <td class="d-none">${iva}</td>
+                    <td class="d-none">${productoSeleccionado.data('id') || productoId}</td>
+                </tr>
+                `
+                
+
+                if($('#tablaCarrito tbody tr td[colspan]').length > 0){
+                    $('#tablaCarrito tbody').html(html)
+                }else{
+                    $('#tablaCarrito tbody').append(html)
+                }
+
+                ActualizarTotal()
+                $('#cmbProducto').val('')
+                $('#cmbProducto').selectpicker('refresh')
+                $('#txtCantidad').val(1)
+                $('#txtCodigo').val('')
+                $('#txtCodigo').focus()
+                
+                Swal.fire({
+                    position: 'top-end',
+                    icon: 'success',
+                    title: 'Agregado',
+                    text: 'Producto agregado al carrito',
+                    showConfirmButton: false,
+                    timer: 1500,
+                    toast: true
+                })
+            }
+        })
+    }
+
+       
+
+    const QuitarProducto = (btn) => {
+        $(btn).closest('tr').remove()
+        if($('#tablaCarrito tbody tr').length == 0){
+            $('#tablaCarrito tbody').html('<tr><td colspan="7">Sin productos en el carrito.</td></tr>')
+        }
+        ActualizarTotal()
+        Swal.fire({
+            position: 'top-end',
+            icon: 'success',
+            title: 'Eliminado',
+            text: 'Producto quitado del carrito',
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true,
+            toast: true,
+            width: '300px',
+            customClass: {
+                popup: 'swal2-small-toast'
+            }
+        })  
+    }
+
+    let timeoutBusqueda = null;
+    
+    const buscarPorCodigoDebounce = () => {
+        clearTimeout(timeoutBusqueda);
+        timeoutBusqueda = setTimeout(() => {
+            buscarPorCodigo();
+        }, 300); 
+    }
+    
+    const buscarPorCodigo = async() => {
+        let codigo = $('#txtCodigo').val().trim()
+        
+        if(codigo.length >= 3){ 
+            try {
+                let res = await $.post('/productos/buscar', { codigo })
+                
+                if(res.status && res.producto){
+                    AgregarAlCarritoConProducto(res.producto)
+                    $('#txtCodigo').val('') 
+                } else {
+                   
+                }
+            } catch (error) {
+                console.error('Error en la búsqueda:', error)
+                Swal.fire('Error', 'Error al buscar el producto', 'error')
+            }
+        }
+    }
+
+    const AgregarAlCarritoConProducto = (producto) => {
+        if (!producto) {
+            console.error('Producto inválido:', producto)
+            Swal.fire('Error', 'Producto no válido', 'error');
+            return
+        }
+    
+        let costo = parseFloat(producto.Costo)
+        
+        
+        Swal.fire({
+            title: `Agregar ${producto.Desc_Producto}`,
+            html: `
+                <div class="form-group">
+                    <label for="cantidad">Cantidad:</label>
+                    <input type="text" id="cantidad" class="form-control" value="1" onkeypress="return validarEnterosyDecimales(event, this, 9, 0)">
+                </div>
+                <div class="form-group">
+                    <label for="costo">Costo Unitario:</label>
+                    <input type="text" id="costo" class="form-control" value="${costo.toFixed(2)}" onkeypress="return validarEnterosyDecimales(event, this, 9, 2)" oninput="calcularPrecioSwal()">
+                </div>
+                <div class="form-group">
+                    <label for="iva">IVA %:</label>
+                    <select id="iva" class="form-control" onchange="calcularPrecioSwal()">
+                        <option value="1" ${producto.id_alicuota_iva_fk == 1? 'selected' : ''}>0%</option>
+                        <option value="2" ${producto.id_alicuota_iva_fk == 2 ? 'selected' : ''}>10.5%</option>
+                        <option value="3" ${producto.id_alicuota_iva_fk == 3 ? 'selected' : ''}>21%</option>
+                        <option value="4" ${producto.id_alicuota_iva_fk == 4 ? 'selected' : ''}>27%</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="porcentaje">Porcentaje %:</label>
+                    <input type="text" id="porcentaje" class="form-control" value="${parseFloat(producto.Porcentaje).toFixed(2)}" disabled>
+                </div>
+                <div class="form-group">
+                    <label for="precio">Precio Unitario:</label>
+                    <input type="text" id="precio" class="form-control" disabled>
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Agregar al carrito',
+            cancelButtonText: 'Cancelar',
+            preConfirm: () => {
+                const cantidad = $('#cantidad').val();
+                const costo = $('#costo').val();
+                
+                if (!cantidad || cantidad <= 0) {
+                    Swal.showValidationMessage('Ingrese una cantidad válida');
+                    return false;
+                }
+                if (!costo || costo <= 0) {
+                    Swal.showValidationMessage('Ingrese un costo válido');
+                    return false;
+                }
+
+                const iva = $('#iva').val();
+                
+                return { 
+                    cantidad: parseFloat(cantidad), 
+                    costo: parseFloat(costo),
+                    iva: parseInt(iva)
+                };
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const cant = result.value.cantidad;
+                const costo = result.value.costo;
+                const subtotal = cant * costo;
+                const iva = result.value.iva;
+                const ivaValor = iva == 1 ? '0%' : iva == 2 ? '10.5%' : iva == 3 ? '21%' : '27%';
+
+                let html = `
+                <tr>
+                    <td><button class="btn btn-danger btn-sm" onclick="QuitarProducto(this)"><i class="fa fa-trash"></i></button></td>
+                    <td>${producto.Cod_Producto}</td>
+                    <td>${producto.Desc_Producto}</td>
+                    <td>${cant}</td>
+                    <td>${costo.toFixed(2)}</td>
+                    <td>${ivaValor}</td>
+                    <td>${subtotal.toFixed(2)}</td>
+                    <td class="d-none">${result.value.iva}</td>
+                    <td class="d-none">${producto.id}</td>
+                </tr>
+                `
+                if($('#tablaCarrito tbody tr td').length == 1 && $('#tablaCarrito tbody tr td').attr('colspan')){
+                    $('#tablaCarrito tbody').html(html)
+                }else{
+                    $('#tablaCarrito tbody').append(html)
+                }
+                ActualizarTotal()
+                $('#cmbProducto').val('')
+                $('#cmbProducto').selectpicker('refresh')
+                $('#txtCantidad').val(1)
+                $('#txtCodigo').val('')
+                $('#txtCodigo').focus()
+            }else{
+                return
+            }
+        })       
+    }
+
+    const ActualizarTotal = () => {
+        let total = 0
+        $('#tablaCarrito tbody tr').each(function(){
+            let td = $(this).find('td').eq(6)
+            if(td.length && !isNaN(parseFloat(td.text()))){
+                total += parseFloat(td.text())
+            }
+        })
+        $('#lblTotal').text(total.toFixed(2))
+
+        let recibido = parseFloat($('#txtMontoRecibido').val() || 0)
+        let vuelto = recibido - total
+        $('#lblVuelto').text(vuelto >= 0 ? vuelto.toFixed(2) : '0.00')
+    }
+
+    $('#txtMontoRecibido').on('input', ActualizarTotal)
+
+    const CancelarCompra = () => {
+        Swal.fire('Cancelada', 'La compra fue cancelada.', 'info')
+        LimpiarCompra()
+    }
+
+    const LimpiarCompra = () => {
+        $('#tablaCarrito tbody').html('<tr><td colspan="7">Sin productos en el carrito.</td></tr>')
+        ActualizarTotal()
+        $('#cmbProveedor').val('')
+        $('#cmbProveedor').selectpicker('refresh')
+        $('#cmbMedioPago').val('')
+        $('#cmbMedioPago').selectpicker('refresh')
+        $('#txtMontoRecibido').val('')
+        $('#txtCantidad').val(1)
+        $('#cmbProducto').val('')
+        $('#cmbProducto').selectpicker('refresh')
+        $('#txtCodigo').val('')
+    }
+
+    const ConfirmarCompra = () => {
+        const proveedor = $('#cmbProveedor').val()
+        const medioPago = $('#cmbMedioPago').val()
+        
+        if (!proveedor || proveedor === '') {
+            Swal.fire('Error', 'Debe seleccionar un proveedor', 'error');
+            return;
+        }
+        
+        if (!medioPago || medioPago === '') {
+            Swal.fire('Error', 'Debe seleccionar un medio de pago', 'error');
+            return;
+        }
+        
+        let productos = []
+        $('#tablaCarrito tbody tr').each(function(){
+            let td = $(this).find('td')
+            // Verificar que tenga botón de eliminar (es una fila de producto real)
+            if($(this).find('button[onclick*="QuitarProducto"]').length > 0){
+                productos.push({
+                    codigo: td.eq(1).text(),
+                    descripcion: td.eq(2).text(),
+                    cantidad: parseFloat(td.eq(3).text()),
+                    precio: parseFloat(td.eq(4).text()),
+                    iva: parseInt(td.eq(7).text()),
+                    total: parseFloat(td.eq(6).text()),
+                    id: td.eq(8).text()
+                })
+            }
+        })
+        
+        if (productos.length === 0) {
+            Swal.fire('Error', 'Debe agregar al menos un producto al carrito', 'error');
+            return;
+        }
+        const total = parseFloat($('#lblTotal').text())
+        
+
+        $.post('/compras/alta', {
+            proveedor,
+            medioPago,
+            productos,
+            total
+        })
+        .done((data) => {
+            if(data.status){
+                Swal.fire({
+                    title: 'Compra registrada',
+                    text: '¿Desea imprimir las etiquetas de los productos?',
+                    icon: 'success',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, imprimir',
+                    cancelButtonText: 'No, gracias'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.open(`/productos/imprimirEtiquetas?idComprobante=${data.insertId}`, '_blank');
+                    }
+                });
+                
+                LimpiarCompra()
+            }else{
+                Swal.fire(data.title || 'Error', data.text || 'Error al procesar la compra', data.icon || 'error')  
+            }
+        })
+        .fail((xhr, status, error) => {
+            console.error('Error al procesar compra:', error)
+            Swal.fire('Error', 'Error de conexión al procesar la compra', 'error')
+        })
+    }
+
+
+    const ModalAccion = async () => {
+        $("#preloaderAPP").show();
+        await ObtenerCmbUnidadesMedidas('cmbUniMed', false)
+        await ObtenerCmbMarcas('cmbMarca', false)
+        await ObtenerCmbRubros('cmbRubros', false)
+        $('#modalLabel').text('Nuevo producto')
+        $('#btnAccion').attr('onclick', `PostRegistro()`)
+        $('#btnAccion').text('Guardar')
+        $("#preloaderAPP").hide();
+        $('#modal').modal('show')
+    }
+
+    const PostRegistro = async () => {
+        $("#preloaderAPP").show()
+        let url = '/productos/alta',
+            body = {
+                codBarras: $('#txtCodBarras').val(),
+                descripcion: $('#txtDescripcion').val(),
+                unidadMedida: $('#cmbUniMed').val(),
+                marca: $('#cmbMarca').val(),
+                rubro: $('#cmbRubros').val(),
+                costo: $('#txtCosto').val(),
+                porcentaje: $('#txtPorcentaje').val(),
+                alicuota: $('#cmbAlicuota').find('option:selected').data('id')
+            }
+
+        const res = await $.post(url, body)
+        $("#preloaderAPP").hide()
+        
+        if(res.status){
+                CerrarModal()
+                Swal.fire({
+                    icon: res.type,
+                    title: res.title, 
+                    text: res.text, 
+                    timer: 3000
+                });
+               ObtenerCmbProductos('cmbProducto')
+        } else {
+            Swal.fire({
+                icon: res.type,
+                title: res.title, 
+                text: res.text, 
+                timer: 3000
+            });
+        }
+    }
+
+    const CerrarModal = () => {
+        $('#modal').modal('hide')
+        $('#actionSeccion').addClass('d-none')
+        $('#actionSeccionDivider').addClass('d-none')
+        LimpiarCampos()
+    }
+
+    const LimpiarCampos = () => {
+        $('input[type="text"]').val('')
+        $('textarea').val('')
+        $('input[type="checkbox"]').prop('checked', false)
+        $('input[type="radio"]').prop('checked', false)
+    }
+
+    
+
+    $('#txtCantidad').on('keypress', function(e) {
+        if (e.which === 13) { // Enter
+            e.preventDefault();
+            AgregarAlCarrito();
+        }
+    });
+
+
+    $('#cmbProducto').on('changed.bs.select', function() {
+        $('#txtCantidad').focus().select();
+    });
+
+
+    const validarCarrito = () => {
+        const productosEnCarrito = $('#tablaCarrito tbody tr button[onclick*="QuitarProducto"]').length;
+        return productosEnCarrito > 0;
+    };
+
+    
+
+    // Función para calcular precio en el SweetAlert
+    const calcularPrecioSwal = () => {
+        const costo = parseFloat($('#costo').val()) || 0
+        const porcentaje = parseFloat($('#porcentaje').val()) || 0
+        const ivaSelect = $('#iva').val()
+        let alicuotaIva = 0
+        
+        // Convertir el valor del select a porcentaje
+        if(ivaSelect == '1') alicuotaIva = 0
+        else if(ivaSelect == '2') alicuotaIva = 10.5
+        else if(ivaSelect == '3') alicuotaIva = 21
+        else if(ivaSelect == '4') alicuotaIva = 27
+        
+        // Calcular precio: costo + porcentaje
+        const precioBase = costo * (1 + porcentaje / 100)
+        // Calcular precio con IVA
+        const precioConIva = precioBase * (1 + alicuotaIva / 100)
+        
+        $('#precio').val(precioConIva.toFixed(2))
+    }
+
+    
+
+</script>
+{% endblock %}

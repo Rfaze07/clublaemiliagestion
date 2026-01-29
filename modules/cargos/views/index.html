@@ -1,0 +1,266 @@
+{% extends '../../template.html' %}
+
+{% block styles %}
+<style>
+    .textAreaSize {
+        resize: vertical;
+        min-height: 48px;
+        max-height: 100px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+    <h2>{{ pagename }}</h2>
+    <div class="d-flex align-items-end mb-3" style="gap: 0.2rem;">
+        <input type="text" class="form-control" id="txtFiltro" placeholder="Buscar" style="width: 10rem;" />
+        <div>
+            <label>Activos</label>
+            <select class="form-control" id="cmbActivoFiltro" onchange="getLista()">
+                <option value="t" selected>Todos</option>
+                <option value="1">Si</option>
+                <option value="0">No</option>
+            </select>
+        </div>
+        {% if permisos.a == 1 %}
+        <button class="btn btn-round btn-success modalAccion mr-1" data-accion="a" onclick='ModalAccion("a")'>
+            <i class="fa fa-plus"></i>
+        </button>
+        {% endif %}
+    </div>
+</div>
+<div class="table-responsive" style="height: calc(100vh - 200px)" id="tablaDatos">
+    <table class="table table-sm table-fix table-hover tableFixHead">
+        <thead>
+            <tr>
+                <th scope="col">Acciones</th>
+                <th scope="col">Descripción</th>
+                <th scope="col">Desc. Corta</th>
+                <th scope="col">Editable</th>
+                <th scope="col">Activo</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<!-- MODAL -->
+<div class="modal fade modal-m" data-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    aria-labelledby="staticBackdropLabel" aria-hidden="true" id="modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabel"></h5>
+                <button type="button" class="close" aria-label="Close" onclick="CerrarModal()">
+                    <span aria-hidden=" true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col">
+                        <label for="descripcion">Descripción</label>
+                        <input type="text" class="form-control form-control-sm" id="descripcion" maxlength="80">
+                    </div>
+                    <div class="col">
+                        <label for="desc_corta">Desc. Corta</label>
+                        <input type="text" class="form-control form-control-sm" id="desc_corta" maxlength="4">
+                    </div>
+                </div>
+                <div class="dropdown-divider d-none" id="actionSeccionDivider"></div>
+
+                <div class="row d-none" id="actionSeccion">
+                    <div class="col-12 text-center">
+                        <div class="custom-control custom-switch ml-1">
+                            <input type="checkbox" class="custom-control-input" id="chbActivo" />
+                            <label class="custom-control-label" for="chbActivo">Activo</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                    onclick="CerrarModal()">Cancelar</button>
+                <button type="button" class="btn btn-success" id="btnAccion">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript" src="/js/jquery.mask.min.js"></script>
+<script>
+    $(document).ready(() => {
+        $('.selectpicker').selectpicker(optionsSelectPicker)        
+        $('.selectpicker').attr('title', 'Seleccione una opción...')
+        $('.selectpicker').selectpicker('refresh')
+        getLista()
+    })
+
+    $("#txtFiltro").keyup(async function () {
+        Filtrar();
+    });
+    
+    const getLista = async () => {
+        $("#preloaderAPP").show();
+        let activo = $('#cmbActivoFiltro').val()
+        let res = await $.post('/cargos/getlistaAjax', { activo })
+        console.log(res)
+        let html = ""
+        if(res.status){
+            for (let i = 0; i < res.data.length; i++) {
+                html += `
+                    <tr>
+                        <td>
+                            <div style="display: flex; gap: 2px;">
+                                {% if permisos.m == 1 %}
+                                    <a href="/cargos/accesos/lista/${res.data[i].id}" class="btn btn-round btn-sm btn-dark" title="Permisos" data-toggle="tooltip">
+                                        <i class="fa fa-shield-alt"></i>
+                                    </a>
+                                {% endif %}
+                                ${
+                                    res.data[i].editable ? 
+                                    `{% if permisos.m == 1 %}
+                                        <button class="btn btn-round btn-sm btn-warning" data-accion="m"
+                                            data-toggle="tooltip" data-placement="top" title="Modificar" onclick="ModalAccion('m', ${res.data[i].id})">
+                                            <i class="fa fa-pen"></i>
+                                        </button>
+                                    {% endif %}
+                                    {% if permisos.b == 1 %}
+                                        <button class="btn btn-round btn-sm btn-danger" onclick="Eliminar(${res.data[i].id})"
+                                            data-toggle="tooltip" data-placement="top" title="Eliminar">
+                                            <i class="fa fa-trash-alt"></i>
+                                        </button>
+                                    {% endif %}`
+                                    :
+                                    ''
+                                }
+                            </div>
+                        </td>
+                        <td class='search'>${res.data[i].descripcion}</td>
+                        <td class='search'>${res.data[i].desc_corta}</td>
+                        <td>${res.data[i].editable === 1 ? 'Si' : 'No'}</td>
+                        <td>${res.data[i].activo === 1 ? 'Si' : 'No'}</td>
+                    </tr>`
+            }
+        }else{
+            html = `<tr><td class="font-weight-bold" colspan="4">${res.text}</td></tr>`
+        }
+        $('#tablaDatos tbody').html(html)
+        $("#preloaderAPP").hide()
+        $('[data-toggle="tooltip"]').tooltip()
+    }
+
+    const ModalAccion = async (accion, id) => {
+        $("#preloaderAPP").show();
+        if (accion === 'a') {
+            $('#modalLabel').text('Nuevo cargo')
+            $('#btnAccion').attr('onclick', `PostRegistro("a")`)
+            $('#btnAccion').text('Guardar')
+        }
+        if (accion == 'm') {
+            let res = await $.post(`/cargos/getByIdAjax`,{id})
+            if (res.status != 0) {
+                $('#descripcion').val(res.data.descripcion)
+                $('#desc_corta').val(res.data.desc_corta)
+                $('#chbActivo').prop('checked', res.data.activo === 1 ? true : false);
+            }
+            $('#modalLabel').text('Modificar cargo')
+            $('#btnAccion').text('Guardar')
+            $('#btnAccion').attr('onclick', `PostRegistro("m",${id})`)
+            $('#actionSeccion').removeClass('d-none')
+            $('#actionSeccionDivider').removeClass('d-none')
+        }
+        $("#preloaderAPP").hide();
+        $('#modal').modal('show')
+    }
+
+    const PostRegistro = async (accion, Id) => {
+        $("#preloaderAPP").show();
+        let url, res,
+         body = {
+            descripcion: $('#descripcion').val(),
+            desc_corta: $('#desc_corta').val(),
+        };
+
+        if (accion === 'a') {
+            url = '/cargos/alta'
+        }
+        if (accion === 'm') {
+            url = '/cargos/modificar'
+            body.activo = $('#chbActivo').prop('checked') ? 1 : 0
+            body.id = Id
+        }
+
+        res = await $.post(url, body)
+        $("#preloaderAPP").hide();
+        Swal.fire({
+            icon: res.type,
+            title: res.title, 
+            text: res.text, 
+            timer: 2000
+        }).then(() => {
+            if(res.status){
+                CerrarModal()
+                getLista()
+            }
+        })        
+    }
+
+    const Eliminar = (id) => {
+        Swal.fire({
+            title: 'Confirmar',
+            text: "¿Desea borrar este registro?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar.',
+            cancelButtonColor: '#d33',
+            cancelButtonText: 'No, cancelar.'
+        }).then(async result => {
+            if (result.isConfirmed) {
+                $("#preloaderAPP").show();
+                let res = await $.post('/cargos/eliminar', { id })
+                $("#preloaderAPP").hide();
+                Swal.fire({
+                    type: res.type,
+                    icon: res.icon,
+                    title: res.title,
+                    text: res.text,
+                    timer: 2000
+                }).then(() => {
+                    if(res.status){
+                        CerrarModal()
+                        getLista()
+                    }
+                })
+            }    
+        })
+    }
+
+    function Filtrar() {
+        $('#tablaDatos tbody tr').each(function () {
+            if ($(this).find('td.search').text().toUpperCase().indexOf($('#txtFiltro').val().toUpperCase()) > -1)
+                $(this).closest('tr').show();
+            else
+                $(this).closest('tr').hide();
+        });
+    }
+
+    function CerrarModal() {
+        $('#modal').modal('hide')
+        $('#actionSeccion').addClass('d-none')
+        $('#actionSeccionDivider').addClass('d-none')
+        LimpiarCampos()
+    }
+
+    function LimpiarCampos() {
+        $('input[type="text"]').val('')
+        $('textarea').val('')
+        $('input[type="checkbox"]').prop('checked', false)
+        $('input[type="radio"]').prop('checked', false)
+    }
+</script>
+{% endblock %}

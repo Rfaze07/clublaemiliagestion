@@ -1,0 +1,589 @@
+{% extends '../../template.html' %}
+
+{% block styles %}
+<style>
+    .textAreaSize { resize: vertical; min-height: 48px; max-height: 100px; }
+    .lblSwal { font-size: .95rem!important; text-align: left!important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+    <h2>{{ pagename }}</h2>
+    <div class="d-flex align-items-end mb-3" style="gap: 0.2rem;">
+        <input type="text" class="form-control" id="txtFiltro" placeholder="Buscar" style="width: 10rem;" />
+        <div>
+            <label>Fecha desde</label>
+            <input type="text" class="form-control datepicker" id="txtDesde" style="width: 10rem;" />
+        </div>
+        <div>
+            <label>Fecha hasta</label>
+            <input type="text" class="form-control datepicker" id="txtHasta" style="width: 10rem;" />
+        </div>
+        <div>
+            <label>Estado</label>
+            <select class="form-control" id="cmbEstado">
+                <option value="" selected>Todos</option>
+                {% for e in estados %}
+                    <option value="{{ e.id }}">{{ e.descripcion }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button class="btn btn-round btn-primary" data-toggle="tooltip" data-placement="top" title="Buscar" onclick="getLista()">
+            <i class="fa fa-search"></i>
+        </button>
+        {% if permisos.a == 1 %}
+            <button class="btn btn-round btn-success modalAccion" data-toggle="tooltip" data-placement="top" title="Nuevo" data-accion="a" onclick='ModalAccion("a")'>
+                <i class="fa fa-plus"></i>
+            </button>
+        {% endif %}
+    </div>
+</div>
+<div class="table-responsive" style="height: calc(100vh - 200px)" id="tablaDatos">
+    <table class="table table-sm table-fix table-hover tableFixHead">
+        <thead>
+            <tr>
+                <th scope="col">Acciones</th>
+                <th scope="col">Fecha</th>
+                <th scope="col">Cliente</th>
+                <th scope="col">Descripción</th>
+                <th scope="col">Estado</th>
+                <th scope="col">Es proyecto</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<!-- MODAL ALTA/MODIFICAR -->
+<div class="modal fade modal-m" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true" id="modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabel"></h5>
+                <button type="button" class="close" aria-label="Close" onclick="CerrarModal()">
+                    <span aria-hidden=" true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <label for="cmbCliente">Cliente</label>
+                        <select class="form-control form-control-sm" id="cmbCliente" onchange="ObtenerCliente(this.value)">
+                            <option value="" disabled selected>Seleccione un cliente...</option>
+                            {% for c in clientes %}
+                                <option value="{{ c.id }}">({{ c.nro_documento }}) - {{ c.razon_social }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="dropdown-divider"></div>
+                <div class="row">
+                    <div class="col-sm-12 col-md-9">
+                        <label for="txtDescripcion">Descripción</label>
+                        <input type="text" class="form-control form-control-sm" id="txtDescripcion" autocomplete="off" maxlength="100">
+                    </div>
+                    <div class="col-sm-12 col-md-3">
+                        <label for="txtFecha">Fecha</label>
+                        <input type="text" class="form-control form-control-sm datepicker" id="txtFecha" autocomplete="off">
+                    </div>
+                </div>
+                <div class="dropdown-divider"></div>
+                <div class="row">
+                    <div class="col-sm-12 col-md-6">
+                        <label for="cmbProvincia">Provincia</label>
+                        <select class="form-control form-control-sm" id="cmbProvincia" onchange="SeleccionaProvincia(this.value)">
+                            <option value="" disabled selected>Seleccione una provincia...</option>
+                            {% for p in provincias %}
+                                <option value="{{ p.id }}">{{ p.descripcion }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-sm-12 col-md-6">
+                        <label for="cmbLocalidad">Localidad</label>
+                        <select class="form-control form-control-sm" id="cmbLocalidad" disabled></select>
+                    </div>
+                </div>
+                <div class="dropdown-divider"></div>
+                <div class="row">
+                    <div class="col-sm-12">
+                        <label for="txtTotal">Observaciones</label>
+                        <textarea class="form-control form-control-sm" id="txtObservaciones" rows="4" maxlength="1000"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                    onclick="CerrarModal()">Cancelar</button>
+                <button type="button" class="btn btn-success" id="btnAccion">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- MODAL ALTA/MODIFICAR -->
+
+<!-- MODAL VER -->
+<div class="modal fade" id="modalVer" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Ver más información</h5>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-sm-12 col-md-3">
+                        <label for="txtFechaV">Fecha</label>
+                        <input type="text" class="form-control form-control-sm" id="txtFechaV" disabled readonly>
+                    </div>
+                    <div class="col-sm-12 col-md-4">
+                        <label for="txtClienteV">Cliente</label>
+                        <input type="text" class="form-control form-control-sm" id="txtClienteV" disabled readonly>
+                    </div>
+                    <div class="col-sm-12 col-md-5">
+                        <label for="txtDescripcionV">Descripción</label>
+                        <input type="text" class="form-control form-control-sm" id="txtDescripcionV" disabled readonly>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 col-md-3">
+                        <label for="txtEstadoV">Estado</label>
+                        <input type="text" class="form-control form-control-sm" id="txtEstadoV" disabled readonly>
+                    </div>
+                    <div class="col-sm-12 col-md-9">
+                        <label for="txtLocalidadV">Localidad</label>
+                        <input type="text" class="form-control form-control-sm" id="txtLocalidadV" disabled readonly>
+                    </div>
+                </div>
+                <div class="card mt-4">
+                    <h5 class="card-header">Detalle de tareas</h5>
+                    <div class="card-body p-0">
+                        <div style="max-height: calc(100vh - 510px); overflow-y: auto;">
+                            <table class="table table-sm tableFixHead" id="tableDetalleTareas">
+                                <thead>
+                                    <tr>
+                                        <th class="text-center">Cantidad</th>
+                                        <th>Uni. med.</th>
+                                        <th>Tarea</th>
+                                        <th>% KPI.</th>
+                                        <th class="text-center">Precio</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="card mt-1">
+                    <div class="card-header">
+                        <h5 class="m-0 p-0 text-right font-weight-bold">TOTAL $ <span id="divTotales"></span></h5>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- MODAL VER -->
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let _idLocalidad=null
+
+    $(document).ready(() => {
+        $('#txtDesde').val(generateFirstDateActualMonth())
+        $('#txtHasta').val(generateTodayDate())
+        $('#txtFecha').val(generateTodayDate())
+        getLista()
+    })
+
+    $("#txtFiltro").keyup(async function () {
+        Filtrar()
+    })
+    
+    const getLista = async () => {
+        $("#preloaderAPP").show()
+        
+        const body = {  desde: $('#txtDesde').val(), hasta: $('#txtHasta').val(), estado: $('#cmbEstado').val() }
+        const res = await $.post('/cotizaciones/getlistaAjax', body)
+        let html = ""
+        if(res.status){
+            for (let i = 0; i < res.data.length; i++) {
+                html += `
+                    <tr>
+                        <td>
+                            <div style="display: flex; gap: 2px;">
+                                <button class="btn btn-round btn-sm btn-info" onclick="VerCotizacion(${res.data[i].id})"
+                                    data-toggle="tooltip" data-placement="top" title="Ver cotización">
+                                    <i class="fa fa-eye"></i>
+                                </button>
+                                {% if permisos.m == 1 %}
+                                    ${
+                                        res.data[i].id_estado_fk < 2 ? 
+                                            `<a class="btn btn-round btn-sm btn-info" role="button" data-accion="m" data-toggle="tooltip" 
+                                                        data-placement="top" title="Tareas" href="/cotizaciones/altaItems/${res.data[i].id}">
+                                                <i class="fas fa-list-ol"></i>
+                                            </a>
+                                            <button class="btn btn-round btn-sm btn-warning" onclick="ModalAccion('m', ${res.data[i].id})"
+                                                data-toggle="tooltip" data-placement="top" title="Modificar">
+                                                <i class="fa fa-pen"></i>
+                                            </button>`
+                                        :
+                                            ''
+                                    }
+                                    ${
+                                        res.data[i].id_estado_fk == 2 ? 
+                                            `<button class="btn btn-round btn-sm btn-secondary" onclick="ActualizarEstado(${res.data[i].id})"
+                                                data-toggle="tooltip" data-placement="top" title="Actualizar estado">
+                                                <i class="fa fa-sync"></i>
+                                            </button>`
+                                        :
+                                            (res.data[i].id_estado_fk == 3 && res.data[i].id_proyectotitulo_fk == null) ? 
+                                                `<button class="btn btn-round btn-sm btn-success" onclick="ConvertirProyecto(${res.data[i].id})"
+                                                    data-toggle="tooltip" data-placement="top" title="Convertir a proyecto">
+                                                    <i class="fa-brands fa-product-hunt"></i>
+                                                </button>`
+                                            :
+                                                ''
+                                    }
+                                {% endif %}
+
+                                {% if permisos.b == 1 %}
+                                    ${
+                                        res.data[i].id_estado_fk <= 2 ? 
+                                        `<button class="btn btn-round btn-sm btn-danger" onclick="Eliminar(${res.data[i].id})"
+                                            data-toggle="tooltip" data-placement="top" title="Eliminar">
+                                            <i class="fa fa-trash-alt"></i>
+                                        </button>`
+                                        :
+                                        ''
+                                    }
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="search">${changeDateDMY(res.data[i].fecha)}</td>
+                        <td class="search">${res.data[i].clienteTxt}</td>
+                        <td class="search">${res.data[i].descripcion}</td>
+                        <td class="search">${res.data[i].estadoTxt}</td>
+                        <td class="search text-center">${
+                            res.data[i].id_proyectotitulo_fk == null ? 
+                                'No' 
+                            : 
+                                `<a href="/proyectos/?id=${res.data[i].id_proyectotitulo_fk}" class="badge badge-info p-2">
+                                    Si, ver más
+                                </a>`
+                            }
+                        </td>
+                    </tr>`
+            }
+        }else{
+            html = `<tr><td class="font-weight-bold" colspan="15">${res.text}</td></tr>`
+        }
+        $('#tablaDatos tbody').html(html)
+        $('[data-toggle="tooltip"]').tooltip()
+        $("#preloaderAPP").hide()
+    }
+
+    const ModalAccion = async (accion, id) => {
+        $("#preloaderAPP").show();
+        if (accion === 'a') {
+            $('#modalLabel').text('Nueva cotización')
+            $('#btnAccion').attr('onclick', `PostRegistro("a")`)
+            $('#btnAccion').text('Guardar')
+        }else if (accion == 'm') {
+            let res = await $.post(`/cotizaciones/getByIdAjax`, {id})
+            if (res.status != 0) {
+                $('#cmbCliente').selectpicker('val', res.data.id_cliente_fk)
+                $('#cmbProvincia').selectpicker('val', res.data.id_provincia_fk)
+                SeleccionaProvincia(res.data.id_provincia_fk)
+                $('#cmbLocalidad').selectpicker('val', res.data.id_localidad_fk)
+                _idLocalidad=res.data.id_localidad_fk
+                $('.selectpicker').selectpicker('refresh')
+                $('#txtDescripcion').val(res.data.descripcion)
+                $('#txtFecha').val(changeDateDMY(res.data.fecha))
+                $('#txtObservaciones').val(res.data.observaciones)
+            }
+            $('#modalLabel').text('Modificar cotización')
+            $('#btnAccion').text('Guardar')
+            $('#btnAccion').attr('onclick', `PostRegistro("m",${id})`)
+            $('#actionSeccion').removeClass('d-none')
+            $('#actionSeccionDivider').removeClass('d-none')
+        }
+        $("#preloaderAPP").hide();
+        $('#modal').modal('show')
+    }
+
+    const PostRegistro = async (accion, Id) => {
+        $("#preloaderAPP").show()
+
+        let url = '/cotizaciones/alta', res, 
+            body = {
+                cliente: $('#cmbCliente').val(),
+                provincia: $('#cmbProvincia').val(),
+                localidad: $('#cmbLocalidad').val(),
+                descripcion: $('#txtDescripcion').val(),
+                fecha: $('#txtFecha').val(),
+                observaciones: $('#txtObservaciones').val()
+            }
+
+        if (accion === 'm') {
+            url = '/cotizaciones/modificar'
+            body.id = Id
+        }
+
+        res = await $.post(url, body)
+        $("#preloaderAPP").hide()
+
+        Swal.fire({
+            icon: res.icon,
+            title: res.title, 
+            html: res.text, 
+            timer: 5000
+        }).then(() => {
+            if(res.status){
+                window.location.href = `/cotizaciones/altaItems/${res.idCotizacionItem}`
+                getLista()
+                CerrarModal()
+            }
+        })        
+    }
+
+    const Eliminar = id => {
+        Swal.fire({
+            title: 'Confirmar',
+            text: "¿Desea borrar este registro?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar.',
+            cancelButtonColor: '#d33',
+            cancelButtonText: 'No, cancelar.'
+        }).then(async result => {
+            if (result.isConfirmed) {
+                $("#preloaderAPP").show();
+                let res = await $.post('/comprobantesCompras/eliminar', { id })
+                $("#preloaderAPP").hide();
+                Swal.fire({
+                    type: res.type,
+                    icon: res.icon,
+                    title: res.title,
+                    text: res.text,
+                    timer: 2000
+                }).then(() => {
+                    if(res.status){
+                        CerrarModal()
+                        getLista()
+                    }
+                })
+            }    
+        })
+    }
+
+    const CerrarModal = () => {
+        $('#modal').modal('hide')
+        $('#actionSeccion').addClass('d-none')
+        $('#actionSeccionDivider').addClass('d-none')
+        LimpiarCampos()
+    }
+
+    const LimpiarCampos = () => {
+        $('input[type="text"]').val('')
+        $('textarea').val('')
+        $('input[type="checkbox"]').prop('checked', false)
+        $('input[type="radio"]').prop('checked', false)
+        $('#txtDesde').val(generateFirstDateActualMonth())
+        $('#txtHasta').val(generateTodayDate())
+        $('#txtFecha').val(generateTodayDate())
+    }
+
+    const SeleccionaProvincia = async idProvincia => {
+        await ActualizarLocalidad(idProvincia)
+        $('#cmbLocalidad').selectpicker('val', _idLocalidad)
+        $('#cmbLocalidad').selectpicker('refresh')
+    }
+
+    const ActualizarLocalidad = async id => {
+        return new Promise(async (resolve, reject) => {
+            let provincia = parseInt($('#cmbProvincia').val());
+            try {
+                let html='<option value="" selected disabled>Seleccione una provincia...</option>', 
+                    res = await $.post('/localidades/listaAjax', { id })
+
+                for(let i=0; i<res.length; i++) html += `<option value="${res[i].id}">${res[i].cp} - ${res[i].localidad}</option>`
+                
+                $('#cmbLocalidad').prop('disabled', false)
+                $('#cmbLocalidad').html(html)
+                $('#cmbLocalidad').selectpicker('refresh')
+                resolve()
+            } catch (error) {
+                reject(error)
+            }
+        })
+    }
+
+    const ObtenerCliente = id => {
+        return new Promise(async (resolve, reject) => {
+            let res = await $.post('/clientes/ver', {id})
+            if(res.status){
+                $('#cmbProvincia').selectpicker('val', res.data.id_provincia_fk)
+                $('#cmbProvincia').selectpicker('refresh')
+                SeleccionaProvincia(res.data.id_provincia_fk)
+                _idLocalidad=res.data.id_localidad_fk
+            }else{
+                _idLocalidad=null
+            }
+            resolve()
+        })
+    }
+
+    const VerCotizacion = async id => {
+        let res = await $.post('/cotizaciones/ver', {id})
+        $('#txtFechaV').val(changeDateDMY(res.titulo.fecha))
+        $('#txtClienteV').val(res.titulo.clienteTxt)
+        $('#txtDescripcionV').val(res.titulo.descripcion)
+        $('#txtEstadoV').val(res.titulo.estadoTxt)
+        $('#txtLocalidadV').val(`${res.titulo.localidadTxt} (${res.titulo.cp}) - ${res.titulo.provinciaTxt}`)
+        let html='<tr><td colspan="15">No existen tareas agregadas.</td><tr>'
+        if(res.detalles.length > 0){
+            html=''
+            res.detalles.map(el => {
+                html += `
+                <tr>
+                    <td class="text-center">${el.cantidad}</td>
+                    <td>${el.unidadMedidaTxt}</td>
+                    <td>${el.tarea}</td>
+                    <td>${formatCurrency(el.porce_kpi)}</td>
+                    <td class="text-right">$ ${formatCurrency(el.precio)}</td>
+                </tr>`
+            })
+        }
+        $('#divTotales').text(formatCurrency(res.total))
+        $('#tableDetalleTareas tbody').html(html)
+        $('#modalVer').modal('show')
+    }
+
+    const ActualizarEstado = async id => {
+        Swal.fire({
+            icon: 'info',
+            title: "Seleccione el estado de la cotización",
+            html: `
+                <div>
+                    <div class="form-group row">
+                        <label for="cmbEstadoAlert" class="col-sm-3 col-form-label">Estado</label>
+                        <div class="col-sm-9">
+                            <select class="form-control" id="cmbEstadoAlert">
+                                <option value="3">Aceptado</option>
+                                <option value="4">Rechazado</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            `,
+            showCancelButton: true,
+            cancelButtonColor: "#dc3545",
+            confirmButtonText: "Cancelar",
+            confirmButtonColor: "#28a745",
+            confirmButtonText: "Guardar",
+            showLoaderOnConfirm: true,
+        preConfirm: async (login) => {
+            try {
+                const result = await $.post('/cotizaciones/actualizarEstado', {estado: $('#cmbEstadoAlert').val(), id})
+                if(!result.status) return Swal.showValidationMessage(`${result.text}`)
+                return result
+            } catch (error) {
+                Swal.showValidationMessage(`Hubo un error: ${error}`)
+            }
+        },
+        allowOutsideClick: () => !Swal.isLoading()
+        }).then(result => {
+            if(result.isConfirmed && result.value.status){
+                Swal.fire({
+                    title: result.value.title,
+                    text: result.value.text,
+                    icon: result.value.icon,
+                    timer: 2800
+                }).then(() => getLista())
+            }
+        })
+    }
+
+    const ConvertirProyecto = id => {
+        Swal.fire({
+            icon: 'warning',
+            html: `
+                <div class="form-group row">
+                    <div class="col-sm-12">
+                        <h4>Desea convertir la cotización en proyecto?</h4>
+                    </div>
+                </div>
+                <div>
+                    <div class="form-group mb-1 row">
+                        <label for="txtDescCorta" class="col-sm-4 lblSwal col-form-label">Descripción corta</label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control form-control-sm" id="txtDescCorta" maxlength="50" />
+                        </div>
+                    </div>
+                    <div class="form-group mb-1 row">
+                        <label for="txtResponsable" class="col-sm-4 lblSwal col-form-label">Responsable</label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control form-control-sm" id="txtResponsable" maxlength="100" />
+                        </div>
+                    </div>
+                    <div class="form-group mb-1 row">
+                        <label for="txtMail" class="col-sm-4 lblSwal col-form-label">Mail responsable</label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control form-control-sm" id="txtMail" maxlength="100" />
+                        </div>
+                    </div>
+                    <div class="form-group mb-1 row">
+                        <label for="txtTelefono" class="col-sm-4 lblSwal col-form-label">Teléfono resp.</label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control form-control-sm" id="txtTelefono" onkeypress="return soloNumeros(event)" maxlength="60" />
+                        </div>
+                    </div>
+                </div>
+            `,
+            showCancelButton: true,
+            cancelButtonColor: "#dc3545",
+            confirmButtonText: "Cancelar",
+            confirmButtonColor: "#28a745",
+            confirmButtonText: "Si, convertir",
+            showLoaderOnConfirm: true,
+        preConfirm: async precon  => {
+            try {
+                if(precon){
+                    const body = {
+                        id,
+                        descCorta: $('#txtDescCorta').val(),
+                        responsable: $('#txtResponsable').val(),
+                        mail: $('#txtMail').val(),
+                        telefono: $('#txtTelefono').val()
+                    }
+                    const result = await $.post('/cotizaciones/convertir', body)
+                    if(!result.status) return Swal.showValidationMessage(`${result.text}`)
+                    return result
+                }
+
+            } catch (error) {
+                Swal.showValidationMessage(`Hubo un error: ${error}`)
+            }
+        },
+        allowOutsideClick: () => !Swal.isLoading()
+        }).then(async result => {
+            if(result.isConfirmed){
+                Swal.fire({
+                    title: result.value.title, 
+                    text: result.value.text, 
+                    icon: result.value.icon
+                }).then(() => {
+                    if(result.value.status) getLista()
+                })
+            }
+        })   
+    }
+
+</script>
+{% endblock %}

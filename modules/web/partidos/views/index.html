@@ -1,0 +1,215 @@
+{% extends '../../template.html' %}
+{% block styles %}
+<style>
+    /* CONTENEDOR */
+    .container.my-5 {
+        max-width: 1200px;
+    }
+    /* CARD PARTIDO */
+    .card-partido {
+        border: none;
+        border-radius: 0;
+        background-color: #fff;
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+        overflow: hidden;
+        min-width: 340px;
+        margin-bottom: 24px;
+    }
+    .card-partido:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 16px 36px rgba(0, 0, 0, 0.18);
+    }
+    .card-partido .card-body {
+        padding: 22px;
+    }
+    .titulo {
+        font-size: 1.35rem;
+        font-weight: 800;
+        line-height: 1.35;
+        color: #000;
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        text-align: center;
+    }
+    .subtitulo {
+        display: block;
+        font-size: 0.9rem;
+        font-weight: 400;
+        color: #666;
+        margin-bottom: 14px;
+        line-height: 1.5;
+        text-align: center;
+    }
+    .header-partidos {
+        margin: 40px 0 30px;
+        text-align: center;
+    }
+    .header-partidos h2 {
+        font-size: 2.2rem;
+        font-weight: 800;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: #000;
+        margin-bottom: 12px;
+    }
+    .header-partidos h4 {
+        font-size: 1rem;
+        font-weight: 400;
+        color: #444;
+        max-width: 820px;
+        margin: 0 auto;
+        line-height: 1.6;
+    }
+    @media (max-width: 768px) {
+        .titulo { font-size: 1.15rem; }
+        .subtitulo { font-size: 0.85rem; }
+        .header-partidos h2 { font-size: 1.6rem; }
+        .header-partidos h4 { font-size: 0.95rem; padding: 0 10px; }
+        .card-partido .card-body { padding: 18px; }
+        
+    }
+    .estado-finalizado {
+        color: #dc3545; /* rojo */
+        font-weight: bold;
+        font-size: 1.8rem;
+    }
+    .estado-en-vivo {
+        color: #28a745; /* verde */
+        font-weight: bold;
+        animation: parpadeo 1s infinite alternate;
+    }
+    @keyframes parpadeo {
+        from { opacity: 1; }
+        to { opacity: 0.6; }
+    }
+
+/* Tablets */
+@media (max-width: 768px) {
+  .resultado-partido {
+    font-size: 1.5rem;
+  }
+}
+
+/* Mobile chico */
+@media (max-width: 425px) {
+  .resultado-partido {
+    font-size: 1.25rem;
+  }
+}
+.marcador-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 90px;      /* espacio seguro para 100-100 */
+  text-align: center;
+}
+
+.marcador {
+  white-space: nowrap; /* nunca se parte */
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.periodo {
+  font-size: 0.8rem;
+  margin-top: 2px;
+}
+
+
+
+
+</style>
+{% endblock %}
+
+
+{% block content %}
+    <div class="header-partidos">
+        <h2 class="m-0">{{ pagename }}</h2>
+        <h4>
+            Todos los partidos del torneo, con horarios, resultados y acceso al detalle de cada encuentro.
+        </h4>
+    </div>
+    <div class="container my-5">
+        <div class="row justify-content-center" id="partidos-container">
+            <!-- Cards de partidos -->
+        </div>
+    </div>
+{% endblock %}
+{% block scripts %}
+<script type="text/javascript">
+$(document).ready(async function() {
+    await getLista();
+    setTimeout(function() {
+        location.reload();
+    }, 25000);
+});
+
+const getLista = async () => {
+    try {
+        $('#preloaderAPP').show();
+        // Limpiar el contenedor antes de agregar nuevos partidos
+        $('#partidos-container').empty();
+        const res = await $.post('/web/partidos/getLista', {});
+        if (!res.status){
+            return;
+        }
+        const partidos = res.data;
+        for (let i = 0; i < partidos.length; i++) {
+            const partido = partidos[i];
+            partido.fecha = partido.fecha_hora.split(' ')[0];
+            partido.hora = partido.fecha_hora.split(' ')[1];
+            partido.hora = partido.hora.slice(0,5); // Quitar segundos
+            // Fecha y hora arriba
+            const fechaHora = `${changeDateDMY(String(partido.fecha))} · ${partido.hora}`;
+            // Estado y resultados
+            let estadoHtml = '';
+            let resultadoHtml = '';
+            let periodoHtml = '';
+            if (partido.estado === 0) {
+                resultadoHtml = `<div class="resultado-partido fw-bold"> ${partido.hora}</div>`;
+                estadoHtml =  `<div class='text-center fw-semibold' style='font-size:1rem;font-weight:bold'>Sin Comenzar</div>`;
+            } else if (partido.estado === 1) {
+                resultadoHtml = `<div class='fw-bold estado-en-vivo resultado marcador' style='font-size:2rem;'>${partido.puntosEquipoA} - ${partido.puntosEquipoB}</div>`;
+                estadoHtml = `<div class='text-center estado-en-vivo fw-semibold' style='font-size:1rem;'>En Vivo - ${partido.periodoActual}° Cuarto</div>`;
+                periodoHtml = `<div class='text-center mt-2'><a href='/web/detallePartidos?id=${partido.id}' class='btn btn-outline-success btn-sm'>Ver Detalle</a></div>`;
+            } else if (partido.estado === 2) {
+                resultadoHtml = `<div class="resultado-partido fw-bold estado-finalizado">${partido.puntosEquipoA} - ${partido.puntosEquipoB}</div>`;
+                estadoHtml = `<div class='text-center estado-finalizado fw-semibold' style='font-size:1rem;'>Finalizado</div>`;
+                periodoHtml = `<div class='text-center mt-2'><a href='/web/detallePartidos?id=${partido.id}' class='btn btn-outline-danger btn-sm'>Ver Detalle</a></div>`;
+            }
+            // Card con equipos a los lados y resultado/hora en el centro
+            const card = $(`
+                <div class="col-12 col-md-6">
+                    <article class="card card-partido mb-4">
+                        <div class="card-body">
+                            <span class="subtitulo">${fechaHora}</span>
+                            <div class="row align-items-center mb-2 text-center">
+                                <div class="col-4 text-start equipoA fw-bold" style="font-size:1.1rem;">${partido.equipoA}</div>
+                                <div class="col-4 d-flex justify-content-center">
+                                <div class="marcador-wrapper">
+                                    ${resultadoHtml}
+                                    ${periodoHtml}
+                                </div>
+                                </div>
+                                <div class="col-4 text-end equipoB fw-bold" style="font-size:1.1rem;">${partido.equipoB}</div>
+                            </div>
+                            ${estadoHtml}
+                            <!--<a href="/web/partidos/detalle/${partido.id}" class="btn btn-outline-primary btn-sm mt-2">Ver Detalle</a>-->
+                        </div>
+                    </article>
+                </div>
+            `);
+            $('#partidos-container').append(card);
+        }
+        $('#preloaderAPP').hide();
+    } catch (error) {
+        console.error('Error al obtener la lista de partidos:', error);
+    } finally {
+        $('#preloaderAPP').hide();
+    }
+};
+
+</script>
+{% endblock %}

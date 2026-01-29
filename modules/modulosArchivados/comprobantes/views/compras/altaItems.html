@@ -1,0 +1,459 @@
+{% extends '../../../template.html' %}
+
+{% block styles %}
+<style>
+    .sinBorderTop { border-top: 0px!important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+    <h4>{{ pagename }}</h4>
+    <a class="btn btn-primary btn-sm ml-auto mr-3" href="/comprobantesCompras" role="button" data-toggle="tooltip" data-placement="top" title="Volver">
+        <i class="fa fa-arrow-left"></i>
+    </a>
+
+    {% if permisos.x %}
+        {% if comprobante.blindado == 0 %}
+            <button class="btn btn-round btn-sm btn-success" data-toggle="tooltip" data-placement="top" title="Agregar item" onclick="AbrirModal()">
+                <i class="fa fa-plus"></i>
+            </button>
+            <button class="btn btn-round btn-sm btn-warning ml-2" data-toggle="tooltip" data-placement="top" title="Blindar" onclick="Blindar()">
+                <i class="fa fa-lock"></i>
+            </button>
+        {% elseif comprobante.blindado == 1 %}
+            <button class="btn btn-round btn-sm btn-warning ml-2" data-toggle="tooltip" data-placement="top" title="Desblindar" onclick="Desblindar()">
+                <i class="fa fa-lock-open"></i>
+            </button>
+        {% endif %}
+    {% endif %}
+</div>
+
+<div class="d-flex justify-content-between align-items-center p-3">
+    <table class="table table-sm">
+        <tr>
+            <th class="sinBorderTop">Empresa</th>
+            <td class="sinBorderTop">{{ comprobante.proveedorTxt }}</td>
+            <th class="sinBorderTop">Tipo comprobante</th>
+            <td class="sinBorderTop">({{ comprobante.letra }}) {{ comprobante.tipoComprobanteTxt }}</td>
+            <th class="sinBorderTop">Proveedor</th>
+            <td class="sinBorderTop">{{ comprobante.proveedorTxt }}</td>
+            <th class="sinBorderTop">Fecha</th>
+            <td class="sinBorderTop">{{ comprobante.fecha_comprobante | date('d/m/Y') }}</td>
+        </tr>
+    </table>
+</div>
+
+<div class="card">
+    <h5 class="card-header d-flex justify-content-between align-items-center">
+        <span>
+            <h5 class="m-0">Detalles del comprobante</h5>
+        </span>
+    </h5>
+    <div class="card-body p-0">
+        <div class="table-responsive" style="max-height: calc(100vh - 350px);">
+            <table class="table table-sm table-fix table-hover tableFixHead" id="tablaItems">
+                <thead>
+                    <tr>
+                        {% if permisos.b == 1 && comprobante.blindado == 0 %}<th scope="col" style="width: 50px;">Acciones</th>{% endif %}
+                        <th scope="col" class="text-center" style="width: 100px;">Cantidad</th>
+                        <th scope="col">Descripción</th>
+                        <th scope="col" class="text-right">Precio U.</th>
+                        <th scope="col" class="text-center">I.V.A.</th>
+                        <th scope="col" class="text-right">Total</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+<!-- MODAL -->
+<div class="modal fade" id="modalAgregar" data-backdrop="static" tabindex="-1" aria-labelledby="modalAgregarStatic" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Argegar nuevo item</h5>
+                <button type="button" class="close" aria-label="Close">
+                    <span aria-hidden=" true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="form-group col-sm-12">
+                        <label for="cmbTipoItem">Tipo</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbTipoItem" onchange="ObtenerTipoItem(this.value)">
+                            <option value="" disabled selected>Seleccione una opción..</option>
+                            <option value="r">Repuestos</option>
+                            <option value="a">Artículos</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="d-none" id="divTipoItem">
+                    <div class="row">
+                        <div class="form-group col-sm-12 col-md-3">
+                            <label for="txtCantidad">Cantidad</label>
+                            <input type="text" class="form-control form-control-sm" id="txtCantidad" onblur="Calcular()" onkeypress="return ValidarEnterosYDecimales(event,this,7,1)" autocomplete="off">
+                        </div>
+                        <div class="form-group col-sm-12 col-md-9">
+                            <label for="cmbItem" id="lblItem"></label>
+                            <select class="form-control form-control-sm selectpicker" id="cmbItem" onchange="ObtenerItem(this.value)"></select>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="row" id="divArticulos">
+                            <div class="form-group col-sm-12 col-md-6">
+                                <label for="cmbDeposito">Depósito</label>
+                                <select class="form-control form-control-sm selectpicker" id="cmbDeposito"></select>
+                            </div>
+                            <div class="form-group col-sm-12 col-md-6">
+                                <label for="cmbCondNeuma">Condición</label>
+                                <select class="form-control form-control-sm selectpicker" id="cmbCondNeuma"></select>
+                            </div>
+                        </div>
+                        <div class="row d-none" id="divCombustible">
+                            <div class="form-group col-sm-12">
+                                <label for="cmbTanque">Tanque</label>
+                                <select class="form-control form-control-sm selectpicker" id="cmbTanque"></select>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="divEsficha" class="d-none">
+                        <div class="row">
+                            <div class="form-group col-sm-12 col-md-6">
+                                <label for="txtNroSerie">Nro. serie</label>
+                                <input type="text" class="form-control form-control-sm" id="txtNroSerie" maxlength="18" onkeypress="return soloNumeros(event)" />
+                            </div>
+                            <div class="form-group col-sm-12 col-md-6">
+                                <label for="txtModelo">Modelo</label>
+                                <input type="text" class="form-control form-control-sm" id="txtModelo" maxlength="100" />
+                            </div>
+                        </div>
+                        <div class="d-none" id="divNeumatico">
+                            <div class="row">
+                                <div class="form-group col-sm-12 col-md-4">
+                                    <label for="txtMedidasNeuma">Medidas neumático</label>
+                                    <input type="text" class="form-control form-control-sm" id="txtMedidasNeuma" maxlength="50" />
+                                </div>
+                                <div class="form-group col-sm-12 col-md-8">
+                                    <label for="txtTipoNeuma">Tipo neumático</label>
+                                    <input type="text" class="form-control form-control-sm" id="txtTipoNeuma" maxlength="50" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group col-sm-12 col-md-4">
+                            <label for="cmbAlicuotaIva">IVA</label>
+                            <select class="form-control form-control-sm" id="cmbAlicuotaIva" onchange="Calcular()"></select>
+                        </div>
+                        <div class="form-group col-sm-12 col-md-4">
+                            <label for="txtPrecio">Precio</label>
+                            <input type="text" class="form-control form-control-sm" id="txtPrecio" onblur="Calcular()" onkeypress="return ValidarEnterosYDecimales(event,this,10,1)" autocomplete="off">
+                        </div>
+                        <div class="form-group col-sm-12 col-md-4">
+                            <label for="txtTotal">Total</label>
+                            <input type="text" class="form-control form-control-sm" id="txtTotal" disabled readonly>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-none" id="divTextoCantidad">
+                    <div class="row col-sm-12">
+                        <span style="font-size: .8rem; font-weight: 700; text-align: center; color: #de4848;">
+                            Al ingresar varios repuestos el número de serie será consecutivo, luego se pueden modificar de a uno en fichas de repuestos.
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success d-none" onclick="PostRegistro()" id="btnGuardar">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const idComprobante = '{{ comprobante.id }}'
+
+    $(document).ready(() => {
+        getLista()
+    })
+
+    const getLista = async () => {
+        $("#preloaderAPP").show();
+        let res = await $.post('/comprobantesCompras/getlistaItemsAjax', { idComprobante })
+        let html = ""
+        if(res.status){
+            for (let i = 0; i < res.data.length; i++) {
+                html += `
+                    <tr>
+                        {% if permisos.b && comprobante.blindado == 0 %}
+                            <td class="text-center">
+                                <button class="btn btn-round btn-sm btn-danger" onclick="Eliminar(${res.data[i].id})"
+                                    data-toggle="tooltip" data-placement="top" title="Eliminar">
+                                    <i class="fa fa-trash-alt"></i>
+                                </button>
+                            </td>
+                        {% endif %}
+                        <td class="text-center">${res.data[i].cantidad}</td>
+                        <td>${res.data[i].descripcion}</td>
+                        <td class="text-right">$ ${formatCurrency(res.data[i].precio)}</td>
+                        <td class="text-center">${formatCurrency(res.data[i].iva)}%</td>
+                        <td class="text-right">$ ${formatCurrency(res.data[i].total)}</td>
+                    </tr>`
+            }
+        }else{
+            html = `<tr><td class="font-weight-bold" colspan="12">${res.text}</td></tr>`
+        }
+        $('#tablaItems tbody').html(html)
+        $('[data-toggle="tooltip"]').tooltip()
+        $("#preloaderAPP").hide()
+    }
+
+    const AbrirModal = async () => {
+        await ObtenerCmbDepositos('cmbDeposito', false)
+        await ObtenerCmbCondicion('cmbCondNeuma')
+        await ObtenerCmbAlicuotasIVA('cmbAlicuotaIva')
+        $('#modalAgregar').modal('show')
+    }
+
+    const ObtenerTipoItem = async item => {
+        let result=null
+        $('#btnGuardar').addClass('d-none')
+        $('#divTipoItem').addClass('d-none')
+        $('#divEsficha').addClass('d-none')
+        $('#divArticulos').addClass('d-none')
+        $('#divCombustible').addClass('d-none')
+        if(item == 'r'){
+            result = await ObtenerCmbRepuestos('cmbItem', false)
+            $('#lblItem').text('Repuesto')
+        }else{
+            result = await ObtenerCmbArticulos('cmbItem')
+            if(!result.status) return false
+            $('#lblItem').text('Artículo')
+        }
+        $('#btnGuardar').removeClass('d-none')
+        $('#divTipoItem').removeClass('d-none')
+    }
+
+    const ObtenerItem = async id => {
+        $('#divEsficha').addClass('d-none')
+        if($('#cmbTipoItem').val() == 'r'){
+            $("#preloaderAPP").show()
+            const res = await $.post('/repuestos/getByIdAjax', {id})
+            if(!res.status){
+                $("#preloaderAPP").hide()
+                Swal.fire(res.title, res.text, res.icon)
+                return
+            }
+            $('#divTextoCantidad').addClass('d-none')
+            if(res.data.es_ficha == 1){
+                $('#divEsficha').removeClass('d-none')
+                if($('#txtCantidad').val() > 1) $('#divTextoCantidad').removeClass('d-none')
+            }else{
+                $('#divEsficha').addClass('d-none')
+            }
+            res.data.es_neumatico == 1 ? $('#divNeumatico').removeClass('d-none') : $('#divNeumatico').addClass('d-none')
+            Calcular()
+            $("#preloaderAPP").hide()
+        }else if($('#cmbTipoItem').val() == 'a'){
+            if(id == 0){
+                $('#divCombustible').removeClass('d-none')
+                $('#divArticulos').addClass('d-none')
+            }else{
+                $('#divArticulos').removeClass('d-none')
+                $('#divCombustible').addClass('d-none')
+            }
+        }
+    }
+
+    const Calcular = async () => {
+        if($('#cmbItem').val() != null){
+            if($('#cmbItem').val().length > 0){
+                let result = null
+                if($('#cmbTipoItem').val() == 'r'){
+                    result = await $.post('/repuestos/getByIdAjax', {id: $('#cmbItem').val()})
+                }else{
+                    result = await $.post('/articulos/getByIdAjax', {id: $('#cmbItem').val()})
+                }
+
+                if(!result.status){
+                    $("#preloaderAPP").hide()
+                    Swal.fire(result.title, result.text, result.icon)
+                    return 
+                }
+                $('#divTextoCantidad').addClass('d-none')
+                if(result.data.es_ficha == 1){
+                    if($('#txtCantidad').val() > 1) $('#divTextoCantidad').removeClass('d-none')
+                }
+
+                if($('#txtPrecio').val().length > 0 && $('#txtCantidad').val().length > 0){
+                    $("#preloaderAPP").show()
+                    const res = await $.post('/alicuotasIVA/getByIdAjax', {id: $('#cmbAlicuotaIva').val()})
+                    let total=0
+                    let iva = (parseFloat(res.data)/100)+1
+                    total = parseFloat((parseFloat($('#txtPrecio').val() * parseFloat($('#txtCantidad').val())) * iva))
+                    $('#txtTotal').val(isNaN(total) ? 0 : total.toFixed(2))
+                    $("#preloaderAPP").hide()
+                }
+            }
+        }
+    }
+
+    $('#cmbItem').on('change', async function(){
+        if(this.value == 0 && $('#cmbTipoItem').val() == 'a'){
+            await ObtenerCmbTanques('cmbTanque', false)
+            $('#divCombustible').removeClass('d-none')
+            $('#divArticulos').addClass('d-none')
+        }else{
+            $('#divArticulos').removeClass('d-none')
+            $('#divCombustible').addClass('d-none')
+        }
+    })
+
+    $('#txtCantidad').on('input', function(){
+        Calcular()
+    })
+
+    const PostRegistro = async () => {
+        $("#preloaderAPP").show()
+        const body = {
+            idComprobante,
+            tipoItem: $('#cmbTipoItem').val(),
+            cantidad: $('#txtCantidad').val(),
+            item: $('#cmbItem').val(),
+            deposito: $('#cmbDeposito').val(),
+            condNeu: $('#cmbCondNeuma').val(),
+            nroSerie: $('#txtNroSerie').val(),
+            modelo: $('#txtModelo').val(),
+            medidasNeu: $('#txtMedidasNeuma').val(),
+            tipoNeu: $('#txtTipoNeuma').val(),
+            precio: $('#txtPrecio').val(),
+            alicIva: $('#cmbAlicuotaIva').val(),
+            tanque: $('#cmbTanque').val()
+        }
+        const res = await $.post('/comprobantesCompras/altaItems', body)
+        $("#preloaderAPP").hide()
+        Swal.fire({
+            icon: res.icon,
+            title: res.title, 
+            text: res.text, 
+            timer: 2500
+        }).then(() => {
+            if(res.status){
+                getLista()
+                CerrarModal()
+            }
+        })        
+    }
+
+    const Eliminar = id => {
+        Swal.fire({
+            title: 'Confirmar',
+            text: "¿Desea borrar este registro?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonColor: '#d33',
+            cancelButtonText: 'No, cancelar'
+        }).then(async result => {
+            if (result.isConfirmed) {
+                $("#preloaderAPP").show()
+                let res = await $.post('/comprobantesCompras/eliminar', { id })
+                $("#preloaderAPP").hide()
+                Swal.fire({
+                    type: res.type,
+                    icon: res.icon,
+                    title: res.title,
+                    text: res.text,
+                    timer: 2500
+                }).then(() => {
+                    if(res.status) getLista()
+                })
+            }    
+        })
+    }
+
+    const CerrarModal = () => {
+        $('#modalAgregar').modal('hide')
+        LimpiarCampos()
+    }
+
+    const LimpiarCampos = () => {
+        $('#divTipoItem').addClass('d-none')
+        $('#divEsficha').addClass('d-none')
+        $('#divNeumatico').addClass('d-none')
+        $('#divTextoCantidad').addClass('d-none')
+        $('#btnGuardar').addClass('d-none')
+        $('#divTipoItem').addClass('d-none')
+        $('#cmbTipoItem').val('val', '')
+        $('#cmbTipoItem').selectpicker('refresh')
+        $('#txtCantidad').val('')
+        $('#cmbItem').html('')
+        $('#cmbItem').selectpicker('refresh')
+        $('#cmbDeposito').html('')
+        $('#cmbDeposito').selectpicker('refresh')
+        $('#cmbCondNeuma').html('')
+        $('#cmbCondNeuma').selectpicker('refresh')
+        $('#txtNroSerie').val('')
+        $('#txtModelo').val('')
+        $('#txtMedidasNeuma').val('')
+        $('#txtTipoNeuma').val('')
+        $('#cmbAlicuotaIva').val('1')
+        $('#cmbAlicuotaIva').selectpicker('refresh')
+        $('#txtPrecio').val('')
+        $('#txtTotal').val('')
+    }
+
+    '{% if comprobante.blindado == 0 %}'
+        const Blindar = async () => {
+            Swal.fire({
+                title: "Confirmar",
+                text: "Desea blindar el comprobante de compra?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Si",
+                confirmButtonColor: "#28a745",
+                cancelButtonColor: "#dc3545",
+                cancelButtonText: "No, cancelar"
+            }).then(async result => {
+                if(result.isConfirmed){
+                    let res = await $.post('/comprobantesCompras/blindar', {idComprobante})
+                    Swal.fire(res.title, res.text, res.icon)
+                    if(res.status) window.location.reload()
+                }
+            })
+        }
+    '{% endif %}'
+
+    '{% if comprobante.blindado == 1 %}'
+        const Desblindar = async () => {
+            Swal.fire({
+                title: "Confirmar",
+                text: "Desea desblindar el comprobante de compra?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Si",
+                confirmButtonColor: "#28a745",
+                cancelButtonColor: "#dc3545",
+                cancelButtonText: "No, cancelar"
+            }).then(async result => {
+                if(result.isConfirmed){
+                    let res = await $.post('/comprobantesCompras/desblindar', {idComprobante})
+                    Swal.fire(res.title, res.text, res.icon)
+                    if(res.status) window.location.reload()
+                }
+            })
+        }
+    '{% endif %}'
+
+
+</script>
+{% endblock %}

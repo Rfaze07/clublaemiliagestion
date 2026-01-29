@@ -1,0 +1,268 @@
+{% extends '../../template.html' %}
+
+{% block styles %}
+<style>
+    .textAreaSize {
+        resize: vertical;
+        min-height: 48px;
+        max-height: 100px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+    <h2>{{ pagename }}</h2>
+    <div class="d-flex align-items-end mb-3" style="gap: 0.2rem;">
+        <div>
+            <label>Desde</label>
+            <input type="text" class="form-control form-control-sm datepicker" id="txtDesde" onchange="getLista()" />
+        </div>
+        <div>
+            <label>Hasta</label>
+            <input type="text" class="form-control form-control-sm datepicker" id="txtHasta" onchange="getLista()" />
+        </div>
+    </div>
+</div>
+<div class="table-responsive" style="height: calc(100vh - 400px)">
+    <table class="table table-sm table-fix table-hover tableFixHead" id="tablaDatos">
+        <thead>
+            <tr>
+                <th>Acciones</th>
+                <th class="text-left">Fecha</th>
+                <th class="text-center">Cliente</th>
+                <th class="text-center">Numero</th>
+                <th class="text-center">Total</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<!-- Totalizador de Ventas -->
+<div class="row mt-3">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-6">
+                        <div class="p-3 rounded">
+                            <h5 class="mb-1">Total de Ventas</h5>
+                            <h3 id="totalVentas" class="mb-0 ">0</h3>
+                            <small class="text-muted">comprobantes</small>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 rounded">
+                            <h5 class="mb-1">Importe Total</h5>
+                            <h3 id="importeTotal" class="mb-0">$ 0.00</h3>
+                            <small class="text-muted">facturado</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Gráfico de Ventas por Día de la Semana -->
+<div class="row mt-3">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Promedio de Ventas por Día de la Semana</h5>
+            </div>
+            <div class="card-body">
+                <div id="ventasPorDiaChart" style="height: 400px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript">
+    
+    $(document).ready(async () => {
+        
+        $('#txtDesde').val(generateFirstDateActualMonth())
+        $('#txtHasta').val(generateTodayDate())
+        
+        await getLista()
+    })
+
+    const getLista = async () => {
+        $('#preloaderAPP').show()
+        let html = '<tr><td colspan="20">Sin registros.</td></tr>',
+      
+        desde = $('#txtDesde').val(),
+        hasta = $('#txtHasta').val(),
+        res = await $.post('/reportes/reporteVentas', { desde, hasta })
+        
+        // Variables para totalizadores
+        let totalVentas = 0;
+        let importeTotal = 0;
+        
+        // Variables para el gráfico por día de la semana
+        let ventasPorDia = {
+            'Domingo': { total: 0, cantidad: 0 },
+            'Lunes': { total: 0, cantidad: 0 },
+            'Martes': { total: 0, cantidad: 0 },
+            'Miércoles': { total: 0, cantidad: 0 },
+            'Jueves': { total: 0, cantidad: 0 },
+            'Viernes': { total: 0, cantidad: 0 },
+            'Sábado': { total: 0, cantidad: 0 }
+        };
+
+        if(res.status){
+            html=''
+            totalVentas = res.ventas.length;
+            
+            for(let i=0; i<res.ventas.length; i++){
+                // Sumar al importe total
+                let montoVenta = parseFloat(res.ventas[i].total || 0);
+                importeTotal += montoVenta;
+                
+                // Calcular día de la semana
+                let fecha = new Date(res.ventas[i].fecha);
+                let diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+                let diaSemana = diasSemana[fecha.getDay()];
+                
+                ventasPorDia[diaSemana].total += montoVenta;
+                ventasPorDia[diaSemana].cantidad += 1;
+                
+                html += `
+
+                <tr>
+                    <td>
+                        <div style="display: flex; gap: 2px;">
+                            <button class="btn btn-round btn-sm btn-info" data-accion="v"
+                                data-toggle="tooltip" data-placement="top" title="Ver" onclick="Ver(${res.ventas[i].id})">
+                                <i class="fa fa-eye"></i>
+                            </button>
+                        </div>
+                    </td>
+                    <td class="search text-left">${changeDateDMY(res.ventas[i].fecha)}</td>
+                    <td class="search text-center">${res.ventas[i].cliente}</td>
+                    <td class="search text-center">${res.ventas[i].numero}</td>
+                    <td class="search text-center">$${formatCurrency(res.ventas[i].total)}</td>
+                </tr>`
+            }
+        }
+
+        $('#tablaDatos tbody').html(html)
+        $('[data-toggle="tooltip"]').tooltip()
+        
+        // Actualizar totalizadores
+        $('#totalVentas').text(totalVentas.toLocaleString());
+        $('#importeTotal').text('$ ' + formatCurrency(importeTotal));
+        
+        // Crear gráfico de ventas por día de la semana
+        createVentasPorDiaChart(ventasPorDia);
+        
+        $('#preloaderAPP').hide()
+    }
+
+    const AbrirModal = () => {
+        $('#modal').modal('show')
+    }
+
+    const CerrarModal = () => {
+        $('#modal').modal('hide')
+        $('#actionSeccion').addClass('d-none')
+        $('#actionSeccionDivider').addClass('d-none')
+        LimpiarCampos()
+    }
+
+
+    const LimpiarCampos = () => {
+        $('input[type="text"], input[type="email"], textarea').val('')
+        $('input[type="checkbox"], input[type="radio"]').prop('checked', false)
+        $('select').val('0')
+        $('#cmbLocalidad').prop('disabled', true)
+        $('.selectpicker').selectpicker('refresh')
+    }
+
+    const Buscar = async () => {
+        //Busqueda en tiempo real
+        let filtro = $('#txtFiltro').val().toLowerCase()
+        $('#tablaDatos tbody tr').filter(function() {
+            $(this).toggle($(this).find('.search').text().toLowerCase().indexOf(filtro) > -1)
+        })
+    }
+
+    // Función para crear el gráfico de ventas por día de la semana
+    const createVentasPorDiaChart = (ventasPorDia) => {
+        const diasOrdenados = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+        const promedios = diasOrdenados.map(dia => {
+            const datos = ventasPorDia[dia];
+            return datos.cantidad > 0 ? datos.total / datos.cantidad : 0;
+        });
+        
+        Highcharts.chart('ventasPorDiaChart', {
+            chart: {
+                type: 'column',
+                backgroundColor: 'transparent'
+            },
+            title: {
+                text: null
+            },
+            xAxis: {
+                categories: diasOrdenados,
+                title: {
+                    text: 'Día de la Semana'
+                }
+            },
+            yAxis: {
+                min: 0,
+                title: {
+                    text: 'Promedio de Ventas ($)'
+                },
+                labels: {
+                    formatter: function() {
+                        return '$ ' + this.value.toLocaleString();
+                    }
+                }
+            },
+            tooltip: {
+                pointFormatter: function() {
+                    const dia = this.category;
+                    const datos = ventasPorDia[dia];
+                    return `<b>Promedio:</b> $ ${this.y.toLocaleString()}<br/>
+                            <b>Total ventas:</b> ${datos.cantidad}<br/>
+                            <b>Monto total:</b> $ ${datos.total.toLocaleString()}`;
+                }
+            },
+            plotOptions: {
+                column: {
+                    pointPadding: 0.2,
+                    borderWidth: 0,
+                    dataLabels: {
+                        enabled: true,
+                        formatter: function() {
+                            return this.y > 0 ? '$ ' + this.y.toLocaleString() : '';
+                        },
+                        style: {
+                            fontSize: '10px'
+                        }
+                    },
+                    colorByPoint: true,
+                    colors: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8']
+                }
+            },
+            legend: {
+                enabled: false
+            },
+            series: [{
+                name: 'Promedio de Ventas',
+                data: promedios
+            }],
+            exporting: { enabled: false }
+        });
+    }
+
+    
+</script>
+{% endblock %}

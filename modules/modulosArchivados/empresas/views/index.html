@@ -1,0 +1,380 @@
+{% extends '../../template.html' %}
+
+{% block styles %}
+<style>
+    .nombreArchivo { max-width: 10rem;overflow: hidden;white-space: nowrap;text-overflow: ellipsis; }
+    .recuadroLogo { border: 1px solid #dddddd; width: 150px; height: 150px; }
+    #imgLogo { width: 150px; height: 150px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+    <h2>{{ pagename }}</h2>
+</div>
+<div class="table-responsive" style="height: calc(100vh - 200px)" id="tablaEmpresas">
+    <table class="table table-sm table-fix table-hover tableFixHead">
+        <thead>
+            <tr>
+                <th scope="col">Acciones</th>
+                <th scope="col">Codigo</th>
+                <th scope="col">Nombre</th>
+                <th scope="col">Razon Social</th>
+                <th scope="col">Cuit</th>
+                <th scope="col">Email</th>
+                <th scope="col">Modo</th>
+                <th scope="col">Activo</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<div class="modal fade" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true" id="modalEmpresas">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabel"></h5>
+                <button type="button" class="close" aria-label="Close" onclick="CerrarModal()">
+                    <span aria-hidden=" true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-4">
+                        <label for="txtRazonSocial">Razon social</label>
+                        <input type="text" class="form-control form-control-sm" id="txtRazonSocial">
+                    </div>
+                    <div class="form-group col-sm-12 col-md-2">
+                        <label for="txtCuit">Cuit</label>
+                        <input type="text" class="form-control form-control-sm validarCuit" id="txtCuit">
+                    </div>
+                    <div class="form-group col-sm-12 col-md-2">
+                        <label for="cmbCondicionesIva">Condiciones Iva</label>
+                        <select id="cmbCondicionesIva" class="form-control form-control-sm selectpicker">
+                            <option value="" selected disabled>Seleccioneo una opción...</option>
+                            {% for ci in condicionesIva %}
+                                <option value="{{ci.id}}">{{ci.descripcion}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-2">
+                        <label for="cmbConceptos">Concepto facturación</label>
+                        <select class="form-control form-control-sm" id="cmbConceptos"></select>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-2">
+                        <label for="txtFechaInicio">Fecha Inicio Act.</label>
+                        <input type="text" class="form-control form-control-sm datepicker" id="txtFechaInicio">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-4">
+                        <label for="txtDireccion">Direccion</label>
+                        <input type="text" class="form-control form-control-sm" id="txtDireccion">
+                    </div>
+                    <div class="form-group col-sm-4">
+                        <label for="txtEmail">Email</label>
+                        <input type="text" class="form-control form-control-sm" id="txtEmail">
+                    </div>
+                    <div class="form-group col-sm-4">
+                        <label for="txtTelefono">Telefono</label>
+                        <input type="text" onkeypress="return soloNumeros(event)" class="form-control form-control-sm"
+                            id="txtTelefono">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-5">
+                        <label for="cmbProvincia">Provincia</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbProvincia" onchange="ObtenerCmbLocalidadesProvincia(this.value, 'cmbLocalidad', 'txtCP')">
+                            <option value="" selected disabled>Seleccione una opción...</option>
+                            {% for l in localidades %}
+                                <option value="{{l.id}}">{{l.nombre}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-5">
+                        <label for="cmbLocalidad">Localidad</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbLocalidad" disabled onchange="CargarCPSeleccionado(this, 'txtCP')">
+                            <option value="" selected disabled>Seleccione una opción...</option>
+                            {% for l in localidades %}
+                                <option value="{{l.id}}">{{l.nombre}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-2">
+                        <label for="txtCP">Cód. postal</label>
+                        <input type="text" class="form-control form-control-sm" id="txtCP" disabled readonly />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-4">
+                        <label for="cmbModo">Modo</label>
+                        <select class="form-control form-control-sm" id="cmbModo">
+                            <option value="homologacion">Homologación</option>
+                            <option value="produccion">Producción</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-sm-8">
+                        <label for="txtToken">Token</label>
+                        <div class="d-flex">
+                            <input type="text" class="form-control form-control-sm" id="txtToken" />
+                            <button class="btn btn-round btn-sm btn-success ml-1" onclick="copyToClipboard('txtToken')">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-9">
+                        <label for="txtToken">Mas datos</label>
+                        <textarea class="form-control form-control-sm" id="txtDatos" rows="10"></textarea>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-3">
+                        <label for="txtLogo">Logo</label>
+                        <div class="form-row d-flex flex-column flex-lg-row justify-content-center align-items-center">
+                            <div>
+                                <div class="recuadroLogo">
+                                    <img id="imgLogo" />
+                                </div>
+                            </div>
+                            <div>
+                                <input type="file" class="form-control-file uploadFile" accept="image/png, image/jpeg, image/jpg" id="txtImg" style="display: none" />
+                                <label for="txtImg" class="btn btn-round btn-sm btn-primary mt-1" style="cursor: pointer; width: 150px;">Seleccione el logo...</label>
+                                <span id="fileName" class="nombreArchivo" title="Nombre del archivo"></span>
+                            </div>
+                            <button type="button" class="btn btn-round btn-sm btn-danger" style="width: 150px;" id="btnEliminarImagen">
+                                Eliminar imagen
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 text-center">
+                        <div class="custom-control custom-switch ml-1">
+                            <input type="checkbox" class="custom-control-input" id="chbActivo" />
+                            <label class="custom-control-label" for="chbActivo">Activo</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="CerrarModal()">Cancelar</button>
+                <button type="button" class="btn btn-success" id="btnAccion">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+{% block scripts %}
+<script>
+    let cambioLogo=false
+
+    $(document).ready(async () => {
+        await CargarCmbConceptosAfip()
+        await ObtenerCmbProvincias(['cmbProvincia'])
+        getListaEmpresas()
+    })
+
+    const CargarCmbConceptosAfip = () => {
+        return new Promise(async (resolve, reject) => {
+            $("#preloaderAPP").show()
+            const res = await $.post('/conceptosAfip/listaActivosAjaxSelect')
+            if(!res.status){
+                $("#preloaderAPP").hide()
+                Swal.fire(res.title, res.text, res.icon)
+                resolve()
+            }
+            let html='<option value="" disabled selected>Seleccione una opción...</option>'
+            if(res.data.length > 0){
+                res.data.map(el => html += `<option value="${el.id}">${el.concepto}</option>`)
+            }
+            $('#cmbConceptos').html(html)
+            $('#cmbConceptos').selectpicker('refresh')
+            $("#preloaderAPP").hide()
+            resolve()
+        })
+    }
+
+    $("#txtImg").on("change", function () {
+        const file = this.files[0]
+        if(file){
+            if(file.type == "image/jpeg" || file.type == "image/png"){
+                const reader = new FileReader()
+                reader.onload = (event) => $('#imgLogo').attr('src', event.target.result)
+                reader.readAsDataURL(file)
+                cambioLogo=true
+            }else
+                Swal.fire('Error', 'Formato de archivo no válido, únicamente se aceptan imagenes ".JPEG/.JPG/.PNG"', 'error')
+        }else{
+            $(this).val('')
+            cambioLogo=false
+        }
+    })
+
+    const getListaEmpresas = async () => {
+        $("#preloaderAPP").show()
+        const res = await $.get('/empresas/listaAjax')
+        let html = ""
+        for (let i = 0; i < res.length; i++) {
+            html += `
+                <tr>
+                    <td>
+                        <div style="display: flex; gap: 2px;">
+                            {% if permisos.m %}
+                                <button class="btn btn-round btn-sm btn-warning" data-toggle="tooltip" data-placement="top" 
+                                        title="Modificar" onclick="ModalAccion(${res[i].id})">
+                                    <i class="fa fa-pen"></i>
+                                </button>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>${res[i].id}</td>
+                    <td>${res[i].razon_social}</td>
+                    <td>${res[i].cuit}</td>
+                    <td>${res[i].direccion}</td>
+                    <td>${res[i].email}</td>
+                    <td>${res[i].modo_fe}</td>
+                    <td>${res[i].activo === 1 ? 'Si' : 'No'}</td>
+                </tr>`
+        }
+        $('#tablaEmpresas tbody').html(html)
+        $("#preloaderAPP").hide()
+        $('[data-toggle="tooltip"]').tooltip()
+    }
+
+    const ModalAccion = async id => {
+        let res = await $.post(`/empresas/getEmpresa`, {id})
+        if(!res.status) return Swal.fire(res.title, res.text, res.icon)
+        await CargarDatosModificar(res.empresa)
+        $('#modalLabel').text('Modificar empresa')
+        $('#btnAccion').attr('onclick', `PostRegistro(${id})`)
+        $('#btnEliminarImagen').attr('onclick', `EliminarImagen(${id})`)
+        $('#actionSeccion').removeClass('d-none')
+        $('#modalEmpresas').modal('show')
+    }
+
+    const CargarDatosModificar = o => {
+        return new Promise(async (resolve, reject) => {
+            $('#txtRazonSocial').val(o.razon_social)
+            $('#txtCuit').val(o.cuit)
+            $('#cmbCondicionesIva').selectpicker('val', o.id_iva_fk)
+            $('#cmbConceptos').selectpicker('val', o.id_concepto_fk)
+            $('#txtFechaInicio').val(o.fecha_inicio == null ? '' : o.fecha_inicio)
+            $('#txtDireccion').val(o.direccion)
+            $('#txtEmail').val(o.email)
+            $('#txtTelefono').val(o.telefono)
+            $('#cmbLocalidad').prop('disabled', false)
+            $('#cmbProvincia').selectpicker('val', o.id_provincia_fk)
+            $('.selectpicker').selectpicker('refresh')
+            await ObtenerCmbLocalidadesProvincia(o.id_provincia_fk, 'cmbLocalidad', 'txtCP')
+            $('#cmbLocalidad').selectpicker('val', o.id_localidad_fk)
+            $('#txtCP').val($(`#cmbLocalidad option:selected`).data('cp'))
+            $('#cmbModo').val(o.modo_fe)
+            $('#txtToken').val(o.token_fe)
+            $('#imgLogo').attr('src', o.pathImagen)
+            o.imagen == null ? $('#btnEliminarImagen').addClass('d-none') : $('#btnEliminarImagen').removeClass('d-none')
+            $('#chbActivo').prop('checked', o.activo ? 1 : 0)
+            $('.selectpicker').selectpicker('refresh')
+            resolve()
+        })
+    }
+
+    const PostRegistro = async id => {
+        $("#preloaderAPP").show()
+
+        const body = {
+            id,
+            razonSocial: $('#txtRazonSocial').val(),
+            cuit: $('#txtCuit').val(),
+            condicionIva: $('#cmbCondicionesIva').val(),
+            concepto: $('#cmbConceptos').val(),
+            fechaIniAct: $('#txtFechaInicio').val(),
+            direccion: $('#txtDireccion').val(),
+            email: $('#txtEmail').val(),
+            telefono: $('#txtTelefono').val(),
+            provincia: $('#cmbProvincia').val(),
+            localidad: $('#cmbLocalidad').val(),
+            modo: $('#cmbModo').val(),
+            token: $('#txtToken').val(),
+            datos: $('#txtDatos').val(),
+            cambioLogo,
+            activo: $('#chbActivo').prop('checked') ? 1 : 0
+        }
+        let fileUpload = document.getElementById("txtImg").files
+        let formData  = new FormData()
+        fileUpload.length != 0 ? formData.append("file", fileUpload[0]) : formData.append("file", null)
+        formData.append("data", JSON.stringify(body))
+
+        await $.ajax({
+            url: `/empresas/modificar?id=${id}`,
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(res) {
+                $("#preloaderAPP").hide()
+                Swal.fire({
+                    title: res.title,
+                    text: res.text,
+                    icon: res.icon
+                }).then(() => {
+                    if(res.status){
+                        CerrarModal()
+                        getListaEmpresas()
+                    }
+                })
+            }
+        })
+    }
+
+    const CerrarModal = () => {
+        $('#modalEmpresas').modal('hide')
+        $('#actionSeccion').addClass('d-none')
+        $('#actionSeccionDivider').addClass('d-none')
+        LimpiarCampos()
+
+    }
+
+    const LimpiarCampos = () => {
+        document.getElementById("txtImg").files = null
+        $('input[type="text"]').val('')
+        $('textarea').val('')
+        $('input[type="checkbox"]').prop('checked', false)
+        $('select').val('0')
+        $('.selectpicker').selectpicker('refresh')
+    }
+
+    const EliminarImagen = async id => {
+        Swal.fire({
+            title: 'Confirmar',
+            text: "¿Desea borrar el logo?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar.',
+            cancelButtonColor: '#d33',
+            cancelButtonText: 'No, cancelar.'
+        }).then(async result => {
+            if (result.isConfirmed) {
+                $("#preloaderAPP").show()
+                let res = await $.post(`/empresas/eliminarImagen`, {id})
+                $("#preloaderAPP").hide()
+                Swal.fire({
+                    type: res.type,
+                    icon: res.icon,
+                    title: res.title,
+                    text: res.text,
+                    timer: 2500
+                }).then(() => {
+                    if(res.status){
+                        CerrarModal()
+                        getListaEmpresas()
+                    }
+                })
+            }    
+        })
+    }
+
+</script>
+{% endblock %}

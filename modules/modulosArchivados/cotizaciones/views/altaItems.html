@@ -1,0 +1,314 @@
+{% extends '../../template.html' %}
+
+{% block styles %}
+<style>
+    .sinBorderTop { border-top: 0px!important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+    <h4>{{ pagename }}</h4>
+    <a class="btn btn-primary ml-auto mr-3" href="/cotizaciones" role="button" data-toggle="tooltip" data-placement="top" title="Volver">
+        <i class="fa fa-arrow-left"></i>
+    </a>
+    <button class="btn btn-round btn-secondary mr-2" data-toggle="tooltip" data-placement="top" title="Agregar item" onclick="ModalAccion('a')">
+        <i class="fa fa-plus"></i>
+    </button>
+    <button class="btn btn-round btn-success" data-toggle="tooltip" data-placement="top" title="Finalizar cotización" onclick="FinalizaCotizacion()">
+        <i class="fa fa-save"></i>
+    </button>
+</div>
+<div class="d-flex justify-content-between align-items-center p-3">
+    <table class="table table-sm">
+        <tr>
+            <th class="sinBorderTop">Fecha de alta</th>
+            <td class="sinBorderTop">{{ cotizacionTit.fecha | date('d/m/Y') }}</td>
+            <th class="sinBorderTop">Cliente</th>
+            <td class="sinBorderTop">{{ cotizacionTit.clienteTxt }}</td>
+        </tr>
+        <tr>
+            <th>Localidad y provincia</th>
+            <td>{{ cotizacionTit.localidadTxt }} ({{ cotizacionTit.cp }}) - {{ cotizacionTit.provinciaTxt }}</td>
+            <th>Estado</th>
+            <td>{{ cotizacionTit.estadoTxt }}</td>
+        </tr>
+    </table>
+</div>
+<div class="card">
+    <div class="card-header">
+        <h5 class="m-0 p-0">Tareas</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive" style="min-height: calc(100vh - 355px);">
+            <table class="table table-sm table-fix table-hover tableFixHead" id="tablaItems">
+                <thead>
+                    <tr>
+                        {% if permisos.b == 1 %}<th scope="col" style="width: 50px;">Acciones</th>{% endif %}
+                        <th scope="col" class="text-center" style="width: 100px;">Cantidad</th>
+                        <th scope="col" class="text-center">Unidad med.</th>
+                        <th scope="col">Descripción</th>
+                        <th scope="col" class="text-right">Precio</th>
+                        <th scope="col" class="text-center">% KPI.</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<div class="card mt-1">
+    <div class="card-header">
+        <h5 class="m-0 p-0 text-right font-weight-bold">TOTAL $ <span id="divTotales"></span></h5>
+    </div>
+</div>
+
+
+<!-- MODAL -->
+<div class="modal fade" id="modal" data-backdrop="static" tabindex="-1" aria-labelledby="modalStatic" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabel"></h5>
+                <button type="button" class="close" aria-label="Close">
+                    <span aria-hidden=" true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <label for="cmbTareas">Tarea</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbTareas" onchange="ObtenerTarea(this.value)">
+                            <option value="" disabled selected>Seleccione una tarea...</option>
+                            {% for t in tareas %}
+                                <option value="{{ t.id }}">{{ t.desc_corta }} - {{ t.descripcion }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="row d-none" id="divAltaTareas">
+                    <div class="col-sm-12 col-md-9">
+                        <label for="txtTarea">Tarea</label>
+                        <input type="text" class="form-control form-control-sm" id="txtTarea" maxlength="100">
+                    </div>
+                    <div class="col-sm-12 col-md-3">
+                        <label for="txtCantidad">Cantidad</label>
+                        <input type="text" class="form-control form-control-sm" id="txtCantidad" onkeypress="return soloNumeros(event)" autocomplete="off" maxlength="5">
+                    </div>
+                    <div class="col-sm-12 col-md-6">
+                        <label for="txtKpi">% KPI.</label>
+                        <input type="text" class="form-control form-control-sm" id="txtKpi" onkeypress="return ValidarEnterosYDecimales(event,this,2,2)" autocomplete="off">
+                    </div>
+                    <div class="col-sm-12 col-md-6">
+                        <label for="txtPrecio">Precio</label>
+                        <input type="text" class="form-control form-control-sm" id="txtPrecio" onkeypress="return ValidarEnterosYDecimales(event,this,10,2)" autocomplete="off">
+                    </div>
+                    <div class="col-sm-12">
+                        <label for="txtObservaciones">Observaciones</label>
+                        <textarea type="text" class="form-control form-control-sm" id="txtObservaciones" rows="3" maxlength="500"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success" id="btnAccion">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const idCotizacionItem = '{{ cotizacionTit.id }}'
+
+    $(document).ready(() => {
+        getLista()
+    })
+
+    const getLista = async () => {
+        $("#preloaderAPP").show();
+        let res = await $.post('/cotizaciones/getlistaItemsAjax', { idCotizacionItem })
+        let html = ""
+        if(res.status){
+            for (let i = 0; i < res.data.length; i++) {
+                html += `
+                    <tr>
+                        <td class="text-center">
+                            {% if permisos.m %}
+                                <button class="btn btn-round btn-sm btn-warning" onclick="ModalAccion('m', ${res.data[i].id})"
+                                    data-toggle="tooltip" data-placement="top" title="Modificar">
+                                    <i class="fa fa-pen"></i>
+                                </button>
+                            {% endif %}
+
+                            {% if permisos.b %}
+                                <button class="btn btn-round btn-sm btn-danger" onclick="Eliminar(${res.data[i].id})"
+                                    data-toggle="tooltip" data-placement="top" title="Eliminar">
+                                    <i class="fa fa-trash-alt"></i>
+                                </button>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">${res.data[i].cantidad}</td>
+                        <td>${res.data[i].unidadMedidaTxt}</td>
+                        <td>${res.data[i].tarea}</td>
+                        <td class="text-right">$ ${formatCurrency(res.data[i].precio)}</td>
+                        <td class="text-center">${formatCurrency(res.data[i].porce_kpi)}%</td>
+                    </tr>`
+            }
+        }else{
+            html = `<tr><td class="font-weight-bold" colspan="12">${res.text}</td></tr>`
+        }
+
+        $('#divTotales').text(formatCurrency(res.total))
+        $('#tablaItems tbody').html(html)
+        $('[data-toggle="tooltip"]').tooltip()
+        $("#preloaderAPP").hide()
+    }
+
+    const ModalAccion = async (accion, id) => {
+        $("#preloaderAPP").show()
+        if (accion === 'a') {
+            $('#modalLabel').text('Argegar nueva tarea')
+            $('#btnAccion').attr('onclick', `PostRegistro("a")`)
+            $('#btnAccion').text('Guardar')
+        }else if (accion == 'm') {
+            let res = await $.post(`/cotizaciones/getItemAjax`, {id})
+            if(res.status){
+                $('#cmbTareas').selectpicker('val', res.data.id_tarea_fk)
+                $('#cmbTareas').selectpicker('refresh')
+                $('#txtTarea').val(res.data.tarea)
+                $('#txtCantidad').val(res.data.cantidad)
+                $('#txtKpi').val(res.data.porce_kpi)
+                $('#txtPrecio').val(res.data.precio)
+                $('#txtObservaciones').val(res.data.observaciones)
+                $('#divAltaTareas').removeClass('d-none')
+            }
+            $('#modalLabel').text('Modificar tarea')
+            $('#btnAccion').text('Guardar')
+            $('#btnAccion').attr('onclick', `PostRegistro("m", ${id})`)
+            $('#actionSeccion').removeClass('d-none')
+            $('#actionSeccionDivider').removeClass('d-none')
+        }
+        $("#preloaderAPP").hide()
+        $('#modal').modal('show')
+    }
+
+    const PostRegistro = async (accion, Id) => {
+        $("#preloaderAPP").show()
+
+        let url = '/cotizaciones/altaItems', res, 
+            body = {
+                idCotizacionItem,
+                idTarea: $('#cmbTareas').val(),
+                tarea: $('#txtTarea').val(),
+                cantidad: $('#txtCantidad').val(),
+                kpi: $('#txtKpi').val(),
+                precio: $('#txtPrecio').val(),
+                observaciones: $('#txtObservaciones').val()
+            }
+
+        if (accion === 'm') {
+            url = '/cotizaciones/postModificarItem'
+            body.activo = $('#chbActivo').prop('checked') ? 1 : 0
+            body.id = Id
+        }
+
+        res = await $.post(url, body)
+        $("#preloaderAPP").hide()
+
+        Swal.fire({
+            icon: res.icon,
+            title: res.title, 
+            html: res.text, 
+            timer: 5000
+        }).then(() => {
+            if(res.status){
+                getLista()
+                CerrarModal()
+            }
+        })
+    }
+
+    const AbrirModal = () => {
+        $('#modal').modal('show')
+    }
+
+    const ObtenerTarea = id => {
+        return new Promise(async (resolve, reject) => {
+            let res = await $.post('/tareas/getByIdAjax', {id})
+            console.log(res)
+            if(res.status){
+                $('#txtTarea').val(res.data.descripcion)
+                $('#txtCantidad').val(res.data.cantidad)
+                $('#txtKpi').val(res.data.porce_kpi)
+                $('#txtPrecio').val(res.data.precio1)
+                $('#divAltaTareas').removeClass('d-none')
+                $('#txtPrecio').focus()
+                $('#txtPrecio').select()
+            }else{
+                Swal.fire(res.title, res.text, res.icon)
+            }
+            resolve()
+        })
+    }
+
+    const Eliminar = id => {
+        Swal.fire({
+            title: 'Confirmar',
+            text: "¿Desea borrar este registro?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonColor: '#d33',
+            cancelButtonText: 'No, cancelar'
+        }).then(async result => {
+            if (result.isConfirmed) {
+                $("#preloaderAPP").show()
+                let res = await $.post('/cotizaciones/eliminar', { id })
+                $("#preloaderAPP").hide()
+                Swal.fire({
+                    type: res.type,
+                    icon: res.icon,
+                    title: res.title,
+                    text: res.text,
+                    timer: 2000
+                }).then(() => {
+                    if(res.status) getLista()
+                })
+            }    
+        })
+    }
+
+    const FinalizaCotizacion = async () => {
+        let res = await $.post('/cotizaciones/cerrar', {idCotizacionItem})
+        Swal.fire({
+            icon: res.icon,
+            title: res.title,
+            text: res.text
+        }).then(() => {
+            if(res.status) window.location = '/cotizaciones'
+        })
+    }
+
+    const CerrarModal = () => {
+        $('#modal').modal('hide')
+    }
+
+    const LimpiarCampos = () => {
+        $('input[type="text"], .selectpicker').val('')
+        $('.selectpicker').selectpicker('refresh')
+        $('textarea').val('')
+        $('input[type="checkbox"]').prop('checked', false)
+        $('input[type="radio"]').prop('checked', false)
+        $('#divAltaTareas').addClass('d-none')
+    }
+
+    $('#modal').on('hidden.bs.modal', function (event) {
+        LimpiarCampos()
+    })
+
+</script>
+{% endblock %}

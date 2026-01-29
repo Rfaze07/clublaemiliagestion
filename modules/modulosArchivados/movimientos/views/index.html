@@ -1,0 +1,375 @@
+{% extends '../../template.html' %}
+
+{% block styles %}
+<style>
+    .textAreaSize {
+        resize: vertical;
+        min-height: 48px;
+        max-height: 100px;
+    }
+    .sinBorderTop { border-top: 0px!important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+    <h2>{{ pagename }}</h2>
+    <div class="d-flex align-items-end mb-3" style="gap: 0.2rem;">
+        <input type="text" class="form-control form-control-sm" id="txtFiltro" placeholder="Buscar" style="width: 10rem;" />
+        <div>
+            <label>Fecha desde</label>
+            <input type="text" class="form-control form-control-sm datepicker" id="txtDesde" style="width: 10rem;" onchange="getLista()" />
+        </div>
+        <div>
+            <label>Fecha hasta</label>
+            <input type="text" class="form-control form-control-sm datepicker" id="txtHasta" style="width: 10rem;" onchange="getLista()" />
+        </div>
+        <div>
+            <label for="cmbTipoMovimientoFiltro">Tipo movimiento</label>
+            <select class="form-control form-control-sm selectpicker" id="cmbTipoMovimientoFiltro" onchange="getLista()">
+                <option value="t" selected>Todos</option>
+                <option value="0">Ingreso</option>
+                <option value="1">Egreso</option>
+            </select>
+        </div>
+
+        {% if permisos.a == 1 %}
+            <button class="btn btn-round btn-sm btn-success modalAccion" data-toggle="tooltip" data-placement="top" title="Nuevo" data-accion="a" onclick='ModalAccion("a")'>
+                <i class="fa fa-plus"></i>
+            </button>
+        {% endif %}
+    </div>
+</div>
+<div class="table-responsive" style="height: calc(100vh - 200px)" id="tablaDatos">
+    <table class="table table-sm table-fix table-hover tableFixHead">
+        <thead>
+            <tr>
+                <th scope="col">Acciones</th>
+                <th scope="col">Fecha</th>
+                <th scope="col">Tipo Movimiento</th>
+                <th scope="col">Motivo</th>
+                <th scope="col">Usuario creador</th>
+                <th scope="col">Blindado</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<!-- MODAL -->
+<div class="modal fade modal-m" data-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    aria-labelledby="staticBackdropLabel" aria-hidden="true" id="modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabel"></h5>
+                <button type="button" class="close" aria-label="Close" onclick="CerrarModal()">
+                    <span aria-hidden=" true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-6">
+                        <label for="txtFecha">Fecha movimiento</label>
+                        <input type="text" class="form-control form-control-sm datepicker" id="txtFecha">
+                    </div>
+                    <div class="form-group col-sm-12 col-md-6">
+                        <label for="cmbTipoMovimiento">Tipo movimiento</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbTipoMovimiento">
+                            <option value="" selected>Seleccione una opcion...</option>
+                            <option value="0">Ingreso</option>
+                            <option value="1">Egreso</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12">
+                        <label for="cmbMotivo">Motivo</label>
+                        <textarea class="form-control form-control-sm textAreaSize" id="txtMotivo"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                    onclick="CerrarModal()">Cancelar</button>
+                <button type="button" class="btn btn-success" id="btnAccion">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- MODAL -->
+
+<!-- MODAL VER -->
+<div class="modal fade modal-m" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true" id="modalVer">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Ver más información</h5>
+            </div>
+            <div class="modal-body" id="divVer"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- MODAL VER -->
+{% endblock %}
+
+{% block scripts %}
+<script>
+
+    $(document).ready(() => {
+        
+        $('#txtDesde').val(generateFirstDateActualMonth())
+        $('#txtHasta').val(generateTodayDate())
+        
+       getLista()
+    })
+
+    $("#txtFiltro").keyup(async function () {
+        Filtrar()
+    })
+    
+    const getLista = async () => {
+        $("#preloaderAPP").show()
+        
+        const body = {  desde: $('#txtDesde').val(), hasta: $('#txtHasta').val(), tipo: $('#cmbTipoMovimientoFiltro').val() }
+        const res = await $.post('/movimientos/getlistaAjax', body)
+        let html = ""
+        if(res.status){
+            for (let i = 0; i < res.data.length; i++) {
+                html += `
+                    <tr>
+                        <td>
+                            <div style="display: flex; gap: 2px;">
+                                {% if permisos.m %}
+                                    ${
+                                        res.data[i].blindado ? 
+                                            `<button class="btn btn-round btn-sm btn-info" onclick="Ver(${res.data[i].id})"
+                                                data-toggle="tooltip" data-placement="top" title="Ver">
+                                                <i class="fa fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-round btn-sm btn-secondary" onclick="desblindar(${res.data[i].id})"
+                                                data-toggle="tooltip" data-placement="top" title="Desblindar">
+                                                <i class="fa fa-unlock"></i>
+                                                </button>
+                                            `
+                                        :
+                                            `<a class="btn btn-round btn-sm btn-warning" role="button" data-accion="m" data-toggle="tooltip" 
+                                                        data-placement="top" title="Modificar" href="/movimientos/altaItems/${res.data[i].id}">
+                                                <i class="fas fa-list-ol"></i>
+                                            </a>
+                                            <button class="btn btn-round btn-sm btn-secondary" onclick="blindar(${res.data[i].id})"
+                                                data-toggle="tooltip" data-placement="top" title="Blindar">
+                                                <i class="fa fa-lock"></i>
+                                            </button>
+                                            {% if permisos.b %}
+                                                <button class="btn btn-round btn-sm btn-danger" onclick="Eliminar(${res.data[i].id})"
+                                                    data-toggle="tooltip" data-placement="top" title="Eliminar">
+                                                    <i class="fa fa-trash-alt"></i>
+                                                </button>
+                                            {% endif %}
+                                                `
+                                    }
+                                {% endif %}
+
+                                
+                            </div>
+                        </td>
+                        <td class="search">${changeDateDMY(res.data[i].fecha)}</td>
+                         <!-- Si tipo es 0 Ingreso, 1 Egreso -->
+                        <td class="search">${res.data[i].tipo === 0 ? 'Ingreso' : 'Egreso'} </td>
+                        <td class="search">${res.data[i].motivo}</td>
+                        <td class="search">${res.data[i].usuarioTxt}</td>
+                        <td>${res.data[i].blindado ? 'Si' : 'No'}</td>
+                    </tr>`
+            }
+        }else{
+            html = `<tr><td class="font-weight-bold" colspan="15">${res.text}</td></tr>`
+        }
+        $('#tablaDatos tbody').html(html)
+        $('[data-toggle="tooltip"]').tooltip()
+        $("#preloaderAPP").hide()
+    }
+
+    const ModalAccion = async (accion, id) => {
+        $("#preloaderAPP").show()
+        $('#txtFecha').val(generateTodayDate())
+        if (accion === 'a') {
+            $('#modalLabel').text('Nuevo movimiento')
+            $('#btnAccion').attr('onclick', `PostRegistro("a")`)
+            $('#btnAccion').text('Guardar')
+        }else if (accion == 'm') {
+            let res = await $.post(`/movimientos/getByIdAjax`,{id})
+            if (res.status != 0) {
+                $('#txtFecha').val(res.data.fecha)
+                $('#cmbTipoMovimiento').val(res.data.tipo)
+                $('#txtMotivo').val(res.data.motivo)
+            }
+            $('#modalLabel').text('Modificar movimiento')
+            $('#btnAccion').text('Guardar')
+            $('#btnAccion').attr('onclick', `PostRegistro("m",${id})`)
+        }
+        $("#preloaderAPP").hide()
+        $('#modal').modal('show')
+    }
+
+    const PostRegistro = async (accion, Id) => {
+        $("#preloaderAPP").show()
+        let url = '/movimientos/alta', 
+            body = {
+                fecha: $('#txtFecha').val(),
+                tipo: $('#cmbTipoMovimiento').val(),
+                motivo: $('#txtMotivo').val()
+            }
+
+        if (accion === 'm') {
+            url = '/movimientos/modificar'
+            body.id = Id
+        }
+
+        const res = await $.post(url, body)
+        $("#preloaderAPP").hide()
+        Swal.fire({
+            icon: res.icon,
+            title: res.title, 
+            html: res.text, 
+            timer: 2500
+        }).then(() => {
+            if(res.status){
+                CerrarModal()
+                location = `/movimientos/altaItems/${res.insertId}`
+            }
+        })        
+    }
+
+    const Ver = async id => {
+        $("#preloaderAPP").show()
+        const res = await $.post('/movimientos/ver', {id})
+        let htmlTitulo = `
+            <table class="table table-sm">
+                <tr>
+                    <th class="sinBorderTop">Tipo movimiento</th>
+                    <td class="sinBorderTop">${res.titulo.tipo} ${res.titulo.letra}</td>
+                    <th class="sinBorderTop">Nro. movimiento</th>
+                    <td class="sinBorderTop">${res.titulo.id}</td>
+                    <th class="sinBorderTop">Motivo</th>
+                    <td class="sinBorderTop">${res.titulo.motivo}</td>
+                </tr>
+                <tr>
+                    <th>Fecha</th>
+                    <td>${changeDateDMY(res.titulo.fecha)}</td>
+                </tr>
+            </table>
+        `
+
+        let tbodyDetalles=''
+        res.detalles.map(el => tbodyDetalles += `
+            <tr>
+                <td>${el.cantidad}</td>
+                <td>${el.descripcion}</td>
+                <td>$ ${formatCurrency(el.precio)}</td>
+                <td>$ ${formatCurrency(el.total)}</td>
+            </tr>
+        `)
+
+        let htmlDetalles = `
+            <div class="mt-4">
+                <table class="table table-sm table-hover">
+                    <thead>
+                        <tr>
+                            <th>Cant.</th>
+                            <th>Descripción</th>
+                            <th>Precio unit.</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>${tbodyDetalles}</tbody>
+                </table>
+            </div>
+        `
+        $('#divVer').html(htmlTitulo+htmlDetalles)
+        $('#modalVer').modal('show')
+        $("#preloaderAPP").hide()
+    }
+
+    const Eliminar = id => {
+        Swal.fire({
+            title: 'Confirmar',
+            text: "¿Desea borrar este registro?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar.',
+            cancelButtonColor: '#d33',
+            cancelButtonText: 'No, cancelar.'
+        }).then(async result => {
+            if (result.isConfirmed) {
+                $("#preloaderAPP").show();
+                let res = await $.post('/movimientos/baja', { id })
+                $("#preloaderAPP").hide();
+                Swal.fire({
+                    type: res.type,
+                    icon: res.icon,
+                    title: res.title,
+                    text: res.text,
+                    timer: 2000
+                }).then(() => {
+                    if(res.status){
+                        CerrarModal()
+                        getLista()
+                    }
+                })
+            }    
+        })
+    }
+
+    const CerrarModal = () => {
+        $('#modal').modal('hide')
+        $('#actionSeccion').addClass('d-none')
+        $('#actionSeccionDivider').addClass('d-none')
+        LimpiarCampos()
+    }
+
+    const LimpiarCampos = () => {
+        $('input[type="text"]:not(#txtFiltro, #txtDesde, #txtHasta)').val('')
+        $('textarea').val('')
+        $('input[type="checkbox"]').prop('checked', false)
+        $('input[type="radio"]').prop('checked', false)
+    }
+
+    const blindar = async (id) => {
+        $("#preloaderAPP").show()
+        const res = await $.post('/movimientos/blindar', {id})
+        $("#preloaderAPP").hide()
+        Swal.fire({
+            icon: res.icon,
+            title: res.title, 
+            html: res.text, 
+            timer: 2500
+        }).then(() => {
+            if(res.status){
+                getLista()
+            }
+        })        
+    }
+
+    const desblindar = async (id) => {
+        $("#preloaderAPP").show()
+        const res = await $.post('/movimientos/desblindar', {id})
+        $("#preloaderAPP").hide()
+        Swal.fire({
+            icon: res.icon,
+            title: res.title, 
+            html: res.text, 
+            timer: 2500
+        }).then(() => {
+            if(res.status){
+                getLista()
+            }
+        })        
+    }
+
+</script>
+{% endblock %}

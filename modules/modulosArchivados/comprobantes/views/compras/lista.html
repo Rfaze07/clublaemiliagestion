@@ -1,0 +1,384 @@
+{% extends '../../../template.html' %}
+
+{% block styles %}
+<style>
+    .textAreaSize {
+        resize: vertical;
+        min-height: 48px;
+        max-height: 100px;
+    }
+    .sinBorderTop { border-top: 0px!important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+    <h2>{{ pagename }}</h2>
+    <div class="d-flex align-items-end mb-3" style="gap: 0.2rem;">
+        <input type="text" class="form-control" id="txtFiltro" placeholder="Buscar" style="width: 10rem;" />
+        <div>
+            <label>Fecha desde</label>
+            <input type="text" class="form-control datepicker" id="txtDesde" style="width: 10rem;" />
+        </div>
+        <div>
+            <label>Fecha hasta</label>
+            <input type="text" class="form-control datepicker" id="txtHasta" style="width: 10rem;" />
+        </div>
+        <button class="btn btn-round btn-primary" data-toggle="tooltip" data-placement="top" title="Buscar" onclick="getLista()">
+            <i class="fa fa-search"></i>
+        </button>
+
+        {% if permisos.a == 1 %}
+            <button class="btn btn-round btn-success modalAccion" data-toggle="tooltip" data-placement="top" title="Nuevo" data-accion="a" onclick='ModalAccion("a")'>
+                <i class="fa fa-plus"></i>
+            </button>
+        {% endif %}
+    </div>
+</div>
+<div class="table-responsive" style="height: calc(100vh - 200px)" id="tablaDatos">
+    <table class="table table-sm table-fix table-hover tableFixHead">
+        <thead>
+            <tr>
+                <th scope="col">Acciones</th>
+                <th scope="col">Fecha real</th>
+                <th scope="col">Proveedor</th>
+                <th scope="col">Tipo de comprob.</th>
+                <th scope="col">Nro. de comprob.</th>
+                <th scope="col">Total</th>
+                <th scope="col">Blindado?</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<!-- MODAL -->
+<div class="modal fade modal-m" data-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    aria-labelledby="staticBackdropLabel" aria-hidden="true" id="modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabel"></h5>
+                <button type="button" class="close" aria-label="Close" onclick="CerrarModal()">
+                    <span aria-hidden=" true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-4">
+                        <label for="txtFecha">Fecha comprob.</label>
+                        <input type="text" class="form-control form-control-sm datepicker" id="txtFecha">
+                    </div>
+                    <div class="form-group col-sm-12 col-md-8">
+                        <label for="cmbTipoComprobante">Tipo comprobante</label>
+                        <select class="form-control form-control-sm" id="cmbTipoComprobante">
+                            {% for tc in tiposComprobantes %}
+                                <option value="{{ tc.id }}">{{ tc.desc_corta }} - {{ tc.descripcion }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12">
+                        <label for="cmbProveedor">Proveedor</label>
+                        <select class="form-control form-control-sm" id="cmbProveedor">
+                            <option value="0" selected>Sin proveedor asignado</option>
+                            {% for p in proveedores %}
+                                <option value="{{ p.id }}">{{ p.razon_social }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-6">
+                        <label for="txtNroComprobante">Nro. comprobante</label>
+                        <input type="text" class="form-control form-control-sm" id="txtNroComprobante" onkeypress="return soloNumeros(event)" autocomplete="off">
+                    </div>
+                    <div class="form-group col-sm-12 col-md-6">
+                        <label for="txtTotal">Total</label>
+                        <input type="text" class="form-control form-control-sm" id="txtTotal" onkeypress="return ValidarEnterosYDecimales(event,this,18,2)" autocomplete="off">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-4">
+                        <label for="txtImpuestosOtros">Imp. otros</label>
+                        <input type="text" class="form-control form-control-sm" id="txtImpuestosOtros" onkeypress="return ValidarEnterosYDecimales(event,this,16,2)" autocomplete="off">
+                    </div>
+                    <div class="form-group col-sm-12 col-md-4">
+                        <label for="txtIbbPba">IIBB PBA</label>
+                        <input type="text" class="form-control form-control-sm" id="txtIbbPba" onkeypress="return ValidarEnterosYDecimales(event,this,16,2)" autocomplete="off">
+                    </div>
+                    <div class="form-group col-sm-12 col-md-4">
+                        <label for="txtPercIva">Perc. IVA</label>
+                        <input type="text" class="form-control form-control-sm" id="txtPercIva" onkeypress="return ValidarEnterosYDecimales(event,this,16,2)" autocomplete="off">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-4">
+                        <label for="txtPercGanancias">Perc. ganancias</label>
+                        <input type="text" class="form-control form-control-sm" id="txtPercGanancias" onkeypress="return ValidarEnterosYDecimales(event,this,16,2)" autocomplete="off">
+                    </div>
+                    <div class="form-group col-sm-12 col-md-4">
+                        <label for="txtPercIbb">Perc. IIBB</label>
+                        <input type="text" class="form-control form-control-sm" id="txtPercIbb" onkeypress="return ValidarEnterosYDecimales(event,this,16,2)" autocomplete="off">
+                    </div>
+                    <div class="form-group col-sm-12 col-md-4">
+                        <label for="txtPercInternos">Perc. internos</label>
+                        <input type="text" class="form-control form-control-sm" id="txtPercInternos" onkeypress="return ValidarEnterosYDecimales(event,this,16,2)" autocomplete="off">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                    onclick="CerrarModal()">Cancelar</button>
+                <button type="button" class="btn btn-success" id="btnAccion">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- MODAL -->
+
+<!-- MODAL VER -->
+<div class="modal fade modal-m" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true" id="modalVer">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Ver más información</h5>
+            </div>
+            <div class="modal-body" id="divVer"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- MODAL VER -->
+{% endblock %}
+
+{% block scripts %}
+<script>
+
+    $(document).ready(() => {
+        $('#txtNroComprobante').mask('9999-99999999')
+        $('#txtDesde').val(generateFirstDateActualMonth())
+        $('#txtHasta').val(generateTodayDate())
+        getLista()
+    })
+
+    $("#txtFiltro").keyup(async function () {
+        Filtrar()
+    })
+    
+    const getLista = async () => {
+        $("#preloaderAPP").show()
+        
+        const body = {  desde: $('#txtDesde').val(), hasta: $('#txtHasta').val() }
+        const res = await $.post('/comprobantesCompras/getlistaAjax', body)
+        let html = ""
+        if(res.status){
+            for (let i = 0; i < res.data.length; i++) {
+                html += `
+                    <tr>
+                        <td>
+                            <div style="display: flex; gap: 2px;">
+                                {% if permisos.m %}
+                                    ${
+                                        res.data[i].blindado ? 
+                                            `<button class="btn btn-round btn-sm btn-info" onclick="Ver(${res.data[i].id})"
+                                                data-toggle="tooltip" data-placement="top" title="Ver">
+                                                <i class="fa fa-eye"></i>
+                                            </button>`
+                                        :
+                                            `<a class="btn btn-round btn-sm btn-warning" role="button" data-accion="m" data-toggle="tooltip" 
+                                                        data-placement="top" title="Modificar" href="/comprobantesCompras/altaItems/${res.data[i].id}">
+                                                <i class="fas fa-list-ol"></i>
+                                            </a>`
+                                    }
+                                {% endif %}
+
+                                {% if permisos.b %}
+                                    <button class="btn btn-round btn-sm btn-danger" onclick="Eliminar(${res.data[i].id})"
+                                        data-toggle="tooltip" data-placement="top" title="Eliminar">
+                                        <i class="fa fa-trash-alt"></i>
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="search">${changeDateDMY(res.data[i].fecha_comprobante)}</td>
+                        <td class="search">${res.data[i].proveedorTxt == null ? 'Sin proveedor asignado' : res.data[i].proveedorTxt}</td>
+                        <td class="search">${res.data[i].tipoComprobanteTxt}</td>
+                        <td class="search">${res.data[i].nroComprobanteTxt}</td>
+                        <td class="search">$ ${formatCurrency(res.data[i].total)}</td>
+                        <td>${res.data[i].blindado ? 'Si' : 'No'}</td>
+                    </tr>`
+            }
+        }else{
+            html = `<tr><td class="font-weight-bold" colspan="15">${res.text}</td></tr>`
+        }
+        $('#tablaDatos tbody').html(html)
+        $('[data-toggle="tooltip"]').tooltip()
+        $("#preloaderAPP").hide()
+    }
+
+    const ModalAccion = async (accion, id) => {
+        $("#preloaderAPP").show()
+        await ObtenerCmbProveedores('cmbProveedor')
+        $('#txtFecha').val(generateTodayDate())
+        if (accion === 'a') {
+            $('#modalLabel').text('Nuevo comprobante de compra')
+            $('#btnAccion').attr('onclick', `PostRegistro("a")`)
+            $('#btnAccion').text('Guardar')
+        }else if (accion == 'm') {
+            let res = await $.post(`/comprobantesCompras/getByIdAjax`,{id})
+            if (res.status != 0) {
+                $('#txtFecha').val(res.data)
+                $('#cmbTipoComprobante').val(res.data)
+                $('#cmbProveedor').val(res.data)
+                $('#txtNroComprobante').val(res.data)
+                $('#txtTotal').val(res.data)
+            }
+            $('#modalLabel').text('Modificar comprobante de compra')
+            $('#btnAccion').text('Guardar')
+            $('#btnAccion').attr('onclick', `PostRegistro("m",${id})`)
+            $('#actionSeccion').removeClass('d-none')
+            $('#actionSeccionDivider').removeClass('d-none')
+        }
+        $("#preloaderAPP").hide()
+        $('#modal').modal('show')
+    }
+
+    const PostRegistro = async (accion, Id) => {
+        $("#preloaderAPP").show()
+        let url = '/comprobantesCompras/alta', 
+            body = {
+                fecha: $('#txtFecha').val(),
+                tipoComprobante: $('#cmbTipoComprobante').val(),
+                proveedor: $('#cmbProveedor').val(),
+                nroComprobante: $('#txtNroComprobante').val(),
+                total: $('#txtTotal').val(),
+                impuestosOtros: $('#txtImpuestosOtros').val(),
+                iibbPba: $('#txtIbbPba').val(),
+                percIva: $('#txtPercIva').val(),
+                percGanancias: $('#txtPercGanancias').val(),
+                percIibb: $('#txtPercIbb').val(),
+                percInternos: $('#txtPercInternos').val()
+            }
+
+        if (accion === 'm') {
+            url = '/comprobantesCompras/modificar'
+            body.activo = $('#chbActivo').prop('checked') ? 1 : 0
+            body.id = Id
+        }
+
+        const res = await $.post(url, body)
+        $("#preloaderAPP").hide()
+        Swal.fire({
+            icon: res.icon,
+            title: res.title, 
+            html: res.text, 
+            timer: 2500
+        }).then(() => {
+            if(res.status){
+                CerrarModal()
+                location = `/comprobantesCompras/altaItems/${res.idComprobanteItem}`
+            }
+        })        
+    }
+
+    const Ver = async id => {
+        $("#preloaderAPP").show()
+        const res = await $.post('/comprobantesCompras/ver', {id})
+        let htmlTitulo = `
+            <table class="table table-sm">
+                <tr>
+                    <th class="sinBorderTop">Tipo comprobante</th>
+                    <td class="sinBorderTop">${res.titulo.tipoComprobanteTxt} ${res.titulo.letra}</td>
+                    <th class="sinBorderTop">Nro. comprobante</th>
+                    <td class="sinBorderTop">${res.titulo.nroComprobanteTxt}</td>
+                </tr>
+                <tr>
+                    <th>Proveedor</th>
+                    <td>${res.titulo.proveedorTxt}</td>
+                    <th>Fecha</th>
+                    <td>${changeDateDMY(res.titulo.fecha_comprobante)}</td>
+                </tr>
+            </table>
+        `
+
+        let tbodyDetalles=''
+        res.detalles.map(el => tbodyDetalles += `
+            <tr>
+                <td>${el.cantidad}</td>
+                <td>${el.descripcion}</td>
+                <td>$ ${formatCurrency(el.precio)}</td>
+                <td>$ ${formatCurrency(el.total)}</td>
+            </tr>
+        `)
+
+        let htmlDetalles = `
+            <div class="mt-4">
+                <table class="table table-sm table-hover">
+                    <thead>
+                        <tr>
+                            <th>Cant.</th>
+                            <th>Descripción</th>
+                            <th>Precio unit.</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>${tbodyDetalles}</tbody>
+                </table>
+            </div>
+        `
+        $('#divVer').html(htmlTitulo+htmlDetalles)
+        $('#modalVer').modal('show')
+        $("#preloaderAPP").hide()
+    }
+
+    const Eliminar = id => {
+        Swal.fire({
+            title: 'Confirmar',
+            text: "¿Desea borrar este registro?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar.',
+            cancelButtonColor: '#d33',
+            cancelButtonText: 'No, cancelar.'
+        }).then(async result => {
+            if (result.isConfirmed) {
+                $("#preloaderAPP").show();
+                let res = await $.post('/comprobantesCompras/eliminar', { id })
+                $("#preloaderAPP").hide();
+                Swal.fire({
+                    type: res.type,
+                    icon: res.icon,
+                    title: res.title,
+                    text: res.text,
+                    timer: 2000
+                }).then(() => {
+                    if(res.status){
+                        CerrarModal()
+                        getLista()
+                    }
+                })
+            }    
+        })
+    }
+
+    const CerrarModal = () => {
+        $('#modal').modal('hide')
+        $('#actionSeccion').addClass('d-none')
+        $('#actionSeccionDivider').addClass('d-none')
+        LimpiarCampos()
+    }
+
+    const LimpiarCampos = () => {
+        $('input[type="text"]').val('')
+        $('textarea').val('')
+        $('input[type="checkbox"]').prop('checked', false)
+        $('input[type="radio"]').prop('checked', false)
+    }
+
+</script>
+{% endblock %}

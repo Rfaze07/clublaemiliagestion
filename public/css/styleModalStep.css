@@ -1,0 +1,11 @@
+.connecting-line {
+    height: 2px;
+    background: #e0e0e0;
+    position: absolute;
+    width: 65%;
+    margin: 0 auto;
+    left: 130px;
+    right: 0;
+    top: 13px;
+    z-index: 1;
+}

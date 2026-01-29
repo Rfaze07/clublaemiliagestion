@@ -1,0 +1,130 @@
+{% extends '../../template.html' %}
+
+{% block title %}Bienvenido - Torneo Acercamiento{% endblock %}
+
+
+{% block styles %}
+
+<style>
+  /*carta producto*/
+/* Reset básico */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+
+/* GRID */
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 20px;
+    padding: 40px;
+    background-color: #f5f5f5;
+}
+
+/* CARD */
+.product-card {
+    background-color: #fff;
+    padding: 16px;
+    border-radius: 6px;
+    border: 1px solid #e0e0e0;
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow .2s ease, transform .2s ease;
+}
+
+.product-card:hover {
+    box-shadow: 0 8px 20px rgba(0,0,0,.12);
+    transform: translateY(-4px);
+}
+
+/* IMAGEN */
+.product-image {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    background-color: #fafafa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+}
+
+.product-image img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+/* TEXTO */
+.product-title {
+    font-size: 14px;
+    font-weight: 400;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.product-price {
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+
+/* BOTÓN */
+.product-actions {
+    display: flex;
+    flex-direction: column; /* uno abajo del otro */
+    gap: 10px;              /* separación */
+    margin-top: auto;
+}
+
+.product-btn {
+    padding: 10px;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    background-color: #3483fa;
+    color: #fff;
+}
+
+.product-btn.secondary {
+    background-color: #e9ecef;
+    color: #333;
+}
+
+</style>
+{% endblock %}
+
+    <article class="product-card">
+        <div class="product-image">
+            <img src="/img/logo2.png" alt="Producto 1">
+        </div>
+
+        <h3 class="product-title">Producto Ejemplo</h3>
+        <p class="product-price">$ 19.999</p>
+
+        <div class="product-actions">
+            <button class="product-btn">Agregar al carrito</button>
+            <button class="product-btn secondary">Ver detalle del producto</button>
+        </div>
+    </article>
+
+{% block content %}
+    
+
+
+
+
+
+
+{% endblock %}
+
+
+
+{% block scripts %}
+
+<script type="text/javascript">
+</script>
+{% endblock %}

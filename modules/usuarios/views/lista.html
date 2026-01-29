@@ -1,0 +1,121 @@
+{% extends '../../template.html' %}
+
+{% block styles %} 
+    <style type="text/css">
+        .btn:disabled{
+            cursor: no-drop;
+        }
+        .ops{
+            text-align: center;
+            padding: 0.1rem .75rem !important;
+            vertical-align: middle !important;
+        }
+        .ops [disabled]{
+            opacity: 0.2;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-12 d-flex">
+            <h4 id="title"><i class="fa fa-users"></i>&nbsp;{{ pagename }}</h4>
+            <a id="btnNuevo" href="/Usuarios/alta" class="btn btn-round btn-success ml-auto"><i class="fa fa-plus"></i> Nuevo</a>
+        </div>
+        <div class="col-12 mt-4" style="overflow-x: auto;">
+            <table class="table table-hover tableFixHead" id="tablaUsuarios">
+                <thead>
+                    <th style="text-align: center; width: 190px;min-width: 190px;">Acciones</th>
+                    <th style="min-width: 130px;">Nombre de usuario</th>
+                    <th>Mail</th>
+                    <th>Fecha Alta</th>
+                    <th>Nivel</th>
+                    <th style="text-align: right;">Activo?</th>
+                </thead>
+                <tbody>
+                    {% for u in usuarios %}
+                        {% if u.usuario.trim().indexOf("franco2") < 0 %}
+                        <tr>
+                            <td class="ops">
+                                <a href="/usuarios/modificar/{{u.unica}}" class="btn btn-round btn-sm btn-warning" title="Modificar" data-toggle="tooltip"><i class="fa fa-pen"></i></a>
+                                <a href="/usuarios/accesos/lista/{{u.unica}}" class="btn btn-round btn-sm btn-dark" title="Permisos" data-toggle="tooltip"><i class="fa fa-shield-alt"></i></a>
+                                <button class="btn btn-round btn-sm btn-info" title="Resetear Contraseña" data-toggle="tooltip" onclick="ResetPass('{{ u.unica }}','{{ u.usuario }}')" {% if u.unica == unica %}disabled{% endif %}><i class="fa fa-key"></i></button>
+                                <button class="btn btn-round btn-sm btn-danger" data-toggle="tooltip" onclick="BorrarUsuario('{{ u.unica }}')"
+                                    data-id="{{ u.unica }}" title="Borrar" {% if u.unica == unica %}disabled{% endif %}><i class="fa fa-trash-alt"></i></button>
+                            </td>
+                            <td>{{ u.usuario }}</td>
+                            <td>{{ u.mail }}</td>
+                            <td>{{ u.alta | date('d/m/Y') }}</td>
+                            <td>{{ u.niveles }}</td>
+                            <td style="text-align: right;">{% if u.activa == 1 %} Si {% else %} No {% endif %}</td>
+                        </tr>
+                        {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $('[data-toggle="tooltip"]').tooltip();
+
+    async function BorrarUsuario(unica) {
+        Swal.fire({
+            title: 'Confirmar',
+            text: "Desea borrar este usuario?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Aceptar',
+            cancelButtonText: 'Cancelar',
+        }).then(async result => {
+            if (result.value) {
+                $("#preloader").show();
+                const res = await $.post("/usuarios/lista/borrar", { unica });
+                $("#preloader").hide();
+                Swal.fire({
+                    icon: res.type,
+                    title: res.title,
+                    text: res.text
+                }).then(() => {
+                    if (res.type == 'success') location.reload();
+                });
+            }
+        });
+    }
+
+    async function ResetPass(unica, user) {
+        Swal.fire({
+            title: 'Resetear Contraseña',
+            html: "Usuario: <b>\""+user+"\"</b><br><br>",
+            icon: 'warning',
+            input: 'password',
+            inputPlaceholder: 'Ingrese la nueva contraseña',
+            inputAttributes: {
+                maxlength: 20,
+                autocapitalize: 'off',
+                autocorrect: 'off'
+            },
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Aceptar',
+            cancelButtonText: 'Cancelar',
+        }).then(async result => {
+            if (result.value) {
+                $("#preloader").show();
+                const res = await $.post("/restartPass", { unica, pass: result.value });
+                $("#preloader").hide();
+                Swal.fire({
+                    icon: res.type,
+                    title: res.title,
+                    html: res.html
+                })
+            }
+        });
+    }
+</script>
+{% endblock %}

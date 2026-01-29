@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es-ES">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>{{ pagename }}</title>
+        <link rel="icon" type="image/png" href="/img/favicon.ico">
+        <link rel="stylesheet" href="/css/bootstrap.min.css">
+        <style>
+            body { font-family: Arial, Helvetica, sans-serif; background-color: #fff; padding: 16px 0; margin: 0 auto; }
+            .logo { width: 128px; }
+            h4 { font-weight: 700; margin: 0; }
+            .negrita { font-weight: 700; }
+            .table thead th { border-bottom: 1px solid #000000; }
+            .table td, .table th { border-top: 1px solid #000; }
+            .table { margin-bottom: 0; }
+            .lineaFirma { border-top: 1px solid #000!important; border-top-width: 15px; }
+            .heightFooter { padding-top: 75px; }
+            .recuadro { padding: 8px; border: 1px solid #000; border-radius: 4px; }
+            .heightRow { height: 35px; }
+        </style>
+    </head>
+    <body>
+        {% set rows = ['','','','',''] %}
+        <div class="container">
+            <div class="recuadro d-flex justify-content-around align-items-center">
+                <img src="/img/logo.png" class="logo" />
+                <h4>Órden de Trabajo Nº {{ orden.nroOT }}</h4>
+            </div>
+            <div class="recuadro mt-2">
+                <div class="row">
+                    <div class="col-4">
+                        <span class="negrita">Fecha:</span>
+                        <span>{{ orden.fecha | date('d/m/Y') }}</span>
+                    </div>
+                    <div class="col-4">
+                        <span class="negrita">Tipo:</span>
+                        <span>{{ orden.otTipoTxt }}</span>
+                    </div>
+                    <div class="col-4">
+                        <span class="negrita">Estado:</span>
+                        <span>{{ orden.otEstadoTxt }}</span>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-6">
+                        <span class="negrita">Coche:</span>
+                        <span>({{ orden.patente }}) - {{ orden.tipoVehiculoTxt }}</span>
+                    </div>
+                    <div class="col-6">
+                        <span class="negrita">Responsable:</span>
+                        <span>({{ orden.nro_legajo }}) {{ orden.apellido }}, {{ orden.nombre }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="recuadro mt-2 p-0">
+                <div class="card p-0 w-100">
+                    <div class="card-header p-2 text-center"><strong>Movimientos</strong></div>
+                    <div class="card-body p-0">
+                        <table class="table table-sm table-fix tableFixHead">
+                            <thead>
+                                <tr>
+                                    <th class="text-center">Cantidad</th>
+                                    <th>Componente</th>
+                                    <th>Ubicación</th>
+                                    <th>Imputación</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for m in movimientos %}
+                                    <tr>
+                                        <td class="text-center">{{ m.cantidad }}</td>
+                                        <td>{{ m.repuestoTxt }}</td>
+                                        <td>{{ m.ubicacionTxt }}</td>
+                                        <td>{{ m.imputacionTxt }}</td>
+                                    </tr>
+                                {% endfor %}
+                                {% for r in rows %}
+                                    <tr>
+                                        <td class="heightRow"></td>
+                                        <td class="heightRow"></td>
+                                        <td class="heightRow"></td>
+                                        <td class="heightRow"></td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="recuadro mt-2 p-0">
+                <div class="card p-0 w-100 ">
+                    <div class="card-header p-2 text-center"><strong>Tareas</strong></div>
+                    <div class="card-body p-0">
+                        <table class="table table-sm table-fix tableFixHead">
+                            <thead>
+                                <tr>
+                                    <th class="text-center">#</th>
+                                    <th>Tarea</th>
+                                    <th>Detalles</th>
+                                    <th>Imputación</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for t in tareas %}
+                                    <tr>
+                                        <td class="text-center">{{ loop.index }}</td>
+                                        <td>{{ t.tarea }}</td>
+                                        <td>{{ t.detalles }}</td>
+                                        <td>{{ t.imputacionTxt }}</td>
+                                    </tr>
+                                {% endfor %}
+                                {% for r in rows %}
+                                    <tr>
+                                        <td class="heightRow"></td>
+                                        <td class="heightRow"></td>
+                                        <td class="heightRow"></td>
+                                        <td class="heightRow"></td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="recuadro mt-2 p-0">
+                <div class="card p-0 w-100 ">
+                    <div class="card-header p-2 text-center"><strong>Novedades</strong></div>
+                    <div class="card-body p-0">
+                        <table class="table table-sm table-fix tableFixHead">
+                            <thead>
+                                <tr>
+                                    <th class="text-center">#</th>
+                                    <th>Novedad</th>
+                                    <th>Imputacion</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for n in novedades %}
+                                    <tr>
+                                        <td class="text-center">{{ loop.index }}</td>
+                                        <td>{{ n.descripcion }}</td>
+                                        <td>{{ n.imputacion }}</td>
+                                    </tr>
+                                {% endfor %}
+                                {% for r in rows %}
+                                    <tr>
+                                        <td class="heightRow"></td>
+                                        <td class="heightRow"></td>
+                                        <td class="heightRow"></td>
+                                        <td class="heightRow"></td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="recuadro mt-2 p-2">
+                <div class="row">
+                    <div class="col-12">
+                        <span class="negrita">Observaciones:</span>
+                        {{ orden.observaciones }}
+                    </div>
+                </div>
+            </div>
+            <div class="recuadro mt-2 p-2">
+                <div class="row justify-content-around align-items-end heightFooter text-center">
+                    <div class="col-3">
+                        <span class="negrita">Impreso:</span>
+                        <span>{{ orden.impreso }}</span>
+                    </div>
+                    <div class="col-3 lineaFirma">
+                        <span class="negrita">Firma</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+    <script>
+        window.print()
+		addEventListener("afterprint", (event) => { window.close() })
+    </script>
+</html>

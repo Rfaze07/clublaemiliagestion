@@ -1,0 +1,96 @@
+{% extends '../../template.html' %}
+
+{% block styles %}
+<style>
+    .textAreaSize {
+        resize: vertical;
+        min-height: 48px;
+        max-height: 100px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+    <h2>{{ pagename }}</h2>
+    <div class="d-flex align-items-end mb-3" style="gap: 0.2rem;">
+        <div>
+            <label for="cmbTipoVehiculo2">Tipo vehículo</label>
+            <select class="form-control selectpicker" id="cmbTipoVehiculo2" onchange="ObtenerCmbVehiculoTipoVehiculo('cmbVehiculo2', this.value)"></select>
+        </div>
+        <div>
+            <label for="cmbVehiculo2">Vehículo</label>
+            <select class="form-control selectpicker" id="cmbVehiculo2" onchange="getLista()"></select>
+        </div>
+    </div>
+</div>
+
+
+   <!--COMPONENTES VEHICULO--->
+    <div class="col-sm-12">
+        <div class="card">
+            <h5 class="card-header">
+                <div class="row justify-content-between pr-2 pl-2">
+                    <strong>Componentes</strong>
+                </div>
+            </h5>
+            <div class="card-body p-0">
+                <div class="table-responsive altoTabla" id="tablaComponentes">
+                    <table class="table table-sm table-fix table-hover tableFixHead">
+                        <thead>
+                            <tr>
+                                <th>Repuesto</th>
+                                <th>Nro. de Serie</th>
+                                <th>Marca</th>
+                                <th>Ubicacion</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--MOVIMIENTOS COMPONENTES -->
+
+
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+   
+    $(document).ready(async () => {
+        ObtenerCmbTipoVehiculo2('cmbTipoVehiculo2')
+        getLista()
+    })
+    
+    
+    const getLista = async () => {
+        $("#preloaderAPP").show()
+        const res = await $.post('/formacionCoches/getComponentesVehiculo', {id: $('#cmbVehiculo2').val()})
+        if(!res.status && res.error) window.location.href='/inicio'
+        let html = ''
+        if(res.status){
+            for (let i = 0; i < res.data.length; i++) {
+                html += `
+                <tr>
+                    <td>${res.data[i].repuesto_descripcion}</td>
+                    <td>${res.data[i].nro_serie}</td>
+                    <td>${res.data[i].marca}</td>
+                    <td>${res.data[i].ubicacion}</td>
+                </tr>`
+            }
+        }else{
+            html = `<tr><td class="font-weight-bold" colspan="10">${res.text}</td></tr>`
+        }
+        $('#tablaComponentes tbody').html(html)
+        $("#preloaderAPP").hide()
+        $('[data-toggle="tooltip"]').tooltip()
+    }
+
+    
+
+    
+</script>
+{% endblock %}

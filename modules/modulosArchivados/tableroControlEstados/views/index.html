@@ -1,0 +1,148 @@
+{% extends '../../template.html' %}
+
+{% block styles %}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+    <h2>{{ pagename }}</h2>
+    <div class="d-flex align-items-end justify-content-end mb-3" style="gap: 0.2rem;">
+        <input type="text" class="form-control form-control-sm" id="txtFiltro" placeholder="Buscar" style="width: 10rem;" />
+        <div class="col-xs-12 col-md-3">
+            <label for="txtDesde">Fecha desde</label>
+            <input type="text" class="form-control form-control-sm datepicker" autocomplete="off" id="txtDesde">
+        </div>
+        <div class="col-xs-12 col-md-3">
+            <label for="txtHasta">Fecha hasta</label>
+            <input type="text" class="form-control form-control-sm datepicker" autocomplete="off" id="txtHasta">
+        </div>
+    </div>
+</div>
+<div class="table-responsive" style="height: calc(100vh - 200px)" id="tablaDatos">
+    <table class="table table-sm table-fix table-hover tableFixHead">
+        <thead>
+            <tr>
+                <th scope="col" class="text-center">Acciones</th>
+                <th scope="col">Fecha</th>
+                <th scope="col">Cliente</th>
+                <th scope="col">Proyecto</th>
+                <th scope="col" class="text-center" >Hs. trabajadas</th>
+                <th scope="col" class="text-center" >Hs. proyecto</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<!-- MODAL -->
+<div class="modal fade" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true" id="modal">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Ver más información</h5>
+                <button type="button" class="close" aria-label="Close">
+                    <span aria-hidden=" true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-0">
+                <table class="table table-sm table-fix table-hover tableFixHead" id="tablaModal">
+                    <thead>
+                        <tr>
+                            <th>Fecha y hora</th>
+                            <th>Empleado</th>
+                            <th>Descripción hs.</th>
+                            <th>Hs. trabajadas</th>
+                            <th>Hs. proyecto</th>
+                            <th>Tarea</th>
+                            <th>Cargo</th>
+                            <th>Proyecto</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $('#txtDesde').val(generateFirstDateActualMonth())
+    $('#txtHasta').val(generateTodayDateDMY())
+
+    $(document).ready(() => {
+        getLista()
+    })
+
+    $("#txtFiltro").keyup(async function () {
+        Filtrar()
+    })
+    
+    const getLista = async () => {
+        $("#preloaderAPP").show()
+        const res = await $.post('/tableroControlEstados/getlistaAjax', { desde: $('#txtDesde').val(), hasta: $('#txtHasta').val() })
+        let html = ""
+        if(res.status){
+            for (let i = 0; i < res.data.length; i++) {
+                html += `
+                    <tr>
+                        <td class="text-center">
+                            <button class="btn btn-round btn-sm btn-info" data-accion="v"
+                                data-toggle="tooltip" data-placement="top" title="Ver más" onclick="Ver(${res.data[i].id})">
+                                <i class="fa fa-eye"></i>
+                            </button>
+                        </td>
+                        <td class="search">${changeDateDMY(res.data[i].fechaProyecto)}</td>
+                        <td class="search">${res.data[i].clienteTxt}</td>
+                        <td class="search">${res.data[i].proyectoTxt}</td>
+                        <td class="search text-center">${formatCurrency(res.data[i].horasTrabajadas)}</td>
+                        <td class="search text-center">${formatCurrency(res.data[i].horasTareas)}</td>
+                    </tr>`
+            }
+        }else{
+            html = `<tr><td class="font-weight-bold" colspan="4">${res.text}</td></tr>`
+        }
+        $('#tablaDatos tbody').html(html)
+        $("#preloaderAPP").hide()
+    }
+
+    const Ver = async id => {
+        $("#preloaderAPP").show()
+        const res = await $.post('/tableroControlEstados/getVerAjax', {id})
+        if(!res.status) return Swal.fire(res.title, res.text, res.icon)
+        let html=''
+        if(res.data.length > 0){
+            res.data.map(el => html += `
+                <tr>
+                    <td>${changeDateDMYHMS(el.fechaHoraTxt)}</td>
+                    <td>${el.empleadoTxt}</td>
+                    <td>${el.horaDescTxt}</td>
+                    <td class="text-center">${el.horasTrabajadas}</td>
+                    <td class="text-center">${el.horasTareas}</td>
+                    <td>${el.tareaTxt}</td>
+                    <td>${el.cargoTxt}</td>
+                    <td>${el.proyectoTxt}</td>
+                </tr>
+            `)
+        }
+
+        $('#tablaModal tbody').html(html)
+        $('#modal').modal('show')
+        $("#preloaderAPP").hide()
+    }
+
+    const Filtrar = () => {
+        $('#tablaDatos tbody tr').each(function () {
+            if ($(this).find('td.search').text().toUpperCase().indexOf($('#txtFiltro').val().toUpperCase()) > -1)
+                $(this).closest('tr').show();
+            else
+                $(this).closest('tr').hide();
+        })
+    }
+
+</script>
+{% endblock %}

@@ -1,0 +1,545 @@
+{% extends '../../template.html' %}
+
+{% block styles %}
+<style>
+    .textAreaSize {
+        resize: vertical;
+        min-height: 48px;
+        max-height: 100px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+    <h2>{{ pagename }}</h2>
+    <div class="d-flex align-items-end mb-3" style="gap: 0.2rem;">
+        <input type="text" class="form-control" id="txtFiltro" placeholder="Buscar" style="width: 10rem;" />
+        <div>
+            <label>Activos</label>
+            <select class="form-control" id="cmbActivoFiltro" onchange="getLista()">
+                <option value="t" selected>Todos</option>
+                <option value="1">Si</option>
+                <option value="0">No</option>
+            </select>
+        </div>
+        {% if permisos.a == 1 %}
+            <button class="btn btn-round btn-success modalAccion mr-1" data-accion="a" onclick='ModalAccion("a")'>
+                <i class="fa fa-plus"></i>
+            </button>
+        {% endif %}
+    </div>
+</div>
+<div class="table-responsive" style="height: calc(100vh - 200px)">
+    <table class="table table-sm table-fix table-hover tableFixHead" id="tablaProyectos">
+        <thead>
+            <tr>
+                <th>Acciones</th>
+                <th>Fecha</th>
+                <th>Cliente</th>
+                <th>Descripción</th>
+                <th>Estado</th>
+                <th>Activo</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<!-- MODAL -->
+<div class="modal fade" id="modalProyectos" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabel"></h5>
+                <button type="button" class="close" aria-label="Close" onclick="CerrarModal()">
+                    <span aria-hidden=" true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-sm-12 col-md-8">
+                        <label for="cmbCliente">Cliente</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbCliente">
+                            <option value="" selected disabled>Seleccione un cliente...</option>
+                            {% for c in clientes %}
+                                <option value="{{ c.id }}">{{ c.razon_social }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-sm-12 col-md-4">
+                        <label for="txtDescCorta">Fecha</label>
+                        <input type="text" class="form-control form-control-sm datepicker" id="txtFecha">
+                    </div>
+                </div>
+                <div class="dropdown-divider"></div>
+                <div class="row">
+                    <div class="col-sm-12 col-md-7">
+                        <label for="txtDescripcion">Descripción</label>
+                        <input type="text" class="form-control form-control-sm" id="txtDescripcion">
+                    </div>
+                    <div class="col-sm-12 col-md-5">
+                        <label for="txtDescCorta">Desc. corta o código</label>
+                        <input type="text" class="form-control form-control-sm" id="txtDescCorta">
+                    </div>
+                </div>
+                <div class="dropdown-divider"></div>
+                <div class="row">
+                    <div class="col-sm-12 col-md-6">
+                        <label for="cmbProvincia">Provincia</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbProvincia" onchange="SeleccionaProvincia(this.value)">
+                            <option value="" selected disabled>Seleccione una provincia...</option>
+                            {% for p in provincias %}
+                                <option value="{{ p.id }}">{{ p.descripcion }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-sm-12 col-md-6">
+                        <label for="cmbLocalidad">Localidad</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbLocalidad" disabled></select>
+                    </div>
+                </div>
+                <div class="dropdown-divider"></div>
+                <div class="row">
+                    <div class="col-sm-12 col-md-4">
+                        <label for="txtResponsable">Responsable</label>
+                        <input type="text" class="form-control form-control-sm" id="txtResponsable" maxlength="60">
+                    </div>
+                    <div class="col-sm-12 col-md-4">
+                        <label for="txtMail">Mail responsable</label>
+                        <input type="email" class="form-control form-control-sm" id="txtMail">
+                    </div>
+                    <div class="col-sm-12 col-md-4">
+                        <label for="txtTelefono">Teléfono responsable </label>
+                        <input type="text" class="form-control form-control-sm" id="txtTelefono" onkeypress="return soloNumeros(event)">
+                    </div>
+                </div>
+                <div class="dropdown-divider"></div>
+                <div class="row">
+                    <div class="col-sm-12">
+                        <label for="txtObservaciones">Observaciones</label>
+                        <textarea class="form-control form-control-sm" id="txtObservaciones" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="dropdown-divider d-none" id="actionSeccionDivider"></div>
+                <div class="row d-none" id="actionSeccion">
+                    <div class="col-12 row justify-content-center pt-2">
+                        <div class="custom-control custom-switch ml-1">
+                            <input type="checkbox" class="custom-control-input" id="chbActivo" />
+                            <label class="custom-control-label" for="chbActivo">Activo</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="CerrarModal()">Cancelar</button>
+                <button type="button" class="btn btn-success" id="btnAccion">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- MODAL -->
+
+<!-- MODAL VER -->
+<div class="modal fade" id="modalVer" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Ver más información</h5>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-sm-12 col-md-7">
+                        <label for="txtDescripcionV">Descripción</label>
+                        <input type="text" class="form-control form-control-sm" id="txtDescripcionV" disabled readonly>
+                    </div>
+                    <div class="col-sm-12 col-md-5">
+                        <label for="txtDescCortaV">Desc. corta o código</label>
+                        <input type="text" class="form-control form-control-sm" id="txtDescCortaV" disabled readonly>
+                    </div>
+                </div>
+                <div class="dropdown-divider"></div>
+                <div class="row">
+                    <div class="col-sm-12 col-md-5">
+                        <label for="txtClienteV">Cliente</label>
+                        <input type="text" class="form-control form-control-sm" id="txtClienteV" disabled readonly>
+                    </div>
+                    <div class="col-sm-12 col-md-3">
+                        <label for="txtProvinciaV">Provincia</label>
+                        <input type="text" class="form-control form-control-sm" id="txtProvinciaV" disabled readonly>
+                    </div>
+                    <div class="col-sm-12 col-md-4">
+                        <label for="txtLocalidadV">Localidad</label>
+                        <input type="text" class="form-control form-control-sm" id="txtLocalidadV" disabled readonly>
+                    </div>
+                </div>
+                <div class="dropdown-divider"></div>
+                <div class="row">
+                    <div class="col-sm-12 col-md-4">
+                        <label for="txtResponsableV">Responsable</label>
+                        <input type="text" class="form-control form-control-sm" id="txtResponsableV" disabled readonly>
+                    </div>
+                    <div class="col-sm-12 col-md-4">
+                        <label for="txtMailV">Mail responsable</label>
+                        <input type="text" class="form-control form-control-sm" id="txtMailV" disabled readonly>
+                    </div>
+                    <div class="col-sm-12 col-md-4">
+                        <label for="txtTelefonoV">Teléfono responsable </label>
+                        <input type="text" class="form-control form-control-sm" id="txtTelefonoV" disabled readonly>
+                    </div>
+                </div>
+                <div class="dropdown-divider"></div>
+                <div class="row">
+                    <div class="col-sm-12">
+                        <label for="txtObservacionesV">Observaciones</label>
+                        <textarea class="form-control form-control-sm" id="txtObservacionesV" rows="3" disabled readonly></textarea>
+                    </div>
+                </div>
+                <div class="card mt-4">
+                    <h5 class="card-header">Detalle de tareas</h5>
+                    <div class="card-body p-0">
+                        <div style="max-height: calc(100vh - 510px); overflow-y: auto;">
+                            <table class="table table-sm tableFixHead" id="tableDetalleTareas">
+                                <thead>
+                                    <tr>
+                                        <th class="text-center">Cantidad</th>
+                                        <th>Uni. med.</th>
+                                        <th>Tarea</th>
+                                        <th>% KPI.</th>
+                                        <th class="text-center">Precio</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="card mt-1">
+                    <div class="card-header">
+                        <h5 class="m-0 p-0 text-right font-weight-bold">TOTAL $ <span id="divTotales"></span></h5>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- MODAL VER -->
+
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript">
+    
+    $(document).ready(async () => {
+        CheckQuery()
+        $('#txtFecha').val(generateTodayDate())
+        $('#cmbLocalidad').prop('disabled', true)
+        getLista()
+    })
+
+    $(document).on('input', '#txtFiltro', function(){
+        FiltrarTablas('tablaProyectos','txtFiltro')
+    })
+
+    const getLista = async () => {
+        let html = '<tr><td colspan="20">Sin registros.</td></tr>',
+            res = await $.post(`/proyectos/listaAjax`, { activo: $('#cmbActivoFiltro').val() })
+
+        if(res.status){
+            html=''
+            for(let i=0; i<res.data.length; i++){
+                html += `
+                <tr>
+                    <td>
+                        <div style="display: flex; gap: 2px;">
+                                <button class="btn btn-round btn-sm btn-info" onclick="VerProyecto(${res.data[i].id})"
+                                    data-toggle="tooltip" data-placement="top" title="Ver proyecto">
+                                    <i class="fa fa-eye"></i>
+                                </button>
+                                {% if permisos.m == 1 %}
+                                    ${
+                                        res.data[i].id_estado_fk < 2 ? 
+                                            `<a class="btn btn-round btn-sm btn-info" role="button" data-accion="m" data-toggle="tooltip" 
+                                                        data-placement="top" title="Tareas" href="/proyectos/altaItems/${res.data[i].id}">
+                                                <i class="fas fa-list-ol"></i>
+                                            </a>
+                                            <button class="btn btn-round btn-sm btn-warning" onclick="ModalAccion('m', ${res.data[i].id})"
+                                                data-toggle="tooltip" data-placement="top" title="Modificar">
+                                                <i class="fa fa-pen"></i>
+                                            </button>`
+                                        :
+                                            ''
+                                    }
+                                    ${
+                                        res.data[i].id_estado_fk == 2 ? 
+                                            `<button class="btn btn-round btn-sm btn-secondary" onclick="ActualizarEstado(${res.data[i].id})"
+                                                data-toggle="tooltip" data-placement="top" title="Actualizar estado">
+                                                <i class="fa fa-sync"></i>
+                                            </button>`
+                                        :
+                                            ''
+                                    }
+                                {% endif %}
+
+                                {% if permisos.b == 1 %}
+                                    ${
+                                        res.data[i].id_estado_fk <= 2 ? 
+                                        `<button class="btn btn-round btn-sm btn-danger" onclick="Eliminar(${res.data[i].id})"
+                                            data-toggle="tooltip" data-placement="top" title="Eliminar">
+                                            <i class="fa fa-trash-alt"></i>
+                                        </button>`
+                                        :
+                                        ''
+                                    }
+                                {% endif %}
+                            </div>
+                    </td>
+                    <td class="search">${changeDateDMY(res.data[i].fecha)}</td>
+                    <td class="search">${res.data[i].clienteTxt}</td>
+                    <td class="search">(${res.data[i].desc_corta}) ${res.data[i].descripcion}</td>
+                    <td class="search">${res.data[i].estadoTxt}</td>
+                    <td>${res.data[i].activo === 1 ? 'Si' : 'No'}</td>
+                </tr>`
+            }
+        }
+
+        $('#tablaProyectos tbody').html(html)
+    }
+
+    const ModalAccion = async (accion, id) => {
+        if (accion === 'a') {
+            $('#modalLabel').text('Nuevo proyecto')
+            $('#btnAccion').attr('onclick', `PostRegistro("a")`)
+            $('#btnAccion').text('Guardar')
+            AbrirModal()
+        }else if (accion === 'm' || accion === 'v') {
+            let res = await $.post(`/proyectos/getModificar`, {id})
+            if(!res.status) return Swal.fire(res.title, res.text, res.icon)
+            await CargarDatosModificar(res.data, accion)
+            if(accion == 'v'){
+                $('#modalLabel').text('Ver proyecto')
+                $("input,textarea,select.form-control").attr("disabled", true)
+                $('.selectpicker').selectpicker('refresh')
+                $('#btnAccion').hide()
+            }else{
+                $('#modalLabel').text('Modificar proyecto')
+                $('#btnAccion').text('Guardar')
+                $('#btnAccion').show()
+                $('#btnAccion').attr('onclick', `PostRegistro("m", ${id})`)
+            }
+            
+            $('#actionSeccion').removeClass('d-none')
+            $('#actionSeccionDivider').removeClass('d-none')
+            AbrirModal()
+        }
+    }
+
+    const PostRegistro = async (accion, id) => {
+        let body = {
+            fecha: $('#txtFecha').val(),
+            descripcion: $('#txtDescripcion').val(),
+            descCorta: $('#txtDescCorta').val(),
+            localidad: $('#cmbLocalidad').val(),
+            cliente : $('#cmbCliente').val(),
+            responsable : $('#txtResponsable').val(),
+            mailRes: $('#txtMail').val(),
+            telefonoRes: $('#txtTelefono').val(),
+            observaciones: $('#txtObservaciones').val()
+        }
+        
+        if (accion == 'm') {
+            body.activo = $('#chbActivo').is(':checked')
+            body.id = id
+        }
+
+        let res = await $.post(`/proyectos/${accion === 'a' ? 'alta' : 'modificar'}`, body)
+        Swal.fire({
+            icon: res.icon,
+            title: res.title,
+            text: res.text,
+            timer: 5000
+        }).then(() => {
+            if(res.status){
+                $('#cmbActivoFiltro').val('t')
+                getLista()
+                CerrarModal()
+            }
+        })
+    }
+
+    const SeleccionaProvincia = async idProvincia => {
+        await ActualizarLocalidad(idProvincia)
+    }
+
+    const ActualizarLocalidad = async (id, esVer) => {
+        return new Promise(async (resolve, reject) => {
+            let provincia = parseInt($('#cmbProvincia').val());
+            try {
+                let html='<option value="" selected disabled>Seleccione una provincia...</option>', 
+                    res = await $.post('/localidades/listaAjax', { id })
+
+                for(let i=0; i<res.length; i++) 
+                    html += `<option value="${res[i].id}">${res[i].cp} - ${res[i].localidad}</option>`
+                
+                if(esVer){
+                    $('#cmbLocalidadV').html(html)
+                    $('#cmbLocalidadV').selectpicker('refresh')
+                }else{
+                    $('#cmbLocalidad').prop('disabled', false)
+                    $('#cmbLocalidad').html(html)
+                    $('#cmbLocalidad').selectpicker('refresh')
+                }
+                resolve()
+            } catch (error) {
+                reject(error)
+            }
+        })
+    }
+
+    const Borrar = id => {
+        Swal.fire({
+            title: 'Advertencia',
+            text: "¿Desea borrar este registro?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar.',
+            cancelButtonColor: '#d33',
+            cancelButtonText: 'No, cancelar.'
+        }).then(async result => {
+            if (result.isConfirmed) {
+                let res = await $.post('/proyectos/borrar', { id })
+                Swal.fire({
+                    icon: res.icon,
+                    title: res.title,
+                    text: res.text
+                })
+                getLista()
+            }
+        })
+    }
+
+    const AbrirModal = () => {
+        $('#modalProyectos').modal('show')
+    }
+
+    const CerrarModal = () => {
+        $('#modalProyectos').modal('hide')
+        $('#actionSeccion').addClass('d-none')
+        $('#actionSeccionDivider').addClass('d-none')
+        LimpiarCampos()
+    }
+
+    const CargarDatosModificar = async (o, accion) => {
+        $('#txtFecha').val(o.fecha)
+        $('#txtDescripcion').val(o.descripcion)
+        $('#txtDescCorta').val(o.desc_corta)
+        $('#cmbCliente').val(o.id_cliente_fk)
+        $('#cmbProvincia').val(o.id_provincia)
+        $('.selectpicker').selectpicker('refresh')
+        await ActualizarLocalidad(o.id_provincia_fk)
+        $('#cmbLocalidad').val(o.id_localidad_fk)
+        $('#txtResponsable').val(o.responsable)
+        $('#txtMail').val(o.email_responsable)
+        $('#txtTelefono').val(o.tel_responsable)
+        $('#txtObservaciones').val(o.observacion)
+        $('#chbActivo').prop('checked', o.activo == 1)
+        $('.selectpicker').selectpicker('refresh')
+        $('#modalProyectos').modal('show')
+    }
+
+    const LimpiarCampos = () => {
+        $('input[type="text"], input[type="email"], textarea').val('')
+        $('input[type="checkbox"], input[type="radio"]').prop('checked', false)
+        $('select').val('0')
+        $('#cmbLocalidad').prop('disabled', true)
+        $('#txtFecha').val(generateTodayDate())
+        $('#cmbActivoFiltro').val('t')
+        $('.selectpicker').selectpicker('refresh')
+    }
+
+    const VerProyecto = async id => {
+        let res = await $.post('/proyectos/ver', {id})
+        $('#txtDescripcionV').val(res.titulo.descripcion)
+        $('#txtDescCortaV').val(res.titulo.desc_corta)
+        $('#txtClienteV').val(res.titulo.clienteTxt)
+        $('#txtProvinciaV').val(res.titulo.provinciaTxt)
+        $('#txtLocalidadV').val(res.titulo.localidadTxt)
+        $('#txtResponsableV').val(res.titulo.responsable)
+        $('#txtMailV').val(res.titulo.email_responsable)
+        $('#txtTelefonoV').val(res.titulo.tel_responsable)
+        $('#txtObservacionesV').val(res.titulo.observacion)
+        let html='<tr><td colspan="15">No existen tareas agregadas.</td><tr>'
+        if(res.detalles.length > 0){
+            html=''
+            res.detalles.map(el => {
+                html += `
+                <tr>
+                    <td class="text-center">${el.cantidad}</td>
+                    <td>${el.unidadMedidaTxt}</td>
+                    <td>${el.tarea}</td>
+                    <td>${formatCurrency(el.porce_kpi)}</td>
+                    <td class="text-right">$ ${formatCurrency(el.precio)}</td>
+                </tr>`
+            })
+        }
+        $('#divTotales').text(formatCurrency(res.total))
+        $('#tableDetalleTareas tbody').html(html)
+        $('#modalVer').modal('show')
+    }
+
+    const ActualizarEstado = async id => {
+        Swal.fire({
+            icon: 'info',
+            title: "Seleccione el estado del proyecto",
+            html: `
+                <div>
+                    <div class="form-group row">
+                        <label for="cmbEstadoAlert" class="col-sm-3 col-form-label">Estado</label>
+                        <div class="col-sm-9">
+                            <select class="form-control" id="cmbEstadoAlert">
+                                <option value="3">Aceptado</option>
+                                <option value="4">Rechazado</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            `,
+            showCancelButton: true,
+            cancelButtonColor: "#dc3545",
+            confirmButtonText: "Cancelar",
+            confirmButtonColor: "#28a745",
+            confirmButtonText: "Guardar",
+            showLoaderOnConfirm: true,
+        preConfirm: async (login) => {
+            try {
+                const result = await $.post('/proyectos/actualizarEstado', {estado: $('#cmbEstadoAlert').val(), id})
+                if(!result.status) return Swal.showValidationMessage(`${result.text}`)
+                return result
+            } catch (error) {
+                Swal.showValidationMessage(`Hubo un error: ${error}`)
+            }
+        },
+        allowOutsideClick: () => !Swal.isLoading()
+        }).then(result => {
+            if(result.isConfirmed && result.value.status){
+                Swal.fire({
+                    title: result.value.title,
+                    text: result.value.text,
+                    icon: result.value.icon,
+                    timer: 2800
+                }).then(() => getLista())
+            }
+        })
+    }
+
+    const CheckQuery = () => {
+        const urlParams = new URLSearchParams(window.location.search)
+        if(urlParams.has('id')) VerProyecto(urlParams.get('id'))
+    }
+
+</script>
+{% endblock %}

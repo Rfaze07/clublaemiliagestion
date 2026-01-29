@@ -1,0 +1,564 @@
+{% extends '../../../template.html' %}
+
+{% block styles %}
+<style>
+    .textAreaSize {
+        resize: vertical;
+        min-height: 48px;
+        max-height: 100px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+    <h2>{{ pagename }}</h2>
+    <div class="d-flex align-items-end mb-3" style="gap: 0.2rem;">
+        <input type="text" class="form-control form-control-sm" id="txtFiltro" placeholder="Buscar" style="width: 10rem;" />
+        <div>
+            <label>Empresa</label>
+            <select class="form-control form-control-sm" id="cmbEmpresaFiltro" onchange="getLista()">
+                <option value="t">Todas</option>
+                {% for e in empresas %}
+                    <option value="{{ e.id }}">({{ e.cuit }}) - {{ e.razon_social }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label>Fecha desde</label>
+            <input type="text" class="form-control form-control-sm datepicker" id="txtDesde" style="width: 6rem;" />
+        </div>
+        <div>
+            <label>Fecha hasta</label>
+            <input type="text" class="form-control form-control-sm datepicker" id="txtHasta" style="width: 6rem;" />
+        </div>
+        <button class="btn btn-round btn-sm btn-primary" data-toggle="tooltip" data-placement="top" title="Buscar" onclick="getLista()">
+            <i class="fa fa-search"></i>
+        </button>
+        {% if permisos.a == 1 %}
+            <button class="btn btn-round btn-sm btn-success modalAccion" data-toggle="tooltip" data-placement="top" title="Nuevo" data-accion="a" onclick='ModalAccion("a")'>
+                <i class="fa fa-plus"></i>
+            </button>
+        {% endif %}
+    </div>
+</div>
+<div class="table-responsive" style="height: calc(100vh - 200px)" id="tablaDatos">
+    <table class="table table-sm table-fix table-hover tableFixHead">
+        <thead>
+            <tr>
+                <th scope="col">Acciones</th>
+                <th scope="col">Empresa</th>
+                <th scope="col">Fecha real</th>
+                <th scope="col">Cliente</th>
+                <th scope="col">Tipo de comprob.</th>
+                <th scope="col">Nro. de comprob.</th>
+                <th scope="col">Total</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<!-- MODAL -->
+<div class="modal fade modal-m" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true" id="modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabel"></h5>
+                <button type="button" class="close" aria-label="Close" onclick="CerrarModal()">
+                    <span aria-hidden=" true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="form-group col-sm-12">
+                        <label for="cmbEmpresa">Empresa</label>
+                        <select class="form-control form-control-sm" id="cmbEmpresa" onchange="CargarCmbPuntosVentasEmpresa(this.value)">
+                            <option value="" disabled selected>Seleccione una empresa...</option>
+                            {% for e in empresas %}
+                                <option value="{{ e.id }}">({{ e.cuit }}) - {{ e.razon_social }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12">
+                        <label for="cmbCliente">Cliente</label>
+                        <select class="form-control form-control-sm" id="cmbCliente" onchange="ObtenerProyectosClientes(this.value)"></select>
+                    </div>
+                </div>
+                <div class="d-none" id="divDatos">
+                    <div class="row">
+                        <div class="form-group col-sm-12 col-md-6">
+                            <label for="txtFechaComp">Fecha comprobante</label>
+                            <input type="text" class="form-control form-control-sm datepicker calFechas" id="txtFechaComp">
+                        </div>
+                        <div class="form-group col-sm-12 col-md-6">
+                            <label for="cmbConceptos">Concepto</label>
+                            <select class="form-control form-control-sm disabled" id="cmbConceptos" disabled></select>
+                        </div>
+                    </div>
+                    <div class="row d-none" id="divConcepto">
+                        <div class="form-group col-sm-12 col-md-4">
+                            <label for="txtFechaDesdeCon">Fecha desde</label>
+                            <input type="text" class="form-control form-control-sm datepicker calFechas" id="txtFechaDesdeCon" />
+                        </div>
+                        <div class="form-group col-sm-12 col-md-4">
+                            <label for="txtFechaHastaCon">Fecha hassta</label>
+                            <input type="text" class="form-control form-control-sm datepicker calFechas" id="txtFechaHastaCon" />
+                        </div>
+                        <div class="form-group col-sm-12 col-md-4">
+                            <label for="txtFechaVetoPagoCon">Fecha vto. pago</label>
+                            <input type="text" class="form-control form-control-sm datepicker calFechas" id="txtFechaVetoPagoCon" />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group col-sm-12 col-md-6">
+                            <label for="cmbPuntoVenta">Punto de venta</label>
+                            <select class="form-control form-control-sm" id="cmbPuntoVenta" onchange="SeleccionoPuntoVenta(this.value)"></select>
+                        </div>
+                        <div class="form-group col-sm-12 col-md-6">
+                            <label for="cmbTipoComprobante">Tipo comprobante</label>
+                            <select class="form-control form-control-sm" id="cmbTipoComprobante" disabled></select>
+                        </div>
+                        <!-- <div class="form-group col-sm-12 col-md-4">
+                            <label for="txtNroComprobante">Nro. comprobante</label>
+                            <input type="text" class="form-control form-control-sm" id="txtNroComprobante" onkeypress="return soloNumeros(event)" autocomplete="off" maxlength="13">
+                        </div> -->
+                    </div>
+                    <div class="row">
+                        <div class="form-group col-sm-12">
+                            <label for="cmbProyectos">Proyectos</label>
+                            <select class="form-control form-control-sm" id="cmbProyectos" disabled></select>
+                        </div>
+                    </div>
+                    <div class="dropdown-divider d-none" id="actionSeccionDivider"></div>
+                    <div class="row d-none" id="actionSeccion">
+                        <div class="form-group col-sm-12">
+                            <div class="custom-control custom-switch ml-1">
+                                <input type="checkbox" class="custom-control-input" id="chbActivo" />
+                                <label class="custom-control-label" for="chbActivo">Activo</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="CerrarModal()">Cancelar</button>
+                <button type="button" class="btn btn-success d-none" id="btnAccion">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let _idConcepto=null
+    $(document).ready(async () => {
+        await CargarCmbClientes()
+        await CargarCmbConceptosAfip()
+        $('#txtDesde').val(generateFirstDateActualMonth())
+        $('#txtHasta').val(generateTodayDate())
+        $('#txtFechaComp').val(generateTodayDate())
+        getLista()
+    })
+
+    $("#txtFiltro").keyup(async function () {
+        Filtrar()
+    })
+    
+    const CargarCmbPuntosVentasEmpresa = id => {
+        return new Promise(async (resolve, reject) => {
+            $("#preloaderAPP").show()
+            const res = await $.post('/puntosVenta/getAllAjax', {id})
+            if(!res.status){
+                CerrarModal()
+                $("#preloaderAPP").hide()
+                Swal.fire(res.title, res.text, res.icon)
+                resolve()
+            }
+            let html='<option value="" disabled selected>Seleccione una opción...</option>'
+            if(res.data.length > 0){
+                res.data.map(el => html += `<option value="${el.id}">${el.puntoVentaTxt} - ${el.domicilio}</option>`)
+                _idConcepto=res.data[0].id_concepto_fk
+                SeleccionoConcepto(res.data[0].id_concepto_fk)
+            }
+            $('#cmbTipoComprobante').attr('disabled', true)
+            $('#cmbTipoComprobante').html('')
+            $('#cmbTipoComprobante').selectpicker('refresh')
+            $('#cmbPuntoVenta').html(html)
+            $('#cmbPuntoVenta').prop('disabled', false)
+            $('#cmbPuntoVenta').selectpicker('refresh')
+            $("#preloaderAPP").hide()
+            resolve()
+        })
+    }
+
+    const CargarCmbConceptosAfip = () => {
+        return new Promise(async (resolve, reject) => {
+            $("#preloaderAPP").show()
+            const res = await $.post('/conceptosAfip/listaActivosAjaxSelect')
+            if(!res.status){
+                $("#preloaderAPP").hide()
+                Swal.fire(res.title, res.text, res.icon)
+                resolve()
+            }
+            let html='<option value="" disabled selected>Seleccione una opción...</option>'
+            if(res.data.length > 0){
+                res.data.map(el => html += `<option value="${el.id}">${el.concepto}</option>`)
+            }
+            $('#cmbConceptos').html(html)
+            $('#cmbConceptos').selectpicker('refresh')
+            $("#preloaderAPP").hide()
+            resolve()
+        })
+    }
+
+    const SeleccionoConcepto = concepto => {
+        $('#cmbConceptos').selectpicker('val', _idConcepto)
+        $('#cmbConceptos').selectpicker('refresh')
+        if(concepto != 1){
+            $('#txtFechaDesdeCon').val(generateTodayDate())
+            $('#txtFechaHastaCon').val(generateTodayDate())
+            $('#txtFechaVetoPagoCon').val(generateTodayDate())
+            $('#divConcepto').removeClass('d-none')
+        }else{
+            $('#divConcepto').addClass('d-none')
+            $('#divConcepto').addClass('d-none')
+        }
+    }
+
+    const getLista = async () => {
+        $("#preloaderAPP").show()
+        
+        const body = { empresa: $('#cmbEmpresaFiltro').val(), desde: $('#txtDesde').val(), hasta: $('#txtHasta').val() }
+        const res = await $.post('/comprobantesVentas/getlistaAjax', body)
+        console.log(res)
+        let html = ""
+        if(res.status){
+            for (let i = 0; i < res.data.length; i++) {
+                html += `
+                    <tr>
+                        <td>
+                            <div style="display: flex; gap: 2px;">
+                                {% if permisos.m %}
+                                    <a class="btn btn-round btn-sm btn-info" role="button" data-accion="m" data-toggle="tooltip" 
+                                                data-placement="top" title="${res.data[i].cae == 0 ? 'Modificar' : 'Ver detalle'}" 
+                                                href="/comprobantesVentas/altaItems/${res.data[i].id}">
+                                        ${res.data[i].cae == 0 ? '<i class="fas fa-list-ol"></i>' : '<i class="fas fa-eye"></i>'}
+                                    </a>
+                                {% endif %}
+
+                                ${res.data[i].cae == 0 ? 
+                                    `{% if permisos.b %}
+                                        <button class="btn btn-round btn-sm btn-danger" onclick="Eliminar(${res.data[i].id})"
+                                            data-toggle="tooltip" data-placement="top" title="Eliminar">
+                                            <i class="fa fa-trash-alt"></i>
+                                        </button>
+                                    {% endif %}`
+                                :
+                                    `<button class="btn btn-round btn-sm btn-primary" data-toggle="tooltip" data-placement="top" title="Imprimir" onclick="Imprimir(${res.data[i].id})">
+                                        <i class="fa fa-print"></i>
+                                    </button>`
+                                }
+                            </div>
+                        </td>
+                        <td class="search">${res.data[i].empresaTxt}</td>
+                        <td class="search">${changeDateDMY(res.data[i].fecha_comprobante)}</td>
+                        <td class="search">${res.data[i].clienteTxt}</td>
+                        <td class="search">${res.data[i].tipoComprobanteTxt}</td>
+                        <td class="search">${res.data[i].nroComprobanteTxt}</td>
+                        <td class="search">$ ${formatCurrency(res.data[i].total)}</td>
+                    </tr>`
+            }
+        }else{
+            html = `<tr><td class="font-weight-bold" colspan="15">${res.text}</td></tr>`
+        }
+        $('#tablaDatos tbody').html(html)
+        $('[data-toggle="tooltip"]').tooltip()
+        $("#preloaderAPP").hide()
+    }
+
+    const ModalAccion = async (accion, id) => {
+        $("#preloaderAPP").show();
+        if (accion === 'a') {
+            $('.selectpicker').selectpicker(optionsSelectPicker)
+            await CargarCmbPuntosVentasEmpresa('')
+            $('#modalLabel').text('Nuevo comprobante de venta')
+            $('#btnAccion').attr('onclick', `PostRegistro("a")`)
+            $('#btnAccion').text('Guardar')
+        }
+        if (accion == 'm') {
+            let res = await $.post(`/comprobantesVentas/getByIdAjax`, {id})
+            if (res.status != 0) {
+                $('#descripcion').val(res.data.descripcion)
+                $('#desc_corta').val(res.data.desc_corta)
+                $('#chbActivo').prop('checked', res.data.activo === 1 ? true : false);
+            }
+            $('#modalLabel').text('Modificar comprobante de venta')
+            $('#btnAccion').text('Guardar')
+            $('#btnAccion').attr('onclick', `PostRegistro("m",${id})`)
+            $('#actionSeccion').removeClass('d-none')
+            $('#actionSeccionDivider').removeClass('d-none')
+        }
+        $("#preloaderAPP").hide();
+        $('#modal').modal('show')
+    }
+
+    const PostRegistro = async (accion, Id) => {
+        $("#preloaderAPP").show();
+        let url = '/comprobantesVentas/alta', 
+            body = {
+                empresa: $('#cmbEmpresa').val(),
+                cliente: $('#cmbCliente').val(),
+                fechaComp: $('#txtFechaComp').val(),
+                concepto: $('#cmbConceptos').val(),
+                fechaDesde: $('#txtFechaDesdeCon').val(),
+                fechaHasta: $('#txtFechaHastaCon').val(),
+                fechaVtoPago: $('#txtFechaVetoPagoCon').val(),
+                puntoVenta: $('#cmbPuntoVenta').val(),
+                tipoComprobante: $('#cmbTipoComprobante').val(),
+                proyecto: $('#cmbProyectos').val()
+            }
+
+        if (accion === 'm') {
+            url = '/comprobantesVentas/modificar'
+            body.activo = $('#chbActivo').prop('checked') ? 1 : 0
+            body.id = Id
+        }
+
+        const res = await $.post(url, body)
+        $("#preloaderAPP").hide()
+        Swal.fire({
+            icon: res.icon,
+            title: res.title, 
+            html: res.text, 
+            timer: 5000
+        }).then(() => {
+            if(res.status){
+                CerrarModal()
+                location = `/comprobantesVentas/altaItems/${res.idComprobanteItem}`
+            }
+        })        
+    }
+
+    const Eliminar = id => {
+        Swal.fire({
+            title: 'Confirmar',
+            text: "¿Desea borrar este registro?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar.',
+            cancelButtonColor: '#d33',
+            cancelButtonText: 'No, cancelar.'
+        }).then(async result => {
+            if (result.isConfirmed) {
+                $("#preloaderAPP").show();
+                let res = await $.post('/comprobantesVentas/eliminar', { id })
+                $("#preloaderAPP").hide();
+                Swal.fire({
+                    type: res.type,
+                    icon: res.icon,
+                    title: res.title,
+                    text: res.text,
+                    timer: 2000
+                }).then(() => {
+                    if(res.status){
+                        CerrarModal()
+                        getLista()
+                    }
+                })
+            }    
+        })
+    }
+
+    const CerrarModal = () => {
+        $('#modal').modal('hide')
+        $('#actionSeccion').addClass('d-none')
+        $('#actionSeccionDivider').addClass('d-none')
+        LimpiarCampos()
+    }
+
+    const LimpiarCampos = () => {
+        _idConcepto=null
+        $('#divDatos').addClass('d-none')
+        $('#btnAccion').addClass('d-none')
+        $('input[type="text"]').val('')
+        $('textarea').val('')
+        $('#cmbEmpresa, #cmbCliente, #cmbConceptos, #cmbPuntoVenta, #cmbTipoComprobante').selectpicker('val', '')
+        $('#cmbPuntoVenta').html('')
+        $('.selectpicker').selectpicker('refresh')
+        $('#cmbTipoComprobante').html('')
+        $('#cmbTipoComprobante').prop('disabled', true)
+        $('#cmbTipoComprobante').addClass('disabled')
+        $('#cmbTipoComprobante').selectpicker('refresh')
+        $('input[type="checkbox"]').prop('checked', false)
+        $('input[type="radio"]').prop('checked', false)
+        $('#txtDesde').val(generateFirstDateActualMonth())
+        $('#txtHasta').val(generateTodayDate())
+        $('#txtFechaComp').val(generateTodayDate())
+        $('#txtFechaReal').val(generateTodayDate())
+    }
+
+    const ObtenerProyectosClientes = cliente => {
+        return new Promise(async (resolve, reject) => {
+            if($('#cmbEmpresa').find(":selected").val().length == 0){
+                $('#cmbCliente').selectpicker('val', '')
+                $('#cmbCliente').selectpicker('refresh')
+                Swal.fire('Error', 'Debe seleccionar la empresa y luego el cliente', 'error')
+                return resolve()
+            }
+
+            $("#preloaderAPP").show()
+            const res = await $.post('/proyectos/getByCliente', {cliente})
+            let htmlOps = '<option value="sp" selected>Sin proyecto</option>'
+            if(!res.status){
+                $('#divDatos').addClass('d-none')
+                $('#cmbProyectos').html('')
+                $('#cmbProyectos').attr('disabled', true)
+                Swal.fire({ icon: res.icon, title: res.title, text: res.text })
+                $("#preloaderAPP").hide()
+                resolve()
+            }
+
+            res.data.map(el => {
+                htmlOps += `<option value="${el.id}">${el.desc_corta} - ${el.descripcion}</option>`
+            })
+            
+            $('#cmbProyectos').attr('disabled', false)
+            $('#cmbProyectos').html(htmlOps)
+            await ObtenerPuntoVenta($('#cmbEmpresa').val())
+            if(_idConcepto!=null) SeleccionoConcepto(_idConcepto)
+            $('#divDatos').removeClass('d-none')
+            resolve()
+        })
+    }
+
+    const ObtenerPuntoVenta = idEmpresa => {
+        return new Promise(async (resolve, reject) => {
+            $("#preloaderAPP").show()
+            const res = await $.post('/puntosVenta/getPuntoVentaAjax', {id:idEmpresa})
+            let htmlOps = '<option value="" selected disabled>Seleccione el punto de venta...</option>'
+            res.data.map(el => {
+                htmlOps += `<option value="${el.id}">${el.puntoVentaTxt} - ${el.domicilio}</option>`
+            })
+
+            $('#cmbPuntoVenta').attr('disabled', false)
+            $('#cmbPuntoVenta').html(htmlOps)
+            if(res.data.length == 1){
+                SeleccionoPuntoVenta(res.data[0].id)
+                $('#cmbPuntoVenta').selectpicker('val', res.data[0].id)
+                $('#cmbPuntoVenta').selectpicker('refresh')
+            }
+            $('#cmbPuntoVenta').selectpicker('refresh')
+            $('#btnAccion').removeClass('d-none')
+            $("#preloaderAPP").hide()
+            resolve()
+        })
+    }
+
+    const SeleccionoPuntoVenta = idPtoVenta => {
+        return new Promise(async (resolve, reject) => {
+            $("#preloaderAPP").show()
+            const res = await $.post('/comprobantesVentas/getTipoComprobanteAjax', {idPtoVenta, idEmpresa: $('#cmbEmpresa').val(), idCliente: $('#cmbCliente').val()})
+            if(!res.status){
+                $("#preloaderAPP").hide()
+                Swal.fire(res.title, res.text, res.icon)
+                resolve()
+            }
+            let htmlOps = ''
+            res.data.map(el => {
+                htmlOps += `<option value="${el.id}">${el.descripcion}</option>`
+            })
+            $('#cmbTipoComprobante').attr('disabled', false)
+            $('#cmbTipoComprobante').html(htmlOps)
+            $('#cmbTipoComprobante').selectpicker('val', res.data[0].id)
+            $('#cmbTipoComprobante').selectpicker('refresh')
+            $('#cmbTipoComprobante').selectpicker('refresh')
+            $("#preloaderAPP").hide()
+            resolve()
+        })
+    }
+    
+    const Imprimir = async idComprobante => {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Confirmar', 
+            text: 'Desea imprimir el comprobante?',
+            showCancelButton: true,
+            cancelButtonText: "No, cerrar",
+            confirmButtonText: "Si, imprimir",
+        }).then(async res1 => {
+            if(res1.isConfirmed){
+                let res = await $.post('/comprobantesVentas/imprimir', {idComprobante})
+                if(res.status){
+                    window.open(res.url, '_blank')
+                }else{
+                    Swal.fire({
+                        icon: res.icon,
+                        title: res.title, 
+                        text: res.text,
+                        showCancelButton: true,
+                        cancelButtonText: "Ok",
+                        confirmButtonText: "Imprimir",
+                    }).then(res2 => {
+                        if(res2.isConfirmed && res.status){
+                            window.open(res.url, '_blank')
+                            location.reload()
+                        }
+                    })
+                }
+            }
+        })
+    }
+
+    $('.calFechas').datepicker(optionsDatePicker).on('changeDate', async function (e) {
+        let result=null
+        if(e.target.id === 'txtFechaComp'){
+            result = await CalculoFechas(e, 5, 'del comprobante')
+            if(!result.status){
+                return Swal.fire(result.title, result.text, result.icon).then(() => $(`#${e.target.id}`).val(generateTodayDate()))
+            }
+        }
+        if(e.target.id === 'txtFechaDesdeCon'){
+            if($('#cmbConceptos').val() != 1){
+                result = await CalculoFechas(e, 10, 'desde del servicio')
+                if(!result.status){
+                    return Swal.fire(result.title, result.text, result.icon).then(() => $(`#${e.target.id}`).val(generateTodayDate()))
+                }
+            }
+        }
+    })
+
+    const CalculoFechas = (e, limite, tipo) => {
+        return new Promise((resolve, reject) => {
+            const date = new Date(e.date)
+            const hoy = new Date(generateTodayDateYMD())
+            const difDays = (date - hoy) / 86_400_000
+            if(difDays < 0){
+                if(difDays < -Math.abs(limite)){
+                    resolve({ 
+                        status: false, 
+                        icon: 'error',
+                        title: 'Error', 
+                        text: `La fecha ${tipo} no puede superar el límite de ${limite} dias ${difDays<0 ? 'atrás':'hacia adelante'} por disposición de ARCA`
+                    })
+                }
+            }else if(difDays > limite){
+                resolve({ 
+                    status: false, 
+                    icon: 'error',
+                    title: 'Error', 
+                    text: `La fecha ${tipo} no puede superar el límite de ${limite} dias ${difDays<0 ? 'atrás':'hacia adelante'} por disposición de ARCA`
+                })
+            }
+
+            resolve({ status: true })
+        })
+    }
+
+</script>
+{% endblock %}

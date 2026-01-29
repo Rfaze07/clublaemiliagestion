@@ -1,0 +1,286 @@
+{% extends '../../template.html' %}
+
+{% block styles %}
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+    <h2>{{ pagename }}</h2>
+    <div class="d-flex align-items-end mb-3" style="gap: 0.2rem;">
+        <input type="text" class="form-control" id="txtFiltro" placeholder="Buscar" style="width: 10rem;" />
+        <div>
+            <label>Estado</label>
+            <select class="form-control" id="cmbEstadoFiltro" onchange="getLista()">
+                <option value="t" selected>Todos</option>
+                <option value="Pendiente">Pendientes</option>
+                <option value="Realizada">Realizadas</option>
+            </select>
+        </div>
+        <div>
+            <label for="cmbTipoVehiculo2">Tipo vehículo</label>
+            <select class="form-control selectpicker" id="cmbTipoVehiculo2" onchange="ObtenerCmbVehiculoTipoVehiculo('cmbVehiculo2', this.value)"></select>
+        </div>
+        <div>
+            <label for="cmbVehiculo2">Vehículo</label>
+            <select class="form-control selectpicker" id="cmbVehiculo2" onchange="getLista()"></select>
+        </div>
+        
+
+        {% if permisos.a %}
+            <button class="btn btn-round btn-success modalAccion mr-1" data-accion="a" onclick='ModalAccion("a")'>
+                <i class="fa fa-plus"></i>
+            </button>
+        {% endif %}
+    </div>
+</div>
+<div class="table-responsive" style="height: calc(100vh - 200px)" id="tablaDatos">
+    <table class="table table-sm table-fix table-hover tableFixHead">
+        <thead>
+            <tr>
+                <th scope="col">Acciones</th>
+                <th scope="col">Descripcion</th>
+                <th scope="col">Prioridad</th>
+                <th scope="col">Vehiculo</th>
+                <th scope="col">Estado</th>
+                <th scope="col">Fecha</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+
+<!-- MODAL -->
+<div class="modal fade modal-m" data-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true" id="modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabel"></h5>
+                <button type="button" class="close" aria-label="Close" onclick="CerrarModal()">
+                    <span aria-hidden=" true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row" id="divVehiculo">
+                        <div class="form-group col-sm-12 col-md-6">
+                            <label for="cmbTipoVehiculo">Tipo vehículo</label>
+                            <select class="form-control form-control-sm selectpicker" id="cmbTipoVehiculo" onchange="ObtenerCmbVehiculoTipoVehiculo('cmbVehiculo', this.value)"></select>
+                        </div>
+                        <div class="form-group col-sm-12 col-md-6">
+                            <label for="cmbVehiculo">Vehículo</label>
+                            <select class="form-control form-control-sm selectpicker" id="cmbVehiculo"></select>
+                        </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-8">
+                        <label for="txtDescripcion">Descripción</label>
+                        <input type="text" class="form-control form-control-sm" id="txtDescripcion" autocomplete="off" maxlength="80">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-6">
+                        <label for="cmbPrioridad">Prioridad</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbPrioridad">
+                            <option value="" selected disabled>Seleccione un tipo...</option>
+                            <option value="ALTA">ALTA<option>
+                            <option value="MEDIA">MEDIA</option>
+                            <option value="BAJA">BAJA</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-6">
+                        <label for="cmbImputacion">Imputación</label>
+                        <select class="form-control form-control-sm selectpicker" id="cmbImputacionT"></select>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-12">
+                        <label for="txtObservaciones">Observaciones</label>
+                        <textarea class="form-control form-control-sm textAreaSize" id="txtObservaciones" rows="2" maxlength="200"></textarea>
+                    </div>
+                </div>
+                
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="CerrarModal()">Cancelar</button>
+                <button type="button" class="btn btn-success" id="btnAccion">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+
+    $(document).ready(() => {
+        ObtenerCmbTipoVehiculo2('cmbTipoVehiculo2')
+        ObtenerCmbTipoVehiculo2('cmbTipoVehiculo')
+        getLista()
+    })
+
+    $("#txtFiltro").keyup(async function () {
+        Filtrar()
+    })
+    
+    const getLista = async () => {
+
+
+
+        
+        $("#preloaderAPP").show()
+        let activo = $('#cmbActivoFiltro').val()
+        let res = await $.post('/ordenesTrabajosNovedades/getlistaAjax', { estado: $('#cmbEstadoFiltro').val(), vehiculo:$('#cmbVehiculo2').val() })
+        let html = ""
+        if(res.status){
+            for (let i = 0; i < res.data.length; i++) {
+                html += `
+                    <tr>
+                        <td>
+                            <div style="display: flex; gap: 2px;">
+                                {% if permisos.b == 1 %}
+                                <button class="btn btn-round btn-sm btn-danger" onclick="Eliminar(${res.data[i].id}, ${res.data[i].id_ordentrabajo_fk})"
+                                    data-toggle="tooltip" data-placement="top" title="Eliminar">
+                                    <i class="fa fa-trash-alt"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="search">${res.data[i].descripcion}</td>
+                        <td class="search">${res.data[i].prioridad}</td>
+                        <td class="search">${res.data[i].vehiculo}</td>
+                        <td class="search">${res.data[i].estado}</td>
+                        <td class="search">${res.data[i].fecha}</td>      
+                        
+                    </tr>`
+            }
+        }else{
+            html = `<tr><td class="font-weight-bold" colspan="4">${res.text}</td></tr>`
+        }
+        $('#tablaDatos tbody').html(html)
+        $("#preloaderAPP").hide();
+    }
+
+    
+    const ModalAccion = async (accion, id) => {
+        $("#preloaderAPP").show()
+        $('#divVehiculo').removeClass('d-none')
+        //await ObtenerCmbOTTiposTareas('cmbTipoTarea', false)
+        await ObtenerCmbImputaciones('cmbImputacionT', false)
+        await ObtenerCmbTipoVehiculo2('cmbTipoVehiculo')
+        
+        if (accion === 'a') {
+            $('#modalLabel').text('Nueva Novedad')
+            $('#btnAccion').attr('onclick', `PostRegistro("a")`)
+            $('#btnAccion').text('Guardar')
+        }else if (accion == 'm') {
+            let res = await $.post(`/ordenesTrabajosNovedades/getByIdAjax`, {id})
+            if(res.status) {
+                $('#txtDescripcion').val(res.data.descripcion)
+                $('#cmbPrioridad').selectpicker('val', res.data.id_tipo_tarea_fk)
+                $('#cmbPrioridad').selectpicker('refresh')
+                $('#txtImporte').val(res.data.precio)
+                $('#chbActivo').prop('checked', res.data.activo === 1 ? true : false)
+            }
+            $('#modalLabel').text('Modificar Novedad')
+            $('#btnAccion').text('Guardar')
+            $('#btnAccion').attr('onclick', `PostRegistro("m",${id})`)
+            $('#actionSeccion').removeClass('d-none')
+            $('#actionSeccionDivider').removeClass('d-none')
+        }
+        $("#preloaderAPP").hide()
+        $('#modal').modal('show')
+    }
+
+    const PostRegistro = async (accion, Id) => {
+        $("#preloaderAPP").show()
+        let url = '/ordenesTrabajosNovedades/alta', 
+            body = {
+                descripcion: $('#txtDescripcion').val(),
+                prioridad: $('#cmbPrioridad').val(),
+                imputacion: $('#cmbImputacionT').val(),
+                vehiculo: $('#cmbVehiculo').val(),
+                observaciones: $('#txtObservaciones').val()
+            }
+
+        if (accion === 'm') {
+            url = '/ordenesTrabajosNovedades/modificar'
+            body.activo = $('#chbActivo').prop('checked') ? 1 : 0
+            body.id = Id
+        }
+
+        const res = await $.post(url, body)
+        $("#preloaderAPP").hide()
+        Swal.fire({
+            icon: res.icon,
+            title: res.title, 
+            text: res.text, 
+            timer: 2500
+        }).then(() => {
+            if(res.status){
+                getLista()
+                CerrarModal()
+            }
+        })        
+    }
+
+    const Eliminar = (id, idOT) => {
+        Swal.fire({
+            title: 'Confirmar',
+            text: "¿Desea borrar este registro?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar.',
+            cancelButtonColor: '#d33',
+            cancelButtonText: 'No, cancelar.'
+        }).then(async result => {
+            if (result.isConfirmed) {
+                $("#preloaderAPP").show();
+                let res = await $.post('/ordenesTrabajosNovedades/eliminar', { id, idOT })
+                $("#preloaderAPP").hide();
+                Swal.fire({
+                    type: res.type,
+                    icon: res.icon,
+                    title: res.title,
+                    text: res.text,
+                    timer: 2000
+                }).then(() => {
+                    if(res.status){
+                        CerrarModal()
+                        getLista()
+                    }
+                })
+            }    
+        })
+    }
+
+    
+    const Filtrar = () => {
+        $('#tablaDatos tbody tr').each(function () {
+            if ($(this).find('td.search').text().toUpperCase().indexOf($('#txtFiltro').val().toUpperCase()) > -1)
+                $(this).closest('tr').show();
+            else
+                $(this).closest('tr').hide();
+        });
+    }
+
+    const CerrarModal = () => {
+        $('#modal').modal('hide')
+        $('#actionSeccion').addClass('d-none')
+        $('#actionSeccionDivider').addClass('d-none')
+        LimpiarCampos()
+    }
+
+    const LimpiarCampos = () => {
+        $('input[type="text"]').val('')
+        $('textarea').val('')
+        $('select').val('')
+        $('input[type="checkbox"]').prop('checked', false)
+        $('input[type="radio"]').prop('checked', false)
+        $('.selectpicker').selectpicker('refresh')
+        $('#cmbActivoFiltro').val('t')
+    }
+
+</script>
+{% endblock %}

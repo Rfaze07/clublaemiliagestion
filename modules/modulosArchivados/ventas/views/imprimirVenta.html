@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ticket - Impresora Térmica</title>
+  <style>
+  :root { 
+    --paper-width: 58mm; 
+    --font-size: 12px; /* subí un poquito el tamaño */
+  }
+
+  html,body{ margin:0; padding:0; }
+  body{
+    width: var(--paper-width);
+    font-family: "Courier New", Courier, monospace;
+    font-size: var(--font-size);
+    font-weight: 600; /* más grueso por defecto */
+    color:#000;
+    -webkit-print-color-adjust: exact;
+    box-sizing: border-box;
+    padding:6px 6px 12px 6px;
+  }
+
+  .center{ text-align:center }
+  .right{ text-align:right }
+  .left{ text-align:left }
+
+  h1, h2, h3{ 
+    margin:2px 0; 
+    font-weight: 900;  /* lo más bold posible */
+    text-transform: uppercase; 
+  }
+  p{ margin:2px 0 }
+
+  table{ width:100%; border-collapse:collapse; font-size:inherit; font-weight:600; }
+  th, td{ padding:2px 0; font-weight:600; }
+  .items thead th{ border-bottom:1px dashed #000; font-weight:900; }
+  .items tfoot td{ border-top:1px dashed #000; font-weight:900; }
+
+  .small{ font-size:0.95em; font-weight:600; }
+  .bold{ font-weight:900; }
+
+  .sep{ border-top:1px dashed #000; margin:6px 0 }
+
+  .logo{ max-width:100px; }
+
+  @media print{
+    body{ margin:0 }
+    @page { size: 58mm auto; margin: 0mm; }
+  }
+</style>
+</head>
+<body>
+  <div class="center">
+    <img src="/img/logo.png" alt="logo" class="logo" />
+    <h2>{{ comprobante.empresaTxt }}</h2>
+    <p class="small">{{ comprobante.direccionEmpresa }}{% if comprobante.telefonoEmpresa %} - Tel: {{ comprobante.telefonoEmpresa }}{% endif %}</p>
+    <p class="small">'Responsable Inscripto'{% if comprobante.cuitEmpresa %} - CUIT: {{ comprobante.cuitEmpresa }}{% endif %}</p>
+    <h3>{{ comprobante.tipo_comprobante }} {{ comprobante.numeroFormateado }}</h3>
+    <p class="small">Fecha: {{ comprobante.fechaFormateada }}</p>
+  </div>
+
+  <div class="sep"></div>
+
+  <div>
+    <p class="small"><strong>Cliente:</strong> {{ comprobante.clienteTxt }}</p>
+    {% if comprobante.cuitCliente %}<p class="small">CUIT: {{ comprobante.cuitCliente }}</p>{% endif %}
+    {% if comprobante.direccionCliente %}<p class="small">Dir: {{ comprobante.direccionCliente }}</p>{% endif %}
+    {% if comprobante.telefonoCliente %}<p class="small">Tel: {{ comprobante.telefonoCliente }}</p>{% endif %}
+  </div>
+
+  <div class="sep"></div>
+
+  <table class="items">
+    <thead>
+      <tr>
+        <th class="left">Cant</th>
+        <th class="center">Descripción</th>
+        <th class="center">P.U.</th>
+        <th class="right">Importe</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in items %}
+      <tr>
+        <td class="left">{{ item.cantidad }}|</td>
+        <td class="center">{{ item.Desc_Producto }}{% if item.unidad %} ({{ item.unidad }}){% endif %}|</td>
+        <td class="center">{{ item.precio }}|</td>
+        <td class="right">{{ item.total }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+    <tfoot>
+      <tr>
+        <td colspan="2" class="right bold">TOTAL</td>
+        <td colspan="2" class="right bold">${{ comprobante.total }}</td>
+      </tr>
+    </tfoot>
+  </table>
+
+  <div class="sep"></div>
+
+  <div class="small">
+    {% if venta.cae %}
+      <p>CAE: {{ venta.cae }}</p>
+    {% endif %}
+    {% if venta.caea %}
+      <p>CAEA: {{ venta.caea }}</p>
+    {% endif %}
+    {% if venta.vto_cae %}
+      <p>Vto CAE: {{ venta.vto_cae }}</p>
+    {% endif %}
+  </div>
+
+  <div class="center small">
+    {% if venta.qr_url %}
+      <img src="{{ venta.qr_url }}" alt="QR" style="width:90px; margin:6px 0" />
+    {% endif %}
+
+    {% if empresa.mensaje_pie %}
+      <p class="small">{{ empresa.mensaje_pie }}</p>
+    {% else %}
+      <p class="small">Gracias por su compra</p>
+    {% endif %}
+  </div>
+</body>
+</html>
+<script>
+  window.onload = function() {
+    window.print();
+  }
+</script>

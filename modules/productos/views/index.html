@@ -1,0 +1,712 @@
+{% extends '../../template.html' %}
+
+{% block styles %}
+<style>
+    .textAreaSize {
+        resize: vertical;
+        min-height: 60px;
+        max-height: 150px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+    <h2>{{ pagename }}</h2>
+    <div class="d-flex align-items-end mb-3" style="gap: 0.2rem;">
+        <input type="text" class="form-control form-control-sm" id="txtFiltro" placeholder="Buscar" style="width: 10rem;" />
+        <div>
+            <label>Activos</label>
+            <select class="form-control form-control-sm" id="cmbActivoFiltro" onchange="getLista()">
+                <option value="t" selected>Todos</option>
+                <option value="1">Si</option>
+                <option value="0">No</option>
+            </select>
+        </div>
+        {% if permisos.a == 1 %}
+        <button class="btn btn-sm btn-round btn-success modalaccion mr-1" data-accion="a" onclick='Modalaccion("a")'>
+            <i class="fa fa-plus"></i>
+        </button>
+        {% endif %}
+    </div>
+</div>
+<div class="table-responsive" style="height: calc(100vh - 200px)" id="tablaDatos">
+    <table class="table table-sm table-fix table-hover tableFixHead">
+        <thead>
+            <tr>
+                <th scope="col">Acciones</th>
+                <th scope="col">Código</th>
+                <th scope="col">Nombre</th>
+                <th scope="col">Subcategoría</th>
+                <th scope="col">Precio</th>
+                <th scope="col">% E-commerce</th>
+                <th scope="col">Precio E-commerce</th>
+                <th scope="col">Activo E-commerce</th>
+                <th scope="col">Activo</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<!-- MODAL -->
+<div class="modal fade" id="modal" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabel"></h5>
+                <button type="button" class="close" aria-label="Close" onclick="CerrarModal()">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-4">
+                        <label for="codigo">Código</label>
+                        <input type="text" class="form-control form-control-sm" id="codigo" maxlength="50">
+                    </div>
+                    <div class="form-group col-sm-12 col-md-8">
+                        <label for="nombre">Nombre</label>
+                        <input type="text" class="form-control form-control-sm" id="nombre" maxlength="150">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-6">
+                        <label for="id_categoria_fk">Categoría</label>
+                        <select class="form-control form-control-sm selectpicker" id="id_categoria_fk" data-live-search="true" data-size="5" onchange="cargarSubcategorias()">
+                            <option value="0">Seleccione...</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-6">
+                        <label for="id_subcategoria_fk">Subcategoría</label>
+                        <select class="form-control form-control-sm selectpicker" id="id_subcategoria_fk" data-live-search="true" data-size="5" disabled>
+                            <option value="0">Seleccione categoría primero...</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12 col-md-3">
+                        <label for="precio">Precio</label>
+                        <input type="number" class="form-control form-control-sm" id="precio" step="0.01" min="0">
+                    </div>
+                    <div class="form-group col-sm-12 col-md-3">
+                        <label for="porc_ecommerce">% E-commerce</label>
+                        <input type="number" class="form-control form-control-sm" id="porc_ecommerce" step="0.01" min="0" max="100">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12">
+                        <label for="descripcion">Descripción</label>
+                        <textarea class="form-control form-control-sm textAreaSize" rows="5" id="descripcion"></textarea>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12">
+                        <label for="path_foto">Ruta de Foto</label>
+                        <input type="text" class="form-control form-control-sm" id="path_foto" maxlength="255">
+                    </div>
+                </div>
+                <div class="row d-none" id="actionSeccion">
+                    <div class="form-group col-sm-6 text-center">
+                        <div class="custom-control custom-switch ml-1">
+                            <input type="checkbox" class="custom-control-input" id="chbActivoEcommerce" />
+                            <label class="custom-control-label" for="chbActivoEcommerce">Activo E-commerce</label>
+                        </div>
+                    </div>
+                    <div class="form-group col-sm-6 text-center">
+                        <div class="custom-control custom-switch ml-1">
+                            <input type="checkbox" class="custom-control-input" id="chbActivo" />
+                            <label class="custom-control-label" for="chbActivo">Activo</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="CerrarModal()">Cancelar</button>
+                <button type="button" class="btn btn-success" id="btnaccion">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- MODAL COLORES-->
+ <div class="modal fade" id="modalColores" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-m">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabelColores">Colores del Producto</h5>
+                <button type="button" class="close" aria-label="Close" onclick="CerrarModalColores()">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-12 d-flex justify-content-end mb-3">
+                        <button class="btn btn-sm btn-round btn-success modalaccion mr-1 mb-3" data-accion="a" onclick='modalAccionColor("a", _idColorSelec)'>
+                            <i class="fa fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="table-responsive" style="height: calc(100vh - 300px)" id="tablaDatosColores">
+                    <table class="table table-sm table-fix table-hover tableFixHead">
+                        <thead>
+                            <tr>
+                                <th scope="col">Acciones</th>
+                                <th scope="col">Color</th>
+                                <th scope="col">Código hexa</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="CerrarModalColores()">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--FIN MODAL COLORES-->
+
+<!-- MODAL AGREGAR COLORES-->
+    <div class="modal fade" id="modalAccionColor" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalLabelAccionColor"></h5>
+                    <button type="button" class="close" aria-label="Close" onclick="CerrarModalAccionColor()">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="form-group col-sm-12">
+                            <label for="txtDescripcionColor">Descripcion</label>
+                            <input type="text" class="form-control form-control-sm" id="txtDescripcionColor" maxlength="40">
+                        </div>
+                        <div class="form-group col-sm-12">
+                            <label for="txtCodigohexa">Color</label>
+                            <input type="color" id="color" name="color">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="CerrarModalAccionColor()">Cancelar</button>
+                    <button type="button" class="btn btn-success" id="btnaccionColor">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL IMAGEN PRODUCTO -->
+<div class="modal fade" id="modalImagenProducto" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-md">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Imagen del Producto</h5>
+                <button type="button" class="close" onclick="CerrarModalImagenProducto()">
+                    <span>&times;</span>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <input type="hidden" id="idProductoImagen">
+
+                <div class="form-group">
+                    <label>Seleccionar imagen</label>
+                    <input type="file"
+                           class="form-control-file"
+                           id="imagenProducto"
+                           accept="image/*">
+                </div>
+
+                <div class="text-center mt-3">
+                    <img id="previewImagenProducto"
+                         src=""
+                         class="img-fluid d-none"
+                         style="max-height: 250px; border: 1px solid #ddd;">
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="CerrarModalImagenProducto()">Cancelar</button>
+                <button class="btn btn-success" onclick="SubirImagenProducto()">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(async () => {
+        await cargarCategorias()
+        getLista()
+    })
+
+    $("#txtFiltro").keyup(async function () {
+        Filtrar()
+    })
+    
+    const cargarCategorias = async () => {
+        const res = await $.post('/categorias/getListaSelectAjax')
+        if(res.status){
+            let html = '<option value="0">Seleccione...</option>'
+            for(let i = 0; i < res.data.length; i++){
+                html += `<option value="${res.data[i].id}">${res.data[i].descripcion}</option>`
+            }
+            $('#id_categoria_fk').html(html)
+            $('#id_categoria_fk').selectpicker('refresh')
+        }
+    }
+
+    const cargarSubcategorias = async () => {
+        const idCategoria = $('#id_categoria_fk').val()
+        
+        if(!idCategoria || idCategoria == '0'){
+            $('#id_subcategoria_fk').html('<option value="0">Seleccione categoría primero...</option>')
+            $('#id_subcategoria_fk').prop('disabled', true)
+            $('#id_subcategoria_fk').selectpicker('refresh')
+            return
+        }
+
+        const res = await $.post('/subCategorias/getListaSelectAjax', { id_categoria_fk: idCategoria })
+        if(res.status){
+            let html = '<option value="0">Seleccione...</option>'
+            for(let i = 0; i < res.data.length; i++){
+                html += `<option value="${res.data[i].id}">${res.data[i].descripcion}</option>`
+            }
+            $('#id_subcategoria_fk').html(html)
+            $('#id_subcategoria_fk').prop('disabled', false)
+            $('#id_subcategoria_fk').selectpicker('refresh')
+        }else{
+            $('#id_subcategoria_fk').html('<option value="0">No hay subcategorías</option>')
+            $('#id_subcategoria_fk').prop('disabled', true)
+            $('#id_subcategoria_fk').selectpicker('refresh')
+        }
+    }
+           
+    
+    
+
+
+    const getLista = async () => {
+        $("#preloaderAPP").show()
+        const res = await $.post('/productos/getListaAjax', { activo: $('#cmbActivoFiltro').val()})
+        let html = ""
+        if(res.status){
+            for (let i = 0; i < res.data.length; i++) {
+                html += `
+                    <tr>
+                        <td>
+                            <div style="display: flex; gap: 2px;">
+                                {% if permisos.m == 1 %}
+                                    <button class="btn btn-round btn-sm btn-info" data-accion="m"
+                                        data-toggle="tooltip" data-placement="top" title="Colores" onclick="modalColores(${res.data[i].id})">
+                                        <i class="fa fa-palette"></i>
+                                    </button>
+                                    <button class="btn btn-round btn-sm btn-secondary"
+                                        data-toggle="tooltip"
+                                        title="Imagen"
+                                        onclick="modalImagenProducto(${res.data[i].id})">
+                                        <i class="fa fa-image"></i>
+                                    </button>
+                                    <button class="btn btn-round btn-sm btn-warning" data-accion="m"
+                                        data-toggle="tooltip" data-placement="top" title="Modificar" onclick="Modalaccion('m',${res.data[i].id})">
+                                        <i class="fa fa-pen"></i>
+                                    </button>
+                                {% endif %}
+
+                                {% if permisos.b == 1 %}
+                                    <button class="btn btn-round btn-sm btn-danger" onclick="Eliminar(${res.data[i].id})"
+                                        data-toggle="tooltip" data-placement="top" title="Eliminar">
+                                        <i class="fa fa-trash-alt"></i>
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class='search'>${res.data[i].codigo}</td>
+                        <td class='search'>${res.data[i].nombre}</td>
+                        <td class='search'>${res.data[i].subcategoria || ''}</td>
+                        <td>$ ${parseFloat(res.data[i].precio).toFixed(2)}</td>
+                        <td>${res.data[i].porc_ecommerce ? parseFloat(res.data[i].porc_ecommerce).toFixed(2) + '%' : '-'}</td>
+                        <td>$ ${res.data[i].porc_ecommerce ? (parseFloat(res.data[i].precio) * (1 + parseFloat(res.data[i].porc_ecommerce) / 100)).toFixed(2) : parseFloat(res.data[i].precio).toFixed(2)}</td>
+                        <td>${res.data[i].activo_ecommerce === 1 ? 'Si' : 'No'}</td>
+                        <td>${res.data[i].activo === 1 ? 'Si' : 'No'}</td>
+                    </tr>`
+            }
+        }else{
+            html = `<tr><td class="font-weight-bold" colspan="9">${res.text}</td></tr>`
+        }
+        $('#tablaDatos tbody').html(html)
+        $("#preloaderAPP").hide()
+        $('[data-toggle="tooltip"]').tooltip()
+    }
+
+    const Modalaccion = async (accion, id) => {
+        $("#preloaderAPP").show()
+        if (accion === 'a') {
+            $('#modalLabel').text('Nuevo Producto')
+            $('#btnaccion').attr('onclick', `PostRegistro("a")`)
+            $('#btnaccion').text('Guardar')
+        }
+        if (accion == 'm') {
+            let res = await $.post(`/productos/getByIdAjax`, {id})
+            if (res.status) {
+                $('#codigo').val(res.data.codigo)
+                $('#nombre').val(res.data.nombre)
+                
+                // Cargar categoría y luego subcategoría
+                if(res.data.id_categoria_fk){
+                    $('#id_categoria_fk').val(res.data.id_categoria_fk).selectpicker('refresh')
+                    await cargarSubcategorias()
+                    $('#id_subcategoria_fk').val(res.data.id_subcategoria_fk).selectpicker('refresh')
+                }
+                
+                $('#descripcion').val(res.data.descripcion || '')
+                $('#path_foto').val(res.data.path_foto || '')
+                $('#precio').val(res.data.precio)
+                $('#porc_ecommerce').val(res.data.porc_ecommerce || '')
+                $('#chbActivoEcommerce').prop('checked', res.data.activo_ecommerce === 1 ? true : false)
+                $('#chbActivo').prop('checked', res.data.activo === 1 ? true : false)
+            }
+            $('#modalLabel').text('Modificar Producto')
+            $('#btnaccion').text('Guardar')
+            $('#btnaccion').attr('onclick', `PostRegistro("m",${id})`)
+            $('#actionSeccion').removeClass('d-none')
+        }
+        $("#preloaderAPP").hide()
+        $('#modal').modal('show')
+    }
+
+    const PostRegistro = async (accion, Id) => {
+        $("#preloaderAPP").show()
+        let url = '/productos/alta',
+            body = {
+                codigo: $('#codigo').val(),
+                nombre: $('#nombre').val(),
+                id_subcategoria_fk: $('#id_subcategoria_fk').val(),
+                descripcion: $('#descripcion').val(),
+                path_foto: $('#path_foto').val(),
+                precio: $('#precio').val(),
+                porc_ecommerce: $('#porc_ecommerce').val(),
+                activo_ecommerce: 0,
+                activo: 1
+            }
+
+        if (accion === 'm') {
+            url = '/productos/modificar'
+            body.activo_ecommerce = $('#chbActivoEcommerce').prop('checked') ? 1 : 0
+            body.activo = $('#chbActivo').prop('checked') ? 1 : 0
+            body.id = Id
+        }
+
+        const res = await $.post(url, body)
+        $("#preloaderAPP").hide()
+        Swal.fire({
+            icon: res.icon,
+            title: res.title, 
+            text: res.text, 
+            timer: 2000
+        }).then(() => {
+            if(res.status){
+                CerrarModal()
+                getLista()
+            }
+        })        
+    }
+
+    const Eliminar = (id) => {
+        Swal.fire({
+            title: 'Confirmar',
+            text: "¿Desea borrar este producto?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar.',
+            cancelButtonColor: '#d33',
+            cancelButtonText: 'No, cancelar.'
+        }).then(async result => {
+            if (result.isConfirmed) {
+                $("#preloaderAPP").show();
+                let res = await $.post('/productos/eliminar', { id })
+                $("#preloaderAPP").hide();
+                Swal.fire({
+                    type: res.type,
+                    icon: res.icon,
+                    title: res.title,
+                    text: res.text,
+                    timer: 2000
+                }).then(() => {
+                    if(res.status){
+                        CerrarModal()
+                        getLista()
+                    }
+                })
+            }    
+        })
+    }
+
+    const Filtrar = () => {
+        $('#tablaDatos tbody tr').each(function () {
+            if ($(this).find('td.search').text().toUpperCase().indexOf($('#txtFiltro').val().toUpperCase()) > -1)
+                $(this).closest('tr').show();
+            else
+                $(this).closest('tr').hide();
+        })
+    }
+
+    const CerrarModal = () => {
+        $('#modal').modal('hide')
+        $('#actionSeccion').addClass('d-none')
+        LimpiarCampos()
+    }
+
+    const LimpiarCampos = () => {
+        $('input[type="text"]').val('')
+        $('input[type="number"]').val('')
+        $('textarea').val('')
+        $('input[type="checkbox"]').prop('checked', false)
+        $('#id_categoria_fk').val('0').selectpicker('refresh')
+        $('#id_subcategoria_fk').html('<option value="0">Seleccione categoría primero...</option>')
+        $('#id_subcategoria_fk').prop('disabled', true)
+        $('#id_subcategoria_fk').selectpicker('refresh')
+    }
+
+    //========================COLORES========================//
+
+    const modalColores = async (id) => {
+        _idColorSelec = id;
+        let html = "";
+        try {
+            const colores = await $.post('/productos/getColoresByProductoIdAjax', { id_producto_fk: id });
+            if (colores.status) {
+                for (let i = 0; i < colores.data.length; i++) {
+                    html += `
+                        <tr>
+                            <td>
+                                <div style="display: flex; gap: 2px;">
+                                    {% if permisos.m == 1 %}
+                                        <button class="btn btn-round btn-sm btn-warning" data-accion="m"
+                                            data-toggle="tooltip" data-placement="top" title="Modificar" onclick="modalAccionColor('m',${colores.data[i].id})">
+                                            <i class="fa fa-pen"></i>
+                                        </button>
+                                    {% endif %}
+                                    {% if permisos.b == 1 %}
+                                        <button class="btn btn-round btn-sm btn-danger" onclick="EliminarColor(${colores.data[i].id})"
+                                            data-toggle="tooltip" data-placement="top" title="Eliminar">
+                                            <i class="fa fa-trash-alt"></i>
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td class='search'>${colores.data[i].descripcion}</td>
+                            <td>
+                                <div style="width: 30px; height: 30px; background-color: ${colores.data[i].codigo_hexa}; border: 1px solid #000;"></div>
+                            </td>
+                        </tr>`;
+                }
+            } else {
+                html = `<tr><td colspan="3">No hay colores cargados</td></tr>`;
+            }
+        } catch (e) {
+            html = `<tr><td colspan="3">Error al cargar colores</td></tr>`;
+        }
+        $('#tablaDatosColores tbody').html(html);
+        $('#modalColores').modal('show');
+    }
+
+    const CerrarModalColores = () => {
+        $('#modalColores').modal('hide')
+        // limpiar tabla
+        $('#tablaDatosColores tbody').html('')
+    }
+
+    const modalAccionColor = async(accion, idColor) => {
+        if(accion === 'a'){
+            $('#modalLabelAccionColor').text('Agregar Color')
+            $('#btnaccionColor').attr('onclick', `PostRegistroColor("a", ${idColor})`)
+            $('#btnaccionColor').text('Guardar')
+            // limpiar campos
+            $('#txtDescripcionColor').val('')
+            $('#color').val('#000000')
+        }
+        if(accion === 'm'){
+            let color = await $.post('/productos/getColorByIdAjax', { id: idColor })
+            if(color.status){
+                $('#txtDescripcionColor').val(color.data.descripcion)
+                $('#color').val(color.data.codigo_hexa)
+            }
+            $('#modalLabelAccionColor').text('Modificar Color')
+            $('#btnaccionColor').attr('onclick', `PostRegistroColor("m", ${idColor})`)
+            $('#btnaccionColor').text('Guardar')
+        }
+        $('#modalAccionColor').modal('show')
+    }
+
+    const CerrarModalAccionColor = () => {
+        $('#modalAccionColor').modal('hide')
+        // limpiar campos
+        $('#txtDescripcionColor').val('')
+        $('#color').val('#000000')
+    }
+    
+
+    const PostRegistroColor = async (accion, idColor) => {
+        $("#preloaderAPP").show()
+        let url = '/productos/altaColor',
+            body = {
+                id_producto_fk: _idColorSelec,
+                descripcion: $('#txtDescripcionColor').val(),
+                codigo_hexa: $('#color').val()
+            }
+
+        if (accion === 'm') {
+            url = '/productos/modificarColor'
+            body.id = idColor
+        }
+
+        const res = await $.post(url, body)
+        $("#preloaderAPP").hide()
+        Swal.fire({
+            icon: res.icon,
+            title: res.title, 
+            text: res.text, 
+            timer: 2000
+        }).then(() => {
+            if(res.status){
+                CerrarModalAccionColor()
+                modalColores(_idColorSelec)
+            }
+        })        
+    }
+
+    const EliminarColor = (id) => {
+        Swal.fire({
+            title: 'Confirmar',
+            text: "¿Desea borrar este color?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar.',
+            cancelButtonColor: '#d33',
+            cancelButtonText: 'No, cancelar.'
+        }).then(async result => {
+            if (result.isConfirmed) {
+                $("#preloaderAPP").show();
+                let res = await $.post('/productos/eliminarColor', { id })
+                $("#preloaderAPP").hide();
+                Swal.fire({
+                    type: res.type,
+                    icon: res.icon,
+                    title: res.title,
+                    text: res.text,
+                    timer: 2000
+                }).then(() => {
+                    if(res.status){
+                        modalColores(_idColorSelec)
+                    }
+                })
+            }    
+        })
+    }
+
+
+
+    //========================IMAGEN PRODUCTO========================//
+    let _idProductoImagen = null;
+
+const modalImagenProducto = async (idProducto) => {
+    _idProductoImagen = idProducto;
+    $('#idProductoImagen').val(idProducto);
+    $('#imagenProducto').val('');
+    $('#previewImagenProducto').attr('src', '').addClass('d-none');
+
+    $("#preloaderAPP").show();
+
+    try {
+        const res = await $.post('/productos/getImagenProducto', { id: idProducto });
+
+        if (res.status && res.imagen_url) {
+            $('#previewImagenProducto')
+                .attr('src', res.imagen_url)
+                .removeClass('d-none');
+        } else {
+            $('#previewImagenProducto').attr('src', '').addClass('d-none');
+        }
+
+    } catch (e) {
+        console.error(e);
+    }
+
+    $("#preloaderAPP").hide();
+    $('#modalImagenProducto').modal('show');
+};
+
+const CerrarModalImagenProducto = () => {
+    $('#modalImagenProducto').modal('hide');
+};
+
+// Preview
+$('#imagenProducto').on('change', function () {
+    const file = this.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = e => {
+        $('#previewImagenProducto')
+            .attr('src', e.target.result)
+            .removeClass('d-none');
+    };
+    reader.readAsDataURL(file);
+});
+
+// Subir imagen
+const SubirImagenProducto = async () => {
+    const file = $('#imagenProducto')[0].files[0];
+    if (!file) {
+        Swal.fire('Atención', 'Seleccione una imagen', 'warning');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('imagen', file);
+    formData.append('id', _idProductoImagen);
+
+    $("#preloaderAPP").show();
+
+    try {
+        const res = await fetch('/productos/subirImagen', {
+            method: 'POST',
+            body: formData
+        }).then(r => r.json());
+
+        $("#preloaderAPP").hide();
+
+        Swal.fire({
+            icon: res.icon,
+            title: res.title,
+            text: res.text,
+            timer: 2000
+        }).then(() => {
+            if (res.status) {
+                CerrarModalImagenProducto();
+                getLista();
+            }
+        });
+
+    } catch (e) {
+        $("#preloaderAPP").hide();
+        Swal.fire('Error', 'No se pudo subir la imagen', 'error');
+    }
+};
+
+
+</script>
+
+{% endblock %}

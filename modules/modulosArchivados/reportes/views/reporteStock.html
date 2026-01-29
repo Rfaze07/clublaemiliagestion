@@ -1,0 +1,408 @@
+{% extends '../../template.html' %}
+
+{% block styles %}
+<style>
+    .textAreaSize {
+        resize: vertical;
+        min-height: 48px;
+        max-height: 100px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+    <h2>{{ pagename }}</h2>
+    <div class="d-flex align-items-end mb-3" style="gap: 0.2rem;">
+        <input type="text" class="form-control form-control-sm" id="txtFiltro" placeholder="Buscar" style="width: 10rem;" onkeypress="Buscar()" />
+        <div>
+            <label>Stock</label>
+            <select class="form-control form-control-sm selectpicker" id="cmbStockFiltro" onchange="getLista()">
+                <option value="t" selected>Todos</option>
+                <option value="b">Bajo</option>
+                <option value="m">Minimo</option>
+                <option value="a">Adecuado</option>
+            </select>
+        </div>
+        <div>
+            <label>Marca</label>
+            <select class="form-control form-control-sm selectpicker" id="cmbMarcaFiltro" onchange="getLista()" data-live-search="true"></select>
+        </div>
+        <div>
+            <label>Rubro</label>
+            <select class="form-control form-control-sm selectpicker" id="cmbRubroFiltro" onchange="getLista()" data-live-search="true"></select>
+        </div>
+        <div>
+            <label>Activos</label>
+            <select class="form-control form-control-sm selectpicker" id="cmbActivoFiltro" onchange="getLista()">
+                <option value="t" selected>Todos</option>
+                <option value="1">Si</option>
+                <option value="0">No</option>
+            </select>
+        </div>
+    </div>
+</div>
+<div class="table-responsive" style="height: calc(100vh - 400px)">
+    <table class="table table-sm table-fix table-hover tableFixHead" id="tablaDatos">
+        <thead>
+            <tr>
+                <th>Acciones</th>
+                <th>Producto</th>
+                <th>Marca</th>
+                <th>Rubro</th>
+                <th>Stock Minimo</th>
+                <th>Stock Actual</th>
+                <th>Activo</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<!-- Contenedores de los gráficos -->
+<div class="row mt-4">
+    <!-- Fila superior: Cumplimiento de Stock y Rubros -->
+    <div class="col-lg-6 col-md-12 mb-3">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Cumplimiento de Stock</h5>
+            </div>
+            <div class="card-body">
+                <div id="stockChart" style="height: 350px;"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6 col-md-12 mb-3">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Productos por Rubro</h5>
+            </div>
+            <div class="card-body">
+                <div id="rubroChart" style="height: 350px;"></div>
+            </div>
+        </div>
+    </div>
+    <!-- Fila inferior: Marcas ocupando todo el ancho -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Productos por Marca</h5>
+            </div>
+            <div class="card-body">
+                <div id="marcaChart" style="height: 400px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript">
+    
+    $(document).ready(async () => {
+        await ObtenerCmbMarcas('cmbMarcaFiltro', true)
+        await ObtenerCmbRubros('cmbRubroFiltro', true)
+        await getLista()
+    })
+
+    const getLista = async () => {
+        $('#preloaderAPP').show()
+        let html = '<tr><td colspan="20">Sin registros.</td></tr>',
+        filtroActivo = $('#cmbActivoFiltro').val(),
+        filtroMarca = $('#cmbMarcaFiltro').val(),
+        filtroRubro = $('#cmbRubroFiltro').val(),
+        filtroStockMinimo = $('#cmbStockFiltro').val(),
+        res = await $.post('/reportes/reporteStock', { filtroActivo, filtroMarca, filtroRubro, filtroStockMinimo })
+        
+        // Variables para los gráficos
+        let stockBajo = 0, stockMinimo = 0, stockAdecuado = 0;
+        let marcasCount = {}, rubrosCount = {};
+
+        if(res.status){
+            html=''
+            for(let i=0; i<res.data.length; i++){
+                let rowClass = '';
+                if(res.data[i].stock_actual < res.data[i].stockMinimo) {
+                    rowClass = 'table-row-rojo';
+                    stockBajo++;
+                } else if(res.data[i].stock_actual == res.data[i].stockMinimo) {
+                    rowClass = 'table-row-amarillo';
+                    stockMinimo++;
+                } else {
+                    rowClass = 'table-row-verde';
+                    stockAdecuado++;
+                }
+
+                // Contar productos por marca
+                let marca = res.data[i].marca || 'Sin marca';
+                marcasCount[marca] = (marcasCount[marca] || 0) + 1;
+
+                // Contar productos por rubro
+                let rubro = res.data[i].rubro || 'Sin rubro';
+                rubrosCount[rubro] = (rubrosCount[rubro] || 0) + 1;
+
+                html += `
+
+                <tr class="${rowClass}">
+                    <td>
+                        <div style="display: flex; gap: 2px;">
+                            <button class="btn btn-round btn-sm btn-info" data-accion="v"
+                                data-toggle="tooltip" data-placement="top" title="Ver" onclick="Ver(${res.data[i].id})">
+                                <i class="fa fa-eye"></i>
+                            </button>
+                        </div>
+                    </td>
+                    <td class="search">${res.data[i].Desc_Producto}</td>
+                    <td class="search">${res.data[i].marca}</td>
+                    <td class="search">${res.data[i].rubro}</td>
+                    <td class="search">${res.data[i].stockMinimo} ${res.data[i].unidad_medida}</td>
+                    <td class="search"><b>${res.data[i].stock_actual} ${res.data[i].unidad_medida}</b></td>
+                    <td>${res.data[i].activo == 1 ? 'Si' : 'No'}</td>
+                </tr>`
+            }
+        }
+
+        $('#tablaDatos tbody').html(html)
+        $('[data-toggle="tooltip"]').tooltip()
+        
+        // Crear los tres gráficos
+        createStockChart(stockBajo, stockMinimo, stockAdecuado);
+        createMarcaChart(marcasCount);
+        createRubroChart(rubrosCount);
+        
+        $('#preloaderAPP').hide()
+    }
+
+    const AbrirModal = () => {
+        $('#modal').modal('show')
+    }
+
+    const CerrarModal = () => {
+        $('#modal').modal('hide')
+        $('#actionSeccion').addClass('d-none')
+        $('#actionSeccionDivider').addClass('d-none')
+        LimpiarCampos()
+    }
+
+
+    const LimpiarCampos = () => {
+        $('input[type="text"], input[type="email"], textarea').val('')
+        $('input[type="checkbox"], input[type="radio"]').prop('checked', false)
+        $('select').val('0')
+        $('#cmbLocalidad').prop('disabled', true)
+        $('.selectpicker').selectpicker('refresh')
+    }
+
+    const Ver = async id => {
+        let res = await $.post('/proveedores/ver', {id})
+        if(res.status){
+            $('#txtRazonSocialV').val(res.data.razon_social)
+            $('#txtNombreFantasiaV').val(res.data.nombre_fantasia)
+            $('#txtCUITV').val(res.data.cuit)
+            $('#cmbCondicionIVAV').val(res.data.id_condicioniva_fk)
+            $('#cmbProvinciaV').val(res.data.id_provincia_fk)
+            $('.selectpicker').selectpicker('refresh')
+            await ObtenerCmbLocalidadesProvincia(res.data.id_provincia_fk, 'cmbLocalidadV', 'txtCP')
+            $('#cmbLocalidadV').val(res.data.id_localidad_fk)
+            $('#cmbLocalidadV').prop('disabled', true)
+            $('#txtDireccionV').val(res.data.direccion)
+            $('#txtMailV').val(res.data.mail)
+            $('#txtTelefonoV').val(res.data.telefono)
+            $('#txtContactoV').val(res.data.contacto)
+            $('#txtObservacionesV').val(res.data.observaciones)
+            $('#chbActivoV').prop('checked', res.data.activo == 1 ? true : false)
+            $('.selectpicker').selectpicker('refresh')
+            $('#modalVer').modal('show')
+        }else{
+            Swal.fire(res.title, res.text, res.text)
+        }
+    }
+
+
+    const Buscar = async () => {
+        //Busqueda en tiempo real
+        let filtro = $('#txtFiltro').val().toLowerCase()
+        $('#tablaDatos tbody tr').filter(function() {
+            $(this).toggle($(this).find('.search').text().toLowerCase().indexOf(filtro) > -1)
+        })
+    }
+
+    // Función para crear el gráfico de torta de stock
+    const createStockChart = (stockBajo, stockMinimo, stockAdecuado) => {
+        Highcharts.chart('stockChart', {
+            chart: {
+                type: 'pie',
+                backgroundColor: 'transparent'
+            },
+            title: {
+                text: null
+            },
+            tooltip: {
+                pointFormat: '<b>{point.y}</b> productos<br>({point.percentage:.1f}%)'
+            },
+            plotOptions: {
+                pie: {
+                    allowPointSelect: true,
+                    cursor: 'pointer',
+                    dataLabels: {
+                        enabled: true,
+                        format: '{point.name}<br>{point.y}',
+                        style: {
+                            fontSize: '10px'
+                        }
+                    },
+                    showInLegend: false,
+                    size: '90%'
+                }
+            },
+            series: [{
+                name: 'Productos',
+                colorByPoint: true,
+                data: [{
+                    name: 'Bajo',
+                    y: stockBajo,
+                    color: '#ffcdd2'
+                }, {
+                    name: 'Mínimo',
+                    y: stockMinimo,
+                    color: '#fff9c4'
+                }, {
+                    name: 'Adecuado',
+                    y: stockAdecuado,
+                    color: '#c8e6c9'
+                }]
+            }],
+            exporting: { enabled: false }
+        });
+    }
+
+    // Función para crear el gráfico de productos por marca
+    const createMarcaChart = (marcasCount) => {
+        const marcas = Object.keys(marcasCount);
+        const cantidades = Object.values(marcasCount);
+        
+        Highcharts.chart('marcaChart', {
+            chart: {
+                type: 'column',
+                backgroundColor: 'transparent'
+            },
+            title: {
+                text: null
+            },
+            xAxis: {
+                categories: marcas,
+                title: {
+                    text: 'Marcas'
+                },
+                labels: {
+                    rotation: -45,
+                    style: {
+                        fontSize: '11px'
+                    }
+                }
+            },
+            yAxis: {
+                min: 0,
+                title: {
+                    text: 'Cantidad de Productos'
+                },
+                labels: {
+                    style: {
+                        fontSize: '11px'
+                    }
+                }
+            },
+            tooltip: {
+                pointFormat: '<b>{point.y}</b> productos'
+            },
+            plotOptions: {
+                column: {
+                    pointPadding: 0.2,
+                    borderWidth: 0,
+                    dataLabels: {
+                        enabled: true,
+                        style: {
+                            fontSize: '11px'
+                        }
+                    }
+                }
+            },
+            legend: {
+                enabled: false
+            },
+            series: [{
+                name: 'Productos',
+                data: cantidades,
+                color: '#4CAF50'
+            }],
+            exporting: { enabled: false }
+        });
+    }
+
+    // Función para crear el gráfico de productos por rubro
+    const createRubroChart = (rubrosCount) => {
+        const rubros = Object.keys(rubrosCount);
+        const cantidades = Object.values(rubrosCount);
+        
+        Highcharts.chart('rubroChart', {
+            chart: {
+                type: 'column',
+                backgroundColor: 'transparent'
+            },
+            title: {
+                text: null
+            },
+            xAxis: {
+                categories: rubros,
+                title: {
+                    text: 'Rubros'
+                },
+                labels: {
+                    rotation: -45,
+                    style: {
+                        fontSize: '11px'
+                    }
+                }
+            },
+            yAxis: {
+                min: 0,
+                title: {
+                    text: 'Cantidad de Productos'
+                },
+                labels: {
+                    style: {
+                        fontSize: '11px'
+                    }
+                }
+            },
+            tooltip: {
+                pointFormat: '<b>{point.y}</b> productos'
+            },
+            plotOptions: {
+                column: {
+                    pointPadding: 0.2,
+                    borderWidth: 0,
+                    dataLabels: {
+                        enabled: true,
+                        style: {
+                            fontSize: '11px'
+                        }
+                    }
+                }
+            },
+            legend: {
+                enabled: false
+            },
+            series: [{
+                name: 'Productos',
+                data: cantidades,
+                color: '#2196F3'
+            }],
+            exporting: { enabled: false }
+        });
+    }
+
+</script>
+{% endblock %}

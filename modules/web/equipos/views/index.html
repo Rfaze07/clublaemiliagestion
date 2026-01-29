@@ -1,0 +1,227 @@
+{% extends '../../template.html' %}
+
+{% block title %}Bienvenido - Torneo Acercamiento{% endblock %}
+
+
+{% block styles %}
+
+<style>
+  .card-equipo {
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  transition: box-shadow 0.25s ease;
+  height: 100%;
+}
+
+.card-equipo:hover {
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.14);
+}
+
+.equipo-body {
+  padding: 20px;
+  text-align: center;
+}
+
+.equipo-nombre {
+  font-size: 1.25rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+/* Tabla de jugadores */
+.tabla-jugadores {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  margin-top: 10px;
+}
+
+.tabla-jugadores th {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #555;
+  border-bottom: 2px solid #000;
+  padding-bottom: 6px;
+}
+
+.tabla-jugadores td {
+  padding: 8px 4px;
+  border-bottom: 1px solid #eee;
+}
+
+.tabla-jugadores td:first-child {
+  font-weight: 700;
+  width: 50px;
+}
+
+.tabla-jugadores tr:last-child td {
+  border-bottom: none;
+}
+.modulo-presentacion {
+  font-size: 0.95rem;
+  font-weight: 400;
+  color: #555;
+  max-width: 780px;
+  margin: 10px auto 0 auto;
+  line-height: 1.6;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .modulo-presentacion {
+    font-size: 0.9rem;
+    padding: 0 12px;
+  }
+}
+.titulo {
+        font-size: 1.35rem;
+        font-weight: 800;
+        line-height: 1.35;
+        color: #000;
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        text-align: center;
+    }
+    .subtitulo {
+        display: block;
+        font-size: 0.9rem;
+        font-weight: 400;
+        color: #666;
+        margin-bottom: 14px;
+        line-height: 1.5;
+        text-align: center;
+    }
+    .header-equipos {
+        margin: 40px 0 30px;
+        text-align: center;
+    }
+    .header-equipos h2 {
+        font-size: 2.2rem;
+        font-weight: 800;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: #000;
+        margin-bottom: 12px;
+    }
+    .header-equipos h4 {
+        font-size: 1rem;
+        font-weight: 400;
+        color: #444;
+        max-width: 820px;
+        margin: 0 auto;
+        line-height: 1.6;
+    }
+    @media (max-width: 768px) {
+        .titulo { font-size: 1.15rem; }
+        .subtitulo { font-size: 0.85rem; }
+        .header-equipos h2 { font-size: 1.6rem; }
+        .header-equipos h4 { font-size: 0.95rem; padding: 0 10px; }
+        .card-partido .card-body { padding: 18px; }
+    }
+
+
+
+    
+</style>
+{% endblock %}
+
+
+{% block content %}
+    <div class="header-equipos">
+        <h2 class="m-0">{{ pagename }}</h2>
+        <h4>
+          Conocé todos los equipos del torneo, sus planteles y la información más 
+            relevante de cada jugador. Explora la competencia de manera clara y detallada.
+        </h4>
+    </div>
+<!--- <h2 class=" m-0 ">{{ pagename }}</h2>
+<h4 class="modulo-presentacion">
+  Conocé todos los equipos del torneo, sus planteles y la información más 
+  relevante de cada jugador. Explora la competencia de manera clara y detallada.
+</h4>
+--->
+<div class="container my-5">
+  <div class="row g-4">
+
+    
+
+    
+
+
+
+
+  </div>
+</div>
+
+{% endblock %}
+
+
+
+
+{% block scripts %}
+
+<script type="text/javascript">
+
+$(document).ready(async function() {
+    getLista();
+});
+
+const getLista = async () => {
+    try {
+        $('#preloaderAPP').show();
+        const res = await $.post('/web/equipos/getLista', {});
+        if (!res.status){
+            return;
+        }
+        
+        for (let i = 0; i < res.data.length; i++) {
+            const equipo = res.data[i];
+            // Construir la card del equipo
+            const card = $(`
+                <div class="col-12 col-sm-6 col-lg-4">
+                  <div class="card-equipo">
+                    <div class="equipo-body">
+                      <h5 class="equipo-nombre">${equipo.nombre}</h5>
+                      <table class="tabla-jugadores">
+                        <thead>
+                          <tr>
+                            <th>Dorsal</th>
+                            <th>Jugador</th>
+                          </tr>
+                        </thead>
+                        <tbody id="jugadores-equipo-${equipo.id}">
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+            `);
+            $('.row.g-4').append(card);
+            // Agregar los jugadores a la tabla
+            for (let j = 0; j < equipo.jugadores.length; j++) {
+                const jugador = equipo.jugadores[j];
+                const filaJugador = $(`
+                    <tr>
+                        <td>${jugador.dorsal}</td>
+                        <td>${jugador.nombre}</td>
+                    </tr>
+                `);
+                $(`#jugadores-equipo-${equipo.id}`).append(filaJugador);
+            }
+        }
+        $('#preloaderAPP').hide();
+
+
+        
+    } catch (error) {
+        console.error('Error al obtener la lista de equipos:', error);
+    } finally {
+        $('#preloaderAPP').hide();
+    }
+};
+
+</script>
+{% endblock %}

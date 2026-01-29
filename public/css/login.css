@@ -1,0 +1,508 @@
+/* ========== RESET Y CONFIGURACIÓN BASE ========== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Karla", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  min-height: 100vh;
+  background-color: #f5f5f5;
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+#bgLogin {
+  background-color: #ffffff;
+}
+
+main {
+  margin: 0;
+  padding: 0;
+}
+
+.container-fluid {
+  padding: 0;
+  max-width: 100%;
+  margin: 0;
+}
+
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  box-shadow: none;
+  background: #ffffff;
+}
+
+.login-container .row {
+  width: 100%;
+  margin: 0;
+}
+
+/* ========== PANEL IZQUIERDO ========== */
+.login-left-panel {
+  background: linear-gradient(to bottom, #1e6b8f 0%, #0d3d54 100%);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 2rem;
+  overflow: hidden;
+}
+
+.login-left-panel::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+  background-size: 50px 50px;
+  opacity: 0.3;
+  animation: backgroundMove 20s linear infinite;
+}
+
+@keyframes backgroundMove {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(50px, 50px); }
+}
+
+.left-content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 500px;
+  color: white;
+  text-align: center;
+  margin: 0 auto;
+}
+
+.company-logo-wrapper {
+  margin-bottom: 1.5rem;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+}
+
+.company-logo {
+  max-width: 800px;
+  max-height: 350px;
+  height: auto;
+  filter: brightness(0) invert(1);
+  opacity: 0.95;
+}
+
+.company-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 1.5rem;
+  color: #ffffff;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.company-subtitle {
+  font-size: 1.125rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 400;
+  letter-spacing: 0.5px;
+}
+
+/* ========== PANEL DERECHO ========== */
+.login-right-panel {
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 2rem;
+}
+
+.right-content {
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.system-logo-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.system-logo {
+  max-height: 240px;
+  max-width: 700px;
+  width: auto;
+  height: auto;
+}
+
+.welcome-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #1a202c;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.5px;
+  text-align: center;
+}
+
+.welcome-subtitle {
+  font-size: 0.9375rem;
+  color: #718096;
+  margin-bottom: 2.5rem;
+  font-weight: 400;
+  text-align: center;
+}
+
+/* ========== FORMULARIO ========== */
+.login-form {
+  width: 100%;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.3px;
+}
+
+.input-icon {
+  position: relative;
+}
+
+.input-icon .icon-mail::before,
+.input-icon .icon-lock::before {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #a0aec0;
+  font-size: 1.125rem;
+  z-index: 2;
+  font-family: Arial, sans-serif;
+}
+
+.input-icon .icon-mail::before {
+  content: '✉';
+}
+
+.input-icon .icon-lock::before {
+  content: '🔒';
+}
+
+.form-control {
+  width: 100%;
+  padding: 0.875rem 1rem 0.875rem 2.75rem;
+  font-size: 0.9375rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #2d3748;
+  background-color: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.form-control::placeholder {
+  color: #cbd5e0;
+}
+
+.form-control:focus {
+  border-color: #175676;
+  box-shadow: 0 0 0 3px rgba(23, 86, 118, 0.1);
+  background-color: #ffffff;
+}
+
+/* ========== BOTÓN ========== */
+.btn-ingreso {
+  width: 100%;
+  padding: 0.875rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #ffffff;
+  background: linear-gradient(135deg, #175676 0%, #0d3d54 100%);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(23, 86, 118, 0.3);
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.btn-ingreso:hover {
+  background: linear-gradient(135deg, #1e6b8f 0%, #114b68 100%);
+  box-shadow: 0 6px 16px rgba(23, 86, 118, 0.4);
+  transform: translateY(-2px);
+}
+
+.btn-ingreso:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(23, 86, 118, 0.3);
+}
+
+.btn-ingreso:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.help-text {
+  text-align: center;
+  margin-top: 2rem;
+  font-size: 0.875rem;
+  color: #a0aec0;
+}
+
+/* ========== SPINNER ========== */
+.spinner-border-sm {
+  width: 1rem;
+  height: 1rem;
+  border-width: 0.15rem;
+  margin-right: 0.5rem;
+}
+
+/* ========== RESPONSIVE ========== */
+
+/* Extra Small Devices (Mobile Portrait - menos de 576px) */
+@media (max-width: 575px) {
+  .login-left-panel {
+    display: none;
+  }
+  
+  .login-right-panel {
+    padding: 3rem 2rem;
+    min-height: 100vh;
+  }
+  
+  .right-content {
+    max-width: 100%;
+    padding: 0 1rem;
+  }
+  
+  .welcome-title {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .welcome-subtitle {
+    font-size: 0.875rem;
+    margin-bottom: 2.5rem;
+  }
+  
+  .form-label {
+    font-size: 0.8125rem;
+  }
+  
+  .form-control {
+    font-size: 0.875rem;
+    padding: 0.75rem 1rem 0.75rem 2.5rem;
+  }
+  
+  .btn-ingreso {
+    font-size: 0.9375rem;
+    padding: 0.8125rem 1.25rem;
+  }
+  
+  .system-logo {
+    max-height: 120px;
+  }
+  
+  .system-logo-wrapper {
+    margin-bottom: 2rem;
+  }
+  
+  .form-group {
+    margin-bottom: 1.75rem;
+  }
+}
+
+/* Small Devices (Mobile Landscape - 576px a 767px) */
+@media (min-width: 576px) and (max-width: 767px) {
+  .login-left-panel {
+    display: none;
+  }
+  
+  .login-right-panel {
+    padding: 3.5rem 3rem;
+    min-height: 100vh;
+  }
+  
+  .right-content {
+    max-width: 450px;
+    padding: 0 1.5rem;
+  }
+  
+  .welcome-title {
+    font-size: 1.625rem;
+    margin-bottom: 1rem;
+  }
+  
+  .welcome-subtitle {
+    margin-bottom: 2.5rem;
+  }
+  
+  .system-logo-wrapper {
+    margin-bottom: 2rem;
+  }
+  
+  .form-group {
+    margin-bottom: 1.75rem;
+  }
+}
+
+/* Medium Devices (Tablets - 768px a 991px) */
+@media (min-width: 768px) and (max-width: 991px) {
+  .login-left-panel,
+  .login-right-panel {
+    padding: 3.5rem 2.5rem;
+  }
+  
+  .company-title {
+    font-size: 2rem;
+  }
+  
+  .company-subtitle {
+    font-size: 1rem;
+  }
+  
+  .welcome-title {
+    font-size: 1.625rem;
+  }
+  
+  .left-content,
+  .right-content {
+    max-width: 380px;
+    padding: 0 1rem;
+  }
+  
+  .company-logo-wrapper {
+    margin-bottom: 2rem;
+  }
+  
+  .system-logo-wrapper {
+    margin-bottom: 2rem;
+  }
+  
+  .form-group {
+    margin-bottom: 1.75rem;
+  }
+}
+
+/* Large Devices (Desktop - 992px a 1199px) */
+@media (min-width: 992px) and (max-width: 1199px) {
+  .left-content {
+    max-width: 450px;
+  }
+  
+  .right-content {
+    max-width: 400px;
+  }
+}
+
+/* Extra Large Devices (Large Desktop - 1200px a 1399px) */
+@media (min-width: 1200px) and (max-width: 1399px) {
+  .company-title {
+    font-size: 2.25rem;
+  }
+}
+
+/* Extra Extra Large Devices (XL Desktop - 1400px+) */
+@media (min-width: 1400px) {
+  .company-title {
+    font-size: 2.75rem;
+  }
+  
+  .company-subtitle {
+    font-size: 1.25rem;
+  }
+  
+  .welcome-title {
+    font-size: 2rem;
+  }
+  
+  .left-content {
+    max-width: 550px;
+  }
+  
+  .right-content {
+    max-width: 460px;
+  }
+}
+
+/* Pantallas con poca altura */
+@media (max-height: 600px) {
+  .login-container {
+    min-height: auto;
+  }
+  
+  .login-left-panel,
+  .login-right-panel {
+    padding: 1.5rem 1rem;
+  }
+  
+  .welcome-title {
+    margin-bottom: 0.5rem;
+    font-size: 1.5rem;
+  }
+  
+  .welcome-subtitle {
+    margin-bottom: 1.5rem;
+  }
+  
+  .form-group {
+    margin-bottom: 1rem;
+  }
+  
+  .help-text {
+    margin-top: 1rem;
+  }
+  
+  .company-logo-wrapper {
+    margin-bottom: 1.5rem;
+  }
+  
+  .company-title {
+    font-size: 1.75rem;
+    margin-bottom: 1rem;
+  }
+}
+
+/* Landscape en móviles */
+@media (max-width: 767px) and (orientation: landscape) {
+  .login-right-panel {
+    padding: 1.5rem 2rem;
+  }
+  
+  .welcome-title {
+    font-size: 1.375rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .welcome-subtitle {
+    font-size: 0.875rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .form-group {
+    margin-bottom: 1rem;
+  }
+  
+  .system-logo-wrapper {
+    margin-bottom: 1.25rem;
+  }
+}
