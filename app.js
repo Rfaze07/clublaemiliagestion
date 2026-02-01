@@ -58,6 +58,7 @@ app.use(require("./modules/productos/routes"));
 app.use(require("./modules/clientes/routes"));
 app.use(require("./modules/tiposDocumentosAfip/routes"));
 app.use(require("./modules/deportes/routes"))
+app.use(require("./modules/secciones/routes"))
 
 app.use(require("./modules/provincias/routes"));
 app.use(require("./modules/localidades/routes"));
