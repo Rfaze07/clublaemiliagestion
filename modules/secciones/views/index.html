@@ -1,0 +1,457 @@
+{% extends '../../template.html' %}
+
+{% block styles %}
+<style>
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+    <h2>{{ pagename }}</h2>
+    <div class="d-flex align-items-end mb-3" style="gap: 0.2rem;">
+        <input type="text" class="form-control form-control-sm" id="txtFiltro" placeholder="Buscar" style="width: 10rem;" />
+        {% if permisos.a == 1 %}
+        <button class="btn btn-sm btn-round btn-success modalAccion mr-1" data-accion="a" onclick='ModalAccion("a")'>
+            <i class="fa fa-plus"></i>
+        </button>
+        {% endif %}
+    </div>
+</div>
+<div class="table-responsive" style="height: calc(100vh - 200px)" id="tablaDatos">
+    <table class="table table-sm table-fix table-hover tableFixHead">
+        <thead>
+            <tr>
+                <th scope="col">Acciones</th>
+                <th scope="col">Titulo</th>
+                <th scope="col">Descripcion</th>
+                <th scope="col">Orden</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<!-- MODAL -->
+<div class="modal fade modal-m" data-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    aria-labelledby="staticBackdropLabel" aria-hidden="true" id="modal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabel"></h5>
+                <button type="button" class="close" aria-label="Close" onclick="CerrarModal()">
+                    <span aria-hidden=" true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="form-group col-sm-12">
+                        <label for="txtTitulo">Titulo</label>
+                        <input type="text" class="form-control form-control-sm" id="txtTitulo" maxlength="20">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12">
+                        <label for="txtDescripcion">Descripcion</label>
+                        <textarea class="form-control form-control-sm" id="txtDescripcion" rows="10" maxlength="5000"></textarea>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12">
+                        <label for="txtOrden">Orden</label>
+                        <input type="number" class="form-control form-control-sm" id="txtOrden" maxlength="2">
+                    </div>
+                </div>
+
+                
+            </div>
+
+            <div class="row d-none" id="actionSeccion">
+                    <div class="form-group col-sm-12 text-center">
+                        <div class="custom-control custom-switch ml-1">
+                            <input type="checkbox" class="custom-control-input" id="chbActivo" />
+                            <label class="custom-control-label" for="chbActivo">Activo</label>
+                        </div>
+                    </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="CerrarModal()">Cancelar</button>
+                <button type="button" class="btn btn-success" id="btnAccion">Guardar</button>
+            </div>
+        </div>
+    </div>
+    </div>
+
+<!-- MODAL VER (solo lectura) -->
+<div class="modal fade" id="modalVer" tabindex="-1" aria-labelledby="modalVerLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalVerLabel">Ver sección</h5>
+                <div style="display:flex; gap:.5rem; align-items:center;">
+                    {% if permisos.a == 1 %}
+                    <button class="btn btn-sm btn-success" id="btnAgregarSub" style="display:none;">
+                        <i class="fa fa-plus"></i> Agregar SubSección
+                    </button>
+                    {% endif %}
+                    <button type="button" class="close" aria-label="Close" onclick="$('#modalVer').modal('hide')">
+                        <span aria-hidden=" true">&times;</span>
+                    </button>
+                </div>
+            </div>
+            <div class="modal-body">
+                <h3 id="verTitulo"></h3>
+                <div id="verDescripcion" style="margin-bottom:1rem; white-space:pre-wrap; line-height:1.5;"></div>
+
+                <hr/>
+                <h5>SubSecciones</h5>
+                <div id="subseccionesList" style="margin-top:0.5rem;"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="$('#modalVer').modal('hide')">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL SUBSECCION (alta/modificar) -->
+<div class="modal fade modal-m" data-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    aria-labelledby="modalSubLabel" aria-hidden="true" id="modalSub">
+    <div class="modal-dialog modal-md">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalSubLabel"></h5>
+                <button type="button" class="close" aria-label="Close" onclick="$('#modalSub').modal('hide')">
+                    <span aria-hidden=" true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="txtSubId" />
+                <input type="hidden" id="txtSubIdSeccionFk" />
+                <div class="form-group">
+                    <label for="txtSubTitulo">Titulo</label>
+                    <input type="text" class="form-control form-control-sm" id="txtSubTitulo" maxlength="100">
+                </div>
+                <div class="form-group">
+                    <label for="txtSubDescripcion">Descripcion</label>
+                    <textarea class="form-control form-control-sm" id="txtSubDescripcion" rows="6" maxlength="4000"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="txtSubOrden">Orden</label>
+                    <input type="number" class="form-control form-control-sm" id="txtSubOrden" maxlength="3">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="$('#modalSub').modal('hide')">Cancelar</button>
+                <button type="button" class="btn btn-success" id="btnGuardarSub">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(async () => {
+        getLista()
+    })
+
+    $("#txtFiltro").keyup(async function () {
+        Filtrar()
+    })
+    
+    const getLista = async () => {
+        $("#preloaderAPP").show()
+        const res = await $.post('/secciones/getListaAjax')
+        let html = ""
+        if(res.status){
+            for (let i = 0; i < res.data.length; i++) {
+                html += `
+                    <tr>
+                        <td>
+                            <div style="display: flex; gap: 6px; align-items:center;">
+                                <button class="btn btn-round btn-sm btn-info" onclick="Ver(${res.data[i].id})"
+                                    data-toggle="tooltip" data-placement="top" title="Ver">
+                                    <i class="fa fa-eye"></i>
+                                </button>
+                                {% if permisos.m == 1 %}
+                                    <button class="btn btn-round btn-sm btn-warning" data-accion="m"
+                                        data-toggle="tooltip" data-placement="top" title="Modificar" onclick="ModalAccion('m',${res.data[i].id})">
+                                        <i class="fa fa-pen"></i>
+                                    </button>
+                                {% endif %}
+
+                                {% if permisos.b == 1 %}
+                                    <button class="btn btn-round btn-sm btn-danger" onclick="Eliminar(${res.data[i].id})"
+                                        data-toggle="tooltip" data-placement="top" title="Eliminar">
+                                        <i class="fa fa-trash-alt"></i>
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class='search'>${res.data[i].titulo}</td>
+                        <td>${res.data[i].descripcion}</td>
+                        <td>${res.data[i].orden}</td>
+                    </tr>`
+            }
+        }else{
+            html = `<tr><td class="font-weight-bold" colspan="4">${res.text}</td></tr>`
+        }
+        $('#tablaDatos tbody').html(html)
+        $("#preloaderAPP").hide()
+        $('[data-toggle="tooltip"]').tooltip()
+    }
+
+    const ModalAccion = async (accion, id) => {
+        $("#preloaderAPP").show()
+        if (accion === 'a') {
+            $('#modalLabel').text('Nueva sección')
+            $('#btnAccion').attr('onclick', `PostRegistro("a")`)
+            $('#btnAccion').text('Guardar')
+        }
+        if (accion == 'm') {
+            let res = await $.post(`/secciones/getByIdAjax`, {id})
+            if (res.status != 0) {
+                $('#txtTitulo').val(res.data[0].titulo)
+                $('#txtDescripcion').val(res.data[0].descripcion)
+                $('#orden').val(res.data[0].orden)
+                $('#chbActivo').prop('checked', res.data[0].activo == 1)
+            }
+            $('#modalLabel').text('Modificar sección')
+            $('#btnAccion').text('Guardar')
+            $('#btnAccion').attr('onclick', `PostRegistro("m",${id})`)
+            $('#actionSeccion').removeClass('d-none')
+            $('#actionSeccionDivider').removeClass('d-none')
+        }
+        $("#preloaderAPP").hide()
+        $('#modal').modal('show')
+    }
+
+    const Ver = async (id) => {
+        try {
+            $('#preloaderAPP').show()
+            let res = await $.post('/secciones/getByIdAjax', { id })
+            $('#preloaderAPP').hide()
+            if (res.status && res.data && res.data.length) {
+                let d = res.data[0]
+                // guardar id de seccion actual
+                window.currentSeccionId = id
+
+                $('#verTitulo').text(d.titulo || '')
+
+                // Descripción con saltos
+                $('#verDescripcion').html((d.descripcion || '').toString().replace(/\n/g, '<br/>'))
+
+                // mostrar boton agregar subseccion si tiene permiso
+                '{% if permisos.a == 1 %}'
+                    $('#btnAgregarSub').show().off('click').on('click', function(){ OpenSubModal('a', { id_seccion_fk: id }) })
+                '{% endif %}'
+
+                // cargar subsecciones
+                await LoadSubSecciones(id)
+
+                $('#modalVer').modal('show')
+            } else {
+                Swal.fire({ icon: 'warning', title: 'Atención', text: res.text || 'No se encontró la sección', timer: 2000 })
+            }
+        } catch (err) {
+            console.log(err)
+            $('#preloaderAPP').hide()
+            Swal.fire({ icon: 'error', title: 'Error', text: 'Error al obtener la sección', timer: 2000 })
+        }
+    }
+
+    const PostRegistro = async (accion, Id) => {
+        $("#preloaderAPP").show()
+        let url = '/secciones/alta',
+            body = {
+                titulo: $('#txtTitulo').val(),
+                descripcion: $('#txtDescripcion').val(),
+                orden: $('#txtOrden').val(),
+                activo: $('#chbActivo').prop('checked') ? 1 : 0
+            }
+
+        if (accion === 'm') {
+            url = '/secciones/modificar'
+            body.id = Id
+        }
+
+        const res = await $.post(url, body)
+        $("#preloaderAPP").hide()
+        Swal.fire({
+            icon: res.icon,
+            title: res.title, 
+            text: res.text, 
+            timer: 2000
+        }).then(() => {
+            if(res.status){
+                CerrarModal()
+                getLista()
+            }
+        })        
+    }
+
+    const Eliminar = (id) => {
+        Swal.fire({
+            title: 'Confirmar',
+            text: "¿Desea borrar este registro?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar.',
+            cancelButtonColor: '#d33',
+            cancelButtonText: 'No, cancelar.'
+        }).then(async result => {
+            if (result.isConfirmed) {
+                $("#preloaderAPP").show();
+                let res = await $.post('/secciones/eliminar', { id })
+                $("#preloaderAPP").hide();
+                Swal.fire({
+                    type: res.type,
+                    icon: res.icon,
+                    title: res.title,
+                    text: res.text,
+                    timer: 2000
+                }).then(() => {
+                    if(res.status){
+                        CerrarModal()
+                        getLista()
+                    }
+                })
+            }    
+        })
+    }
+
+    const Filtrar = () => {
+        $('#tablaDatos tbody tr').each(function () {
+            if ($(this).find('td.search').text().toUpperCase().indexOf($('#txtFiltro').val().toUpperCase()) > -1)
+                $(this).closest('tr').show();
+            else
+                $(this).closest('tr').hide();
+        })
+    }
+
+    const CerrarModal = () => {
+        $('#modal').modal('hide')
+        $('#actionSeccion').addClass('d-none')
+        $('#actionSeccionDivider').addClass('d-none')
+        LimpiarCampos()
+    }
+
+    const LimpiarCampos = () => {
+        $('input[type="text"]').val('')
+        $('textarea').val('')
+        $('#cmbEquipo').val('')
+        $('input[type="checkbox"]').prop('checked', false)
+        $('input[type="radio"]').prop('checked', false)
+    }
+
+
+
+    const LoadSubSecciones = async (seccionId) => {
+        seccionId = seccionId || window.currentSeccionId || ''
+        $('#subseccionesList').html('<div class="text-muted">Cargando...</div>')
+        try{
+            let res = await $.post('/secciones/subsecciones/getBySeccionIdAjax', { id_seccion_fk: seccionId })
+            if(!res.status){ $('#subseccionesList').html('<div class="text-warning">'+(res.text||'Sin resultados')+'</div>'); return }
+            let html = ''
+            if(res.data.length === 0) html = '<div class="text-muted">No hay subsecciones</div>'
+            else{
+                res.data.sort((a,b)=> a.orden - b.orden)
+                for(let s of res.data){
+                    html += `<div class="d-flex justify-content-between align-items-start p-2 border rounded mb-2">
+                        <div>
+                            <div style="font-weight:600">${s.titulo} <small class="text-muted">(Orden: ${s.orden})</small></div>
+                            <div style="white-space:pre-wrap">${(s.descripcion||'').toString().replace(/\n/g,'<br/>')}</div>
+                        </div>
+                        <div style="display:flex; gap:.5rem; margin-left:1rem;">
+                            {% if permisos.m == 1 %}
+                            <button class="btn btn-sm btn-warning" onclick='OpenSubModal("m", ${JSON.stringify(s)})'><i class="fa fa-pen"></i></button>
+                            {% endif %}
+                            {% if permisos.b == 1 %}
+                            <button class="btn btn-sm btn-danger" onclick="EliminarSub(${s.id})"><i class="fa fa-trash-alt"></i></button>
+                            {% endif %}
+                        </div>
+                    </div>`
+                }
+            }
+            $('#subseccionesList').html(html)
+        }catch(err){
+            console.log(err)
+            $('#subseccionesList').html('<div class="text-danger">Error al cargar</div>')
+        }
+    }
+
+    const OpenSubModal = (accion, data) => {
+        data = data || {}
+        $('#txtSubId').val(data.id || '')
+        $('#txtSubIdSeccionFk').val(data.id_seccion_fk || data.id_seccion || window.currentSeccionId || '')
+        if(accion === 'a'){
+            $('#modalSubLabel').text('Nueva SubSección')
+            $('#txtSubTitulo').val('')
+            $('#txtSubDescripcion').val('')
+            $('#txtSubOrden').val('')
+            $('#btnGuardarSub').off('click').on('click', async ()=>{ await PostSub('a') })
+        }else{
+            $('#modalSubLabel').text('Modificar SubSección')
+            $('#txtSubTitulo').val(data.titulo || '')
+            $('#txtSubDescripcion').val(data.descripcion || '')
+            $('#txtSubOrden').val(data.orden || '')
+            $('#btnGuardarSub').off('click').on('click', async ()=>{ await PostSub('m') })
+        }
+        $('#modalSub').modal('show')
+    }
+
+    const PostSub = async (accion) => {
+        try{
+            $('#preloaderAPP').show()
+            let url = '/secciones/subsecciones/alta'
+            let body = {
+                id_seccion_fk: $('#txtSubIdSeccionFk').val(),
+                titulo: $('#txtSubTitulo').val(),
+                descripcion: $('#txtSubDescripcion').val(),
+                orden: $('#txtSubOrden').val()
+            }
+            if(accion === 'm'){
+                url = '/secciones/subsecciones/modificar'
+                body.id = $('#txtSubId').val()
+            }
+            let res = await $.post(url, body)
+            $('#preloaderAPP').hide()
+            Swal.fire({ icon: res.icon, title: res.title, text: res.text, timer:2000 }).then(()=>{
+                if(res.status){
+                    $('#modalSub').modal('hide')
+                    LoadSubSecciones(body.id_seccion_fk)
+                }
+            })
+        }catch(err){ console.log(err); $('#preloaderAPP').hide(); Swal.fire({icon:'error', title:'Error', text:'Error del servidor', timer:2000}) }
+    }
+
+    const EliminarSub = (id) => {
+        Swal.fire({
+            title: 'Confirmar',
+            text: "¿Desea borrar esta subsección?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar.',
+            cancelButtonColor: '#d33',
+            cancelButtonText: 'No, cancelar.'
+        }).then(async result => {
+            if (result.isConfirmed) {
+                $('#preloaderAPP').show()
+                let res = await $.post('/secciones/subsecciones/eliminar', { id })
+                $('#preloaderAPP').hide()
+                Swal.fire({ icon: res.icon, title: res.title, text: res.text, timer:2000 }).then(()=>{
+                    if(res.status){
+                        LoadSubSecciones(window.currentSeccionId)
+                    }
+                })
+            }
+        })
+    }
+
+</script>
+{% endblock %}
