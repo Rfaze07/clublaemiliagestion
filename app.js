@@ -11,6 +11,7 @@ const compression = require("compression");
 const port = process.env.PORT || 3000;
 const menues = require("./menu");
 const db = require("./database");
+const quejasRoutes = require('./modules/web/quejas/routes');
 
 
 
@@ -67,6 +68,7 @@ app.use(require("./modules/localidades/routes"));
 
 
 
+
 app.use(require("./modules/equipos/routes"));
 app.use(require("./modules/jugadores/routes"));
 app.use(require("./modules/partidos/routes"));
@@ -78,8 +80,7 @@ app.use(require("./modules/web/equipos/routes"));
 app.use(require("./modules/web/partidos/routes"));
 app.use(require("./modules/web/noticias/routes"));
 app.use(require("./modules/web/lideres/routes"));/*aca */
-
-
+app.use('/quejas', quejasRoutes);
 
 (async function () {
   try {
