@@ -1,427 +1,225 @@
 <!DOCTYPE html>
-
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Chama Estudio Creativo</title>
-  <link rel="icon" type="image/png" href="/img/logo-basquet.png">
-  <link rel="stylesheet" href="/css/style-panel.css">
-    <link rel="stylesheet" href="/css/bootstrap-datepicker.min.css">
-    <link rel="stylesheet" href="/css/bootstrap-select.min.css">
-    <link rel="stylesheet" href="/css/switch.css">
-    <link rel="stylesheet" href="/css/style.css"> 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-    
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Club Deportivo</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
 
 <style>
-  /* =====================
+
+/* =====================
    BASE
-   ===================== */
+===================== */
 html, body {
     height: 100%;
     margin: 0;
 }
-
 body {
     display: flex;
     flex-direction: column;
 }
-
 .contenido-principal {
     flex: 1;
 }
 
 /* =====================
    NAVBAR
-   ===================== */
+===================== */
 .navbar-ecommerce {
-    background-color: #175676;
-    border-bottom: none;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
-    backdrop-filter: blur(6px);
+    background-color: #000;
+    border-bottom: 4px solid #fff;
+    box-shadow: 0 4px 14px rgba(0,0,0,.6);
 }
-
-.navbar-brand {
-    display: flex;
-    align-items: center;
-    padding: 0;
-}
-
 .logo {
-    max-height: 90px;
-    width: auto;
-    height: auto;
-    transform: scale(1.75);  /* lo agranda visualmente */
+    max-height: 80px;
 }
-
-/* LINKS */
-.nav-link {
-    color: #ffffff;
-    font-weight: 500;
-    position: relative;
-    transition: all 0.25s ease;
-}
-
-.nav-link::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    bottom: -6px;
-    width: 0;
-    height: 2px;
-    background-color: #ffffff;
-    transition: all 0.25s ease;
-}
-
-.nav-link:hover::after {
-    width: 100%;
-}
-
-/* CENTRO */
-.navbar-center {
-    display: flex;
-    align-items: center;
+.navbar-nav {
     gap: 2rem;
 }
-
-/* =====================
-   FILTROS / BUSCADOR
-   ===================== */
-.filtros {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-/* INPUTS */
-.search-input {
-    height: 40px;
-    padding: 0 14px;
-    border: none;
-    border-radius: 8px;
-    font-size: 14px;
-    outline: none;
-    background-color: #ffffff;
-    color: #495057;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-}
-
-/* SELECT (MISMO ESTILO QUE INPUT) */
-select.search-input {
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    cursor: pointer;
-    padding-right: 36px;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%236c757d' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 12px center;
-    background-size: 12px;
-}
-
-.filtro-select {
-    min-width: 190px;
-}
-
-/* BUSCADOR + BOTÓN */
-.search-group {
-    display: flex;
-}
-
-.search-text {
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
-}
-
-.search-btn {
-    height: 40px;
-    padding: 0 16px;
-    border: none;
-    background-color: #ffffff;
-    color: #175676;
-    border-top-right-radius: 8px;
-    border-bottom-right-radius: 8px;
-    cursor: pointer;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-    transition: all 0.25s ease;
-}
-
-.search-btn:hover {
-    background-color: #e6f2f7;
-}
-
-/* =====================
-   ICONOS NAVBAR
-   ===================== */
-.navbar-right {
-    display: flex;
-    align-items: center;
-    gap: 1.2rem;
-}
-
-.icon-btn {
-    color: #ffffff;
-    font-size: 1.4rem;
-    transition: all 0.25s ease;
-}
-
-.icon-btn:hover {
-    transform: translateY(-2px);
-    opacity: 0.85;
-}
-
-.icon-btn.admin {
-    opacity: 0.85;
-}
-
-/* =====================
-   HAMBURGUESA
-   ===================== */
-.custom-toggler .navbar-toggler-icon {
-    background-image: none;
-    width: 24px;
-    height: 2px;
-    background-color: #ffffff;
+.navbar-nav .nav-link {
+    color: #fff;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: .95rem;
     position: relative;
 }
-
+.navbar-nav .nav-link::after {
+    content: "";
+    position: absolute;
+    bottom: -6px;
+    left: 0;
+    width: 0;
+    height: 3px;
+    background: #fff;
+    transition: .25s;
+}
+.navbar-nav .nav-link:hover::after {
+    width: 100%;
+}
+.icon-btn {
+    color: #fff;
+    font-size: 1.3rem;
+}
+.custom-toggler {
+    border: none;
+}
+.custom-toggler .navbar-toggler-icon {
+    background-color: #fff;
+    height: 3px;
+    width: 26px;
+    position: relative;
+}
 .custom-toggler .navbar-toggler-icon::before,
 .custom-toggler .navbar-toggler-icon::after {
     content: "";
     position: absolute;
-    width: 24px;
-    height: 2px;
-    background-color: #ffffff;
+    width: 26px;
+    height: 3px;
+    background: #fff;
     left: 0;
 }
-
-.custom-toggler .navbar-toggler-icon::before {
-    top: -7px;
-}
-
-.custom-toggler .navbar-toggler-icon::after {
-    top: 7px;
-}
+.custom-toggler .navbar-toggler-icon::before { top: -8px; }
+.custom-toggler .navbar-toggler-icon::after { top: 8px; }
 
 /* =====================
    FOOTER
-   ===================== */
+===================== */
 .footer-portal {
-    background-color: #175676;
-    color: #ffffff;
-    box-shadow: inset 0 10px 30px rgba(0,0,0,0.15);
+    background: #000;
+    color: #fff;
+    border-top: 4px solid #fff;
+    box-shadow: 0 -4px 14px rgba(0,0,0,.6);
 }
-
 .footer-logo {
-  
-    max-height: 120px;
-    width: auto;
-    height: auto;
-    transform: scale(1.80); 
+    max-height: 90px;
+    transform: scale(1.5);
+    transform-origin: left center;
 }
-
-.footer-title {
-    color: #ffffff;
-    font-size: 0.95rem;
-    font-weight: 600;
-    margin-bottom: 1rem;
-}
-
-.footer-text,
-.footer-contact p {
-    color: #e6f2f7;
-    font-size: 0.9rem;
-    line-height: 1.6;
-}
-
 .footer-links {
     list-style: none;
     padding: 0;
     margin: 0;
 }
-
 .footer-links li {
-    margin-bottom: 0.5rem;
+    margin: .5rem 0;
 }
-
 .footer-links a {
+    color: #fff;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: .9rem;
     text-decoration: none;
-    color: #e6f2f7;
-    font-size: 0.9rem;
-    transition: all 0.25s ease;
 }
-
 .footer-links a:hover {
-    color: #ffffff;
-    padding-left: 4px;
-}
-
-.footer-contact i {
-    margin-right: 6px;
-}
-
-/* FOOTER BOTTOM */
-.footer-bottom {
-    border-top: 1px solid rgba(255,255,255,0.15);
-    padding: 1rem 0;
-    font-size: 0.85rem;
-    color: #e6f2f7;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 0.4rem;
-}
-
-.footer-dev {
-    color: #ffffff;
-    text-decoration: none;
-    font-weight: 500;
-}
-
-.footer-dev:hover {
-    color: #e6f2f7;
-}
-
-.footer-dev-logo {
-    height: 18px;
-    filter: brightness(0) invert(1);
-    opacity: 0.9;
+    opacity: .75;
 }
 
 /* =====================
-   RESPONSIVE
-   ===================== */
-@media (max-width: 991px) {
-    .navbar-center {
-        flex-direction: column;
-        width: 100%;
-    }
-
-    .filtros {
-        width: 100%;
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .search-group {
-        width: 100%;
-    }
-
-    .filtro-select {
-        width: 100%;
-    }
-
-    .navbar-right {
-        justify-content: center;
-        margin-top: 1rem;
-    }
+   LIBRO DE QUEJAS
+===================== */
+.footer-title {
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+    font-size: .95rem;
 }
-
-/* NAV ITEM – mantener blanco en hover */
-.navbar-ecommerce .nav-item .nav-link {
-    color: #ffffff;
-    transition: opacity 0.2s ease;
+.footer-input,
+.footer-textarea {
+    width: 100%;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,.6);
+    color: #fff;
+    padding: .45rem .6rem;
+    font-size: .85rem;
 }
-
-.navbar-ecommerce .nav-item .nav-link:hover,
-.navbar-ecommerce .nav-item .nav-link:focus,
-.navbar-ecommerce .nav-item .nav-link:active {
-    color: #ffffff !important;
+.footer-input::placeholder,
+.footer-textarea::placeholder {
+    color: rgba(255,255,255,.6);
 }
-.navbar-ecommerce .nav-item .nav-link:hover {
-    opacity: 0.85;
+.footer-btn {
+    width: 100%;
+    background: #fff;
+    color: #000;
+    border: none;
+    padding: .45rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: .8rem;
+    letter-spacing: 1px;
 }
-/* NAVBAR RIGHT – iconos siempre blancos */
-.navbar-ecommerce .navbar-right .icon-btn {
-    color: #ffffff;
-    transition: opacity 0.2s ease;
+.footer-bottom {
+    border-top: 1px solid rgba(255,255,255,.15);
+    padding: 1rem 0;
+    font-size: .85rem;
+    text-align: center;
 }
-
-.navbar-ecommerce .navbar-right .icon-btn:hover,
-.navbar-ecommerce .navbar-right .icon-btn:focus,
-.navbar-ecommerce .navbar-right .icon-btn:active {
-    color: #ffffff !important;
-    text-decoration: none;
-}
-.navbar-ecommerce .navbar-right .icon-btn:hover {
-    opacity: 0.8;
-}
-
-
 
 </style>
     {% block styles %}
     {% endblock %}
-      
 </head>
 
 <body>
+
+<!-- =====================
+     NAVBAR
+===================== -->
 <nav class="navbar navbar-expand-lg navbar-ecommerce sticky-top">
   <div class="container">
 
-    <!-- LOGO -->
-    <a href="/inicioweb" class="navbar-brand">
-      <img src="/img/logo.png" alt="Inicio" class="logo">
+    <a class="navbar-brand" href="/">
+      <img src="/img/logo.png" class="logo">
     </a>
 
-    <!-- HAMBURGUESA -->
-    <button class="navbar-toggler custom-toggler"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#navbarMain">
+    <button class="navbar-toggler custom-toggler" data-bs-toggle="collapse" data-bs-target="#navbarMain">
       <span class="navbar-toggler-icon"></span>
     </button>
 
-    <!-- CONTENIDO -->
     <div class="collapse navbar-collapse" id="navbarMain">
 
-      <!-- CENTRO -->
-      <div class="navbar-center mx-auto">
-
-        <ul class="navbar-nav align-items-lg-center gap-lg-4">
-
-          <li class="nav-item">
-            <a class="nav-link" href="/Inicioweb">Inicio</a>
-          </li>
-
-          <li class="nav-item">
-            <a class="nav-link" href="/Productos">Productos</a>
-          </li>
-
-        </ul>
-
-        <!-- BUSCADOR -->
-<div class="filtros">
-
-    <!-- SELECT -->
-    <select class="search-input filtro-select">
-        <option value="">Todas las categorías</option>
-        <option value="1">Categoría 1</option>
-        <option value="2">Categoría 2</option>
-        <option value="3">Categoría 3</option>
-    </select>
-
-    <!-- BUSCADOR + BOTÓN -->
-    <div class="search-group">
-        <input 
-            type="text"
-            class="search-input search-text"
-            placeholder="Buscar..."
-        >
-        <button class="search-btn">
-            <i class="bi bi-search"></i>
-        </button>
-    </div>
-
-</div>
+      <!-- LINKS CENTRALES -->
+      <ul class="navbar-nav mx-auto">
+        <li><a class="nav-link" href="/Web/equipos">Inicio</a></li>
+        <li><a class="nav-link" href="/Inicioweb">Deportes</a></li>
+        <li><a class="nav-link" href="/">Historia</a></li>
+        <li><a class="nav-link" href="/">Socios</a></li>
+        <li><a class="nav-link" href="/">Contacto</a></li>
+      </ul>
 
       <!-- DERECHA -->
-      <div class="navbar-right">
-        <a href="#" class="icon-btn"><i class="bi bi-handbag"></i></a>
-        <a href="#" class="icon-btn"><i class="bi bi-person-circle"></i></a>
-        <a href="/gestion" class="icon-btn admin"><i class="bi bi-gear-fill"></i></a>
+      <div class="d-flex align-items-center gap-3">
+
+        <!-- DROPDOWN HACERME SOCIO -->
+        <div class="dropdown">
+          <button
+            class="btn btn-warning fw-bold text-uppercase dropdown-toggle"
+            data-bs-toggle="dropdown"
+            aria-expanded="false">
+            Hacerme socio
+          </button>
+
+          <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end">
+            <li>
+              <a class="dropdown-item" href="/socios/deportivo">
+                Socio Deportivo
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="/socios/activo">
+                Socio Activo
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- BOTÓN GESTIÓN (SIN CAMBIOS) -->
+        <a href="/gestion" class="icon-btn">
+          <i class="bi bi-gear-fill"></i>
+        </a>
+
       </div>
 
     </div>
@@ -429,90 +227,79 @@ select.search-input {
 </nav>
 
 
+<div class="contenido-principal"></div>
 
-<!--  --------------------------------  FOOTER ------------------- -->
+<!-- =====================
+     FOOTER
+===================== -->
 <footer class="footer-portal mt-auto">
   <div class="container py-5">
-    <div class="row gy-4">
+    <div class="row gy-4 align-items-start">
 
-      <!-- LOGO / DESCRIPCIÓN -->
-      <div class="col-12 col-md-4 text-center text-md-start">
-        <img src="/img/logo.png" alt="Chama Estudio Creativo"  class="footer-logo mb-3">
-        <p>En Chama, transformamos ideas en diseño innovador. Creatividad y calidad en cada proyecto. ¡Descubre cómo podemos darle vida a tus ideas!</p>
+      <!-- LOGO -->
+      <div class="col-12 col-md-4">
+        <img src="/img/logo.png" class="footer-logo mb-3">
       </div>
 
       <!-- LINKS -->
-      <div class="col-6 col-md-4 text-center">
-        <h6 class="footer-title">Navegación</h6>
+      <div class="col-12 col-md-4 text-center">
         <ul class="footer-links">
-          <li><a href="/Inicioweb">Inicio</a></li>
-          <li><a href="/Productos">Productos</a></li>
-          <li><a href="#">Categorías</a></li>
+          <li><a href="/Web/equipos">Inicio</a></li>
+          <li><a href="/Inicioweb">Deportes</a></li>
+          <li><a href="/">Historia</a></li>
+          <li><a href="/">Socios</a></li>
+          <li><a href="/">Contacto</a></li>
         </ul>
       </div>
 
-      <!-- CONTACTO -->
-      <div class="col-6 col-md-4 text-center text-md-end">
-        <h6 class="footer-title">Contacto</h6>
-        <div class="footer-contact">
-          <p><i class="bi bi-instagram"></i>@Chama_estudio_creativo</p>
-          <p><i class="bi bi-envelope-fill"></i> chama@gmail.com</p>
-        </div>
+      <!-- LIBRO DE QUEJAS -->
+      <div class="col-12 col-md-4">
+        <h5 class="footer-title">Libro de Quejas</h5>
+
+        <form method="POST" action="/quejas">
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="anonimo" name="anonimo" value="1" checked>
+            <label class="form-check-label">Enviar de forma anónima</label>
+          </div>
+
+          <div id="datosPersonales" style="display:none;">
+            <input class="footer-input mb-2" name="nombre" placeholder="Nombre y apellido">
+            <input class="footer-input mb-2" name="email" placeholder="Email">
+          </div>
+
+          <textarea class="footer-textarea mb-2" name="mensaje" rows="4"
+            placeholder="Escriba su queja o sugerencia..." required></textarea>
+
+          <button class="footer-btn">Enviar</button>
+        </form>
       </div>
 
     </div>
   </div>
 
-  <!-- PIE INFERIOR -->
-  <div class="footer-bottom text-center">
-    <span>
-      © 2026 · Hecho por <strong>LE Devs</strong> · Todos los derechos reservados
-    </span>
+  <div class="footer-bottom">
+    © 2026 · Hecho por <strong>LE Devs</strong> · Todos los derechos reservados
   </div>
 </footer>
-{% block scripts %}
- <script src="/js/jquery.min.js"></script>
-  <!-- HIGHCHARTS -->
-    <script src="https://code.highcharts.com/highcharts.js"></script>
-    <script src="https://code.highcharts.com/modules/exporting.js"></script>
-    <script src="https://code.highcharts.com/modules/export-data.js"></script>
-    <script src="https://code.highcharts.com/modules/accessibility.js"></script>
-    <script type="text/javascript" src="/js/popper.min.js"></script>
-    <script type="text/javascript" src="/js/bootstrap.min.js"></script> 
-    <script type="text/javascript" src="/js/sweetalert2.all.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/js/all.min.js"
-        integrity="sha512-2bMhOkE/ACz21dJT8zBOMgMecNxx0d37NND803ExktKiKdSzdwn+L7i9fdccw/3V06gM/DBWKbYmQvKMdAA9Nw=="
-        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <!-- EXPORTAR A PDF/IMPRIMIR -->
-    <script type="text/javascript" src="/js/printThis.js"></script>
-    <script type="text/javascript" src="/js/jspdf.min.js"></script>
-    <script type="text/javascript" src="/js/jspdf.plugin.autotable.min.js"></script>
-    <script type="text/javascript" src="/js/tableHTMLExport.js"></script>
-    <!-- EXPORTAR A XLS -->
-    <script type="text/javascript" src="/js/jquery.table2excel.js"></script>
-    <!-- DATEPICKER -->
-    <script type="text/javascript" src="/js/bootstrap-datepicker.min.js"></script>
-    <script type="text/javascript" src="/js/bootstrap-datepicker.es.min.js"></script>
-    <!-- SELECTPICKER -->
-    <script type="text/javascript" src="/js/bootstrap-select.min.js"></script>
-    <!-- SWEET ALERT -->
-    <script type="text/javascript" src="/js/sweetalert2.all.js"></script>
-    <!-- JQUERY MASK -->
-    <script type="text/javascript" src="/js/jquery.mask.min.js"></script>
-    <!-- CUSTOM JS -->
-    <script type="text/javascript" src="/js/main.js"></script>
-    <script type="text/javascript" src="/js/funcionesSelect.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-  document.querySelector('.menu-toggle')
-    .addEventListener('click', () => {
-      document.querySelector('.navbar-portal')
-        .classList.toggle('active');
+  const chk = document.getElementById('anonimo');
+  const datos = document.getElementById('datosPersonales');
+  const inputs = datos.querySelectorAll('input');
+
+  function toggleDatos() {
+    const anon = chk.checked;
+    datos.style.display = anon ? 'none' : 'block';
+    inputs.forEach(i => {
+      i.disabled = anon;
+      if (anon) i.value = '';
     });
+  }
+  chk.addEventListener('change', toggleDatos);
+  toggleDatos();
 </script>
-    
-    {% endblock %}
 
 </body>
 </html>
