@@ -24,17 +24,17 @@ exports.getById = id => {
 
 exports.insert = o => {
     return queryMYSQL(`
-        INSERT INTO deportes (nombre, descripcion, horarios, profesores) 
-        VALUES (?, ?, ?, ?)
-    `, [o.nombre, o.descripcion, o.horarios, o.profesores])
+        INSERT INTO deportes (nombre, descripcion, horarios, profesores, icono) 
+        VALUES (?, ?, ?, ?, ?)
+    `, [o.nombre, o.descripcion, o.horarios, o.profesores, o.icono || null])
 }
 
 exports.update = o => {
     return queryMYSQL(`
         UPDATE deportes 
-        SET nombre=?, descripcion=?, horarios=?, profesores=? 
+        SET nombre=?, descripcion=?, horarios=?, profesores=?, icono=? 
         WHERE id=?
-    `, [o.nombre, o.descripcion, o.horarios, o.profesores, o.id])
+    `, [o.nombre, o.descripcion, o.horarios, o.profesores, o.icono || null, o.id])
 }
 
 exports.delete = async id => {
