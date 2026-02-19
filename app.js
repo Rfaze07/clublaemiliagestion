@@ -76,10 +76,11 @@ app.use(require("./modules/noticias/routes"));
 
 
 app.use(require("./modules/web/index/routes"));
-app.use(require("./modules/web/equipos/routes"));
-app.use(require("./modules/web/partidos/routes"));
+//app.use(require("./modules/web/equipos/routes"));
+//app.use(require("./modules/web/partidos/routes"));
 app.use(require("./modules/web/noticias/routes"));
-app.use(require("./modules/web/lideres/routes"));/*aca */
+app.use(require("./modules/web/deportes/routes"));
+//app.use(require("./modules/web/lideres/routes"));/*aca */
 app.use('/quejas', quejasRoutes);
 
 (async function () {

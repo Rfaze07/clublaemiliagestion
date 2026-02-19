@@ -2,7 +2,42 @@
 
 {% block styles %}
 <style>
-
+.icon-btn-picker {
+    width: 38px; height: 38px;
+    border: 1px solid #ddd;
+    background: #fff;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem;
+    transition: background .15s, border-color .15s;
+    padding: 0;
+}
+.icon-btn-picker:hover { background: #f0f0f0; border-color: #999; }
+.icon-btn-picker.selected { background: #232e38; border-color: #232e38; color: #fff; }
+.icon-picker-panel {
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 10px;
+    margin-top: 8px;
+    background: #fafafa;
+    position: relative;
+    z-index: 10;
+}
+#iconGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(38px, 1fr));
+    gap: 4px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+.icon-preview-box {
+    width: 42px; height: 42px;
+    background: #232e38;
+    border-radius: 5px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
 </style>
 {% endblock %}
 
@@ -23,6 +58,7 @@
         <thead>
             <tr>
                 <th scope="col">Acciones</th>
+                <th scope="col" style="width:42px;"></th>
                 <th scope="col">Deporte</th>
                 <th scope="col">Descripcion</th>
             </tr>
@@ -67,8 +103,28 @@
                         <textarea class="form-control form-control-sm" id="profesores" rows="6" maxlength="1000"></textarea>
                     </div>
                 </div>
-
-                
+                <div class="row">
+                    <div class="form-group col-sm-12">
+                        <label>Ícono <small class="text-muted">(opcional)</small></label>
+                        <div class="d-flex align-items-center" style="gap:10px;">
+                            <div class="icon-preview-box">
+                                <i id="iconPreviewIcon" class="fas fa-award" style="color:#fff;font-size:1.4rem;"></i>
+                            </div>
+                            <input type="hidden" id="icono" value="">
+                            <button type="button" class="btn btn-sm btn-secondary" onclick="toggleIconPicker()">
+                                <i class="fa fa-icons"></i> Seleccionar ícono
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="clearIcono()" title="Quitar ícono">
+                                <i class="fa fa-times"></i>
+                            </button>
+                        </div>
+                        <div id="iconPickerPanel" class="icon-picker-panel" style="display:none;">
+                            <input type="text" id="iconSearch" class="form-control form-control-sm mb-2"
+                                placeholder="Buscar ícono..." oninput="renderIconGrid(this.value)">
+                            <div id="iconGrid"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="CerrarModal()">Cancelar</button>
@@ -151,12 +207,19 @@
                                 {% endif %}
                             </div>
                         </td>
+                        <td style="vertical-align:middle;">
+                            ${res.data[i].icono
+                                ? `<div style="width:34px;height:34px;background:#232e38;border-radius:4px;display:flex;align-items:center;justify-content:center;">
+                                       <i class="${res.data[i].icono}" style="color:#fff;font-size:1rem;"></i>
+                                   </div>`
+                                : ''}
+                        </td>
                         <td class='search'>${res.data[i].nombre}</td>
                         <td>${res.data[i].descripcion}</td>
                     </tr>`
             }
         }else{
-            html = `<tr><td class="font-weight-bold" colspan="3">${res.text}</td></tr>`
+            html = `<tr><td class="font-weight-bold" colspan="4">${res.text}</td></tr>`
         }
         $('#tablaDatos tbody').html(html)
         $("#preloaderAPP").hide()
@@ -177,6 +240,11 @@
                 $('#descripcion').val(res.data[0].descripcion)
                 $('#horarios').val(res.data[0].horarios)
                 $('#profesores').val(res.data[0].profesores)
+                const iconoCls = res.data[0].icono || ''
+                $('#icono').val(iconoCls)
+                document.getElementById('iconPreviewIcon').className = (iconoCls || 'fas fa-award') + ' fa-fw'
+                document.getElementById('iconPreviewIcon').style.color = '#fff'
+                document.getElementById('iconPreviewIcon').style.fontSize = '1.4rem'
             }
             $('#modalLabel').text('Modificar deporte')
             $('#btnAccion').text('Guardar')
@@ -244,7 +312,8 @@
                 nombre: $('#nombre').val(),
                 descripcion: $('#descripcion').val(),
                 horarios: $('#horarios').val(),
-                profesores: $('#profesores').val()
+                profesores: $('#profesores').val(),
+                icono: $('#icono').val()
             }
 
         if (accion === 'm') {
@@ -320,6 +389,112 @@
         $('#cmbEquipo').val('')
         $('input[type="checkbox"]').prop('checked', false)
         $('input[type="radio"]').prop('checked', false)
+        $('#icono').val('')
+        document.getElementById('iconPreviewIcon').className = 'fas fa-award'
+        document.getElementById('iconPickerPanel').style.display = 'none'
+        document.getElementById('iconSearch').value = ''
+    }
+
+    /* ===================================================
+       ICON PICKER — Font Awesome
+    =================================================== */
+    const FA_ICONS = [
+        {cls:'fas fa-futbol',          name:'futbol'},
+        {cls:'fas fa-basketball-ball', name:'basquet basket'},
+        {cls:'fas fa-football-ball',   name:'football americano'},
+        {cls:'fas fa-volleyball-ball', name:'voley voleibol'},
+        {cls:'fas fa-baseball-ball',   name:'baseball beisbol'},
+        {cls:'fas fa-hockey-puck',     name:'hockey'},
+        {cls:'fas fa-golf-ball',       name:'golf'},
+        {cls:'fas fa-bowling-ball',    name:'bowling bolos'},
+        {cls:'fas fa-table-tennis',    name:'tenis de mesa ping pong'},
+        {cls:'fas fa-swimmer',         name:'natacion swimming'},
+        {cls:'fas fa-swimming-pool',   name:'pileta piscina'},
+        {cls:'fas fa-running',         name:'atletismo running carrera'},
+        {cls:'fas fa-biking',          name:'ciclismo bici'},
+        {cls:'fas fa-skiing',          name:'ski esqui'},
+        {cls:'fas fa-snowboarding',    name:'snowboard'},
+        {cls:'fas fa-dumbbell',        name:'gym gimnasio pesas'},
+        {cls:'fas fa-fist-raised',     name:'karate judo boxeo artes marciales'},
+        {cls:'fas fa-hand-rock',       name:'boxeo puño'},
+        {cls:'fas fa-horse',           name:'equitacion hipica'},
+        {cls:'fas fa-fish',            name:'pesca fishing'},
+        {cls:'fas fa-archery',         name:'tiro arco'},
+        {cls:'fas fa-bullseye',        name:'tiro diana'},
+        {cls:'fas fa-chess',           name:'ajedrez chess'},
+        {cls:'fas fa-trophy',          name:'trofeo campeon'},
+        {cls:'fas fa-medal',           name:'medalla'},
+        {cls:'fas fa-stopwatch',       name:'tiempo cronometro'},
+        {cls:'fas fa-flag',            name:'bandera'},
+        {cls:'fas fa-shield-alt',      name:'escudo defensa'},
+        {cls:'fas fa-star',            name:'estrella'},
+        {cls:'fas fa-fire',            name:'fuego'},
+        {cls:'fas fa-bolt',            name:'rayo energy'},
+        {cls:'fas fa-crown',           name:'corona real'},
+        {cls:'fas fa-heart',           name:'corazon'},
+        {cls:'fas fa-people-carry',    name:'equipo'},
+        {cls:'fas fa-users',           name:'grupo equipo'},
+        {cls:'fas fa-user-friends',    name:'dupla pareja'},
+        {cls:'fas fa-child',           name:'niños infanto juvenil'},
+        {cls:'fas fa-baby',            name:'bebe mini'},
+        {cls:'fas fa-person-booth',    name:'persona'},
+        {cls:'fas fa-walking',         name:'caminata marcha'},
+        {cls:'fas fa-mountain',        name:'montana escalada'},
+        {cls:'fas fa-campground',      name:'campamento'},
+        {cls:'fas fa-water',           name:'agua remo kayak'},
+        {cls:'fas fa-wind',            name:'viento'},
+        {cls:'fas fa-sun',             name:'sol outdoor'},
+        {cls:'fas fa-leaf',            name:'naturaleza'},
+        {cls:'fas fa-spa',             name:'yoga wellness'},
+        {cls:'fas fa-heartbeat',       name:'cardio salud'},
+        {cls:'fas fa-brain',           name:'mental mente'},
+        {cls:'fas fa-music',           name:'musica danza'},
+        {cls:'fas fa-gamepad',         name:'juego'},
+        {cls:'fas fa-dice',            name:'dados juego de mesa'},
+        {cls:'fas fa-arrows-alt',      name:'movimiento'},
+        {cls:'fas fa-circle',          name:'circulo general'},
+        {cls:'fas fa-award',           name:'premio distincion'},
+    ]
+
+    const renderIconGrid = (filter = '') => {
+        const q = (filter || '').toLowerCase().trim()
+        const list = q ? FA_ICONS.filter(i => i.name.includes(q) || i.cls.includes(q)) : FA_ICONS
+        const current = $('#icono').val()
+        document.getElementById('iconGrid').innerHTML = list.map(i => `
+            <button type="button" class="icon-btn-picker ${i.cls === current ? 'selected' : ''}"
+                onclick="selectIcono('${i.cls}')" title="${i.name}">
+                <i class="${i.cls}"></i>
+            </button>
+        `).join('')
+    }
+
+    const toggleIconPicker = () => {
+        const panel = document.getElementById('iconPickerPanel')
+        const visible = panel.style.display !== 'none'
+        panel.style.display = visible ? 'none' : 'block'
+        if (!visible) {
+            document.getElementById('iconSearch').value = ''
+            renderIconGrid()
+            document.getElementById('iconSearch').focus()
+        }
+    }
+
+    const selectIcono = (cls) => {
+        $('#icono').val(cls)
+        const el = document.getElementById('iconPreviewIcon')
+        el.className = cls
+        el.style.color = '#fff'
+        el.style.fontSize = '1.4rem'
+        document.getElementById('iconPickerPanel').style.display = 'none'
+    }
+
+    const clearIcono = () => {
+        $('#icono').val('')
+        const el = document.getElementById('iconPreviewIcon')
+        el.className = 'fas fa-award'
+        el.style.color = '#fff'
+        el.style.fontSize = '1.4rem'
+        document.getElementById('iconPickerPanel').style.display = 'none'
     }
 
 </script>

@@ -23214,3 +23214,5 @@ CREATE TABLE quejas (
   fecha DATETIME NOT NULL,
   leida TINYINT(1) DEFAULT 0
 );
+
+alter table deportes add column icono varchar(50) default null

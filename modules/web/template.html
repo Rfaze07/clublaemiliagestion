@@ -183,7 +183,7 @@ body {
       <!-- LINKS CENTRALES -->
       <ul class="navbar-nav mx-auto">
         <li><a class="nav-link" href="/Web/equipos">Inicio</a></li>
-        <li><a class="nav-link" href="/Inicioweb">Deportes</a></li>
+        <li><a class="nav-link" href="/web/deportes">Deportes</a></li>
         <li><a class="nav-link" href="/">Historia</a></li>
         <li><a class="nav-link" href="/">Socios</a></li>
         <li><a class="nav-link" href="/">Contacto</a></li>
@@ -227,7 +227,9 @@ body {
 </nav>
 
 
-<div class="contenido-principal"></div>
+<div class="contenido-principal">
+    {% block content %}{% endblock %}
+</div>
 
 <!-- =====================
      FOOTER
@@ -245,7 +247,7 @@ body {
       <div class="col-12 col-md-4 text-center">
         <ul class="footer-links">
           <li><a href="/Web/equipos">Inicio</a></li>
-          <li><a href="/Inicioweb">Deportes</a></li>
+          <li><a href="/web/deportes">Deportes</a></li>
           <li><a href="/">Historia</a></li>
           <li><a href="/">Socios</a></li>
           <li><a href="/">Contacto</a></li>
@@ -284,6 +286,7 @@ body {
 
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script>
   const chk = document.getElementById('anonimo');
   const datos = document.getElementById('datosPersonales');
@@ -301,5 +304,6 @@ body {
   toggleDatos();
 </script>
 
+{% block scripts %}{% endblock %}
 </body>
 </html>
