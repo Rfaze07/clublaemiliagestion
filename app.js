@@ -12,6 +12,7 @@ const port = process.env.PORT || 3000;
 const menues = require("./menu");
 const db = require("./database");
 const quejasRoutes = require('./modules/web/quejas/routes');
+const seccionesWebModel = require('./modules/web/secciones/model');
 
 
 
@@ -42,6 +43,11 @@ app.use(async function (req, res, next) {
     res.locals.user = req.session.user;
   }
   res.locals.menu = await menues.getMenuHTML();
+  try {
+    res.locals.seccionesNav = await seccionesWebModel.getAllActivas();
+  } catch(e) {
+    res.locals.seccionesNav = [];
+  }
   next();
 });
 
@@ -80,7 +86,8 @@ app.use(require("./modules/web/index/routes"));
 //app.use(require("./modules/web/partidos/routes"));
 app.use(require("./modules/web/noticias/routes"));
 app.use(require("./modules/web/deportes/routes"));
-//app.use(require("./modules/web/lideres/routes"));/*aca */
+//app.use(require("./modules/web/lideres/routes"));
+app.use(require('./modules/web/secciones/routes'));
 app.use('/quejas', quejasRoutes);
 
 (async function () {
