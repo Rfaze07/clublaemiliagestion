@@ -59,8 +59,16 @@
                         <textarea class="form-control form-control-sm" id="descripcion" rows="10" maxlength="3000"></textarea>
                     </div>
                 </div>
-            </div>
-            <div class="modal-footer">
+                <div class="row mt-2">
+                    <div class="form-group col-sm-12">
+                        <label for="imagen">Imagen <small class="text-muted">(opcional, máx. 5MB)</small></label>
+                        <input type="file" class="form-control form-control-sm" id="imagen" accept="image/*">
+                        <div id="imagenPreviewWrap" style="display:none; margin-top:8px;">
+                            <img id="imagenPreview" src="" style="max-height:140px; border-radius:8px; border:1px solid #ddd;">
+                            <div class="mt-1"><small class="text-muted" id="imagenActualLabel"></small></div>
+                        </div>
+                    </div>
+                </div>
                 <button type="button" class="btn btn-secondary" onclick="CerrarModal()">Cancelar</button>
                 <button type="button" class="btn btn-success" id="btnAccion">Guardar</button>
             </div>
@@ -96,6 +104,19 @@
 <script>
     $(document).ready(async () => {
         getLista()
+
+        $('#imagen').on('change', function() {
+            const file = this.files[0]
+            if (file) {
+                const reader = new FileReader()
+                reader.onload = e => {
+                    $('#imagenPreview').attr('src', e.target.result)
+                    $('#imagenActualLabel').text('')
+                    $('#imagenPreviewWrap').show()
+                }
+                reader.readAsDataURL(file)
+            }
+        })
     })
 
     $("#txtFiltro").keyup(async function () {
@@ -156,6 +177,13 @@
                 $('#titulo').val(res.data[0].titulo)
                 $('#subtitulo').val(res.data[0].subtitulo)
                 $('#descripcion').val(res.data[0].descripcion)
+                if (res.data[0].imagen_url) {
+                    $('#imagenPreview').attr('src', res.data[0].imagen_url)
+                    $('#imagenActualLabel').text('Imagen actual (subir nueva reemplaza esta)')
+                    $('#imagenPreviewWrap').show()
+                } else {
+                    $('#imagenPreviewWrap').hide()
+                }
             }
             $('#modalLabel').text('Modificar noticia')
             $('#btnAccion').text('Guardar')
@@ -191,19 +219,27 @@
 
     const PostRegistro = async (accion, Id) => {
         $("#preloaderAPP").show()
-        let url = '/noticias/alta',
-            body = {
-                titulo: $('#titulo').val(),
-                subtitulo: $('#subtitulo').val(),
-                descripcion: $('#descripcion').val()
-            }
+        let url = '/noticias/alta'
+
+        const formData = new FormData()
+        formData.append('titulo', $('#titulo').val())
+        formData.append('subtitulo', $('#subtitulo').val())
+        formData.append('descripcion', $('#descripcion').val())
+        const imagenFile = $('#imagen')[0].files[0]
+        if (imagenFile) formData.append('imagen', imagenFile)
 
         if (accion === 'm') {
             url = '/noticias/modificar'
-            body.id = Id
+            formData.append('id', Id)
         }
 
-        const res = await $.post(url, body)
+        const res = await $.ajax({
+            url,
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false
+        })
         $("#preloaderAPP").hide()
         Swal.fire({
             icon: res.icon,
@@ -268,6 +304,10 @@
     const LimpiarCampos = () => {
         $('input[type="text"]').val('')
         $('textarea').val('')
+        $('#imagen').val('')
+        $('#imagenPreviewWrap').hide()
+        $('#imagenPreview').attr('src', '')
+        $('#imagenActualLabel').text('')
         $('#cmbEquipo').val('')
         $('input[type="checkbox"]').prop('checked', false)
         $('input[type="radio"]').prop('checked', false)

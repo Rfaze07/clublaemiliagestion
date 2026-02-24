@@ -23216,3 +23216,8 @@ CREATE TABLE quejas (
 );
 
 alter table deportes add column icono varchar(50) default null
+
+
+ALTER TABLE noticias 
+  ADD COLUMN imagen_url VARCHAR(500) NULL,
+  ADD COLUMN imagen_public_id VARCHAR(255) NULL;
