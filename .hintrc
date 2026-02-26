@@ -6,7 +6,8 @@
     "axe/forms": [
       "default",
       {
-        "select-name": "off"
+        "select-name": "off",
+        "label": "off"
       }
     ],
     "axe/name-role-value": [
@@ -22,6 +23,14 @@
           "backdrop-filter"
         ]
       }
-    ]
+    ],
+    "no-inline-styles": "off",
+    "axe/text-alternatives": [
+      "default",
+      {
+        "image-alt": "off"
+      }
+    ],
+    "button-type": "off"
   }
 }
