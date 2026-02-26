@@ -1,0 +1,117 @@
+{% extends '../../template.html' %}
+
+{% block title %}{{ seccion.titulo }} - Club La Emilia{% endblock %}
+
+{% block styles %}
+<style>
+/* =====================
+   HERO DE SECCIÓN
+===================== */
+.seccion-hero {
+    padding: 70px 0 50px;
+    text-align: center;
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+    margin-bottom: 60px;
+}
+.seccion-hero .titulo-linea {
+    display: inline-block;
+    width: 60px;
+    height: 4px;
+    background: #000;
+    margin-bottom: 20px;
+}
+.seccion-hero h1 {
+    font-size: 2.6rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #000;
+    margin-bottom: 18px;
+}
+.seccion-hero p {
+    font-size: 1.05rem;
+    color: #444;
+    max-width: 720px;
+    margin: 0 auto;
+    line-height: 1.8;
+}
+
+/* =====================
+   SUBSECCIONES
+===================== */
+.subsecciones-wrap {
+    padding-bottom: 80px;
+}
+.subseccion-card {
+    background: #fff;
+    border-radius: 18px;
+    padding: 40px 36px;
+    box-shadow: 0 8px 28px rgba(0,0,0,0.07);
+    border-left: 5px solid #000;
+    transition: transform .3s ease, box-shadow .3s ease;
+}
+.subseccion-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.12);
+}
+.subseccion-card h3 {
+    font-size: 1.25rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #000;
+    margin-bottom: 14px;
+}
+.subseccion-card p {
+    font-size: .95rem;
+    color: #555;
+    line-height: 1.75;
+    margin: 0;
+}
+
+/* Sin subsecciones */
+.sin-subsecciones {
+    text-align: center;
+    color: #888;
+    font-size: 1rem;
+    padding: 40px 0 80px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <!-- HERO -->
+  <div class="seccion-hero">
+    <span class="titulo-linea"></span>
+    <h1>{{ seccion.titulo }}</h1>
+    {% if seccion.descripcion %}
+    <p>{{ seccion.descripcion }}</p>
+    {% endif %}
+  </div>
+
+  <!-- SUBSECCIONES -->
+  <div class="subsecciones-wrap">
+    {% if subSecciones.length %}
+      <div class="row gy-4">
+        {% for sub in subSecciones %}
+        <div class="col-12 col-md-6 col-lg-4">
+          <div class="subseccion-card h-100">
+            <h3>{{ sub.titulo }}</h3>
+            {% if sub.descripcion %}
+            <p>{{ sub.descripcion }}</p>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="sin-subsecciones">
+        <p>Esta sección no tiene contenido adicional por el momento.</p>
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

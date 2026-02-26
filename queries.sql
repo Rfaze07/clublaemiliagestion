@@ -23218,6 +23218,7 @@ CREATE TABLE quejas (
 alter table deportes add column icono varchar(50) default null
 
 
+<<<<<<< HEAD
 CREATE TABLE socios (
 id INT AUTO_INCREMENT PRIMARY KEY,
 fue_socio VARCHAR(5),
@@ -23250,3 +23251,8 @@ CREATE TABLE grupo_familiar (
   FOREIGN KEY (socio_id) REFERENCES socios(id)
     ON DELETE CASCADE
 );
+=======
+ALTER TABLE noticias 
+  ADD COLUMN imagen_url VARCHAR(500) NULL,
+  ADD COLUMN imagen_public_id VARCHAR(255) NULL;
+>>>>>>> caf17b0ff8037e0faea8782483062fec0386ac64
