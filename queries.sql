@@ -32,7 +32,7 @@ CREATE TABLE `empleados` (
 
 
 
-CREATE TABLE `eventos` (
+CREATE TABLE `evecntos` (
   `id` int NOT NULL AUTO_INCREMENT,
   `fecha` datetime DEFAULT CURRENT_TIMESTAMP,
   `tabla` varchar(70) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
@@ -23217,6 +23217,38 @@ CREATE TABLE quejas (
 
 alter table deportes add column icono varchar(50) default null
 
+
+CREATE TABLE socios (
+id INT AUTO_INCREMENT PRIMARY KEY,
+fue_socio VARCHAR(5),
+tipo_socio VARCHAR(20),
+grupo_familiar VARCHAR(5),
+nombre VARCHAR(50),
+apellido VARCHAR(50),
+edad INT,
+fecha_nacimiento DATE,
+dni VARCHAR(20),
+direccion VARCHAR(100),
+localidad VARCHAR(50),
+ocupacion VARCHAR(50),
+mail VARCHAR(100),
+telefono VARCHAR(20),
+deporte VARCHAR(50),
+fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE grupo_familiar (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  socio_id INT NOT NULL,
+  nombre VARCHAR(50),
+  apellido VARCHAR(50),
+  edad INT,
+  dni VARCHAR(20),
+  fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  FOREIGN KEY (socio_id) REFERENCES socios(id)
+    ON DELETE CASCADE
+);
 
 ALTER TABLE noticias 
   ADD COLUMN imagen_url VARCHAR(500) NULL,

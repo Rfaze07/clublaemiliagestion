@@ -1,0 +1,267 @@
+{% extends '../../template.html' %}
+
+{% block title %}Deportes - Club La Emilia{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<style>
+
+body{
+    background-color:#f4f6f9; /* gris muy suave */
+}
+
+.card-club{
+    border-radius:18px;
+    border:none;
+    box-shadow:0 10px 30px rgba(0,0,0,0.08);
+}
+
+.card-header-club{
+    background-color:#ffffff;
+    color:#111;
+    border-bottom:1px solid #e9ecef;
+    padding:20px;
+}
+
+.card-header-club h4{
+    font-weight:600;
+}
+
+.card-body{
+    background-color:#ffffff;
+    padding:30px;
+}
+
+.form-control,
+.form-select{
+    border:1px solid #ced4da;
+    border-radius:10px;
+    padding:10px;
+}
+
+.form-control:focus,
+.form-select:focus{
+    border-color:#000;
+    box-shadow:0 0 0 0.15rem rgba(0,0,0,.15);
+}
+
+.btn-club{
+    background-color:#000;
+    color:#fff;
+    border:none;
+    border-radius:10px;
+    padding:10px 25px;
+    font-weight:500;
+    transition:0.3s ease;
+}
+
+.btn-club:hover{
+    background-color:#333;
+    color:#fff;
+}
+
+.titulo-seccion{
+    font-weight:600;
+    border-bottom:1px solid #dee2e6;
+    padding-bottom:8px;
+    margin-bottom:20px;
+    color:#111;
+}
+
+.alert{
+    border-radius:10px;
+}
+
+</style>
+{% endblock %}
+
+
+{% block content %}
+
+<div class="container py-5">
+<div class="card card-club shadow-lg">
+<div class="card-header card-header-club">
+<h4 class="mb-0 text-center">Formulario de Inscripción - Club La Emilia</h4>
+</div>
+
+<div class="card-body bg-white">
+
+
+<form id="formSocio" method="POST" action="/web/socios">
+{% if query.ok %}
+<div class="alert alert-success text-center">
+Solicitud enviada correctamente ✔
+</div>
+{% endif %}
+{% if query.error %}
+<div class="alert alert-danger text-center">
+Error al enviar la solicitud ❌
+</div>
+{% endif %}
+{% if query.dni %}
+<div class="alert alert-warning text-center">
+El DNI ya está registrado en el sistema.
+</div>
+{% endif %}
+<div class="row mb-3">
+<div class="col-md-4">
+<label class="form-label">¿Fue socio?</label>
+<select class="form-select" name="fueSocio" required>
+<option value="">Seleccionar</option>
+<option value="si">Sí</option>
+<option value="no">No</option>
+</select>
+</div>
+
+<div class="col-md-4">
+<label class="form-label">Tipo de Socio</label>
+<select class="form-select" id="tipoSocio" name="tipoSocio" required>
+<option value="">Seleccionar</option>
+<option value="activo">Activo</option>
+<option value="deportivo">Deportivo</option>
+</select>
+</div>
+
+<div class="col-md-4">
+<label class="form-label">Grupo Familiar</label>
+<select class="form-select" id="grupoFamiliar" name="grupoFamiliar" disabled>
+<option value="">Seleccionar</option>
+<option value="si">Sí</option>
+<option value="no">No</option>
+</select>
+</div>
+</div>
+
+<hr>
+
+<h5 class="titulo-seccion">Datos Personales</h5>
+
+<div class="row mb-3">
+<div class="col-md-6">
+<input type="text" name="nombre" class="form-control" placeholder="Nombre" required>
+</div>
+<div class="col-md-6">
+<input type="text" name="apellido" class="form-control" placeholder="Apellido" required>
+</div>
+</div>
+
+<div class="row mb-3">
+<div class="col-md-3">
+<input type="number" name="edad" class="form-control" placeholder="Edad" required>
+</div>
+<div class="col-md-3">
+<input type="date" name="fechaNacimiento" class="form-control" required>
+</div>
+<div class="col-md-3">
+<input type="text" name="dni" class="form-control" placeholder="DNI" required>
+</div>
+<div class="col-md-3">
+<input type="text" name="telefono" class="form-control" placeholder="Teléfono" required>
+</div>
+</div>
+
+<div class="row mb-3">
+<div class="col-md-6">
+<input type="text" name="direccion" class="form-control" placeholder="Dirección" required>
+</div>
+<div class="col-md-6">
+<input type="text" name="localidad" class="form-control" placeholder="Localidad" required>
+</div>
+</div>
+
+<div class="row mb-3">
+<div class="col-md-6">
+<input type="text" name="ocupacion" class="form-control" placeholder="Ocupación" required>
+</div>
+<div class="col-md-6">
+<input type="email" name="mail" class="form-control" placeholder="Mail" required>
+</div>
+</div>
+
+<div id="campoDeporte" class="mb-3" style="display:none;">
+<label class="form-label">Deporte</label>
+<input type="text" name="deporte" class="form-control" placeholder="Ej: Fútbol, Básquet">
+</div>
+
+<div id="familiaresExtra" style="display:none;">
+<hr>
+<h5 class="titulo-seccion">Grupo Familiar</h5>
+<div id="camposFamiliares"></div>
+</div>
+
+<div class="text-end mt-4">
+<button type="submit" class="btn btn-club px-4">Enviar Solicitud</button>
+</div>
+
+</form>
+</div>
+</div>
+</div>
+
+
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+const tipoSocio = document.getElementById("tipoSocio");
+const grupoFamiliar = document.getElementById("grupoFamiliar");
+const campoDeporte = document.getElementById("campoDeporte");
+const familiaresExtra = document.getElementById("familiaresExtra");
+const camposFamiliares = document.getElementById("camposFamiliares");
+
+tipoSocio.addEventListener("change", function() {
+
+grupoFamiliar.value = "";
+familiaresExtra.style.display = "none";
+campoDeporte.style.display = "none";
+
+if (this.value === "activo") {
+grupoFamiliar.disabled = false;
+}
+
+if (this.value === "deportivo") {
+grupoFamiliar.disabled = true;
+campoDeporte.style.display = "block";
+}
+
+});
+
+grupoFamiliar.addEventListener("change", function() {
+
+camposFamiliares.innerHTML = "";
+
+if (this.value === "si") {
+familiaresExtra.style.display = "block";
+
+for (let i = 1; i <= 4; i++) {
+camposFamiliares.innerHTML += `
+<div class="row mb-3">
+<div class="col-md-3">
+<input type="text" class="form-control" name="nombreFamiliar${i}" placeholder="Nombre Familiar ${i}">
+</div>
+<div class="col-md-3">
+<input type="text" class="form-control" name="apellidoFamiliar${i}" placeholder="Apellido Familiar ${i}">
+</div>
+<div class="col-md-2">
+<input type="number" class="form-control" name="edadFamiliar${i}" placeholder="Edad">
+</div>
+<div class="col-md-4">
+<input type="text" class="form-control" name="dniFamiliar${i}" placeholder="DNI">
+</div>
+</div>
+`;
+}
+} else {
+familiaresExtra.style.display = "none";
+}
+
+});
+
+const urlParams = new URLSearchParams(window.location.search);
+
+if (urlParams.get('ok') === '1') {
+    document.getElementById("formSocio").reset();
+}
+</script>
+{% endblock %}

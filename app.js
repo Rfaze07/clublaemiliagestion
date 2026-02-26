@@ -15,7 +15,6 @@ const quejasRoutes = require('./modules/web/quejas/routes');
 const seccionesWebModel = require('./modules/web/secciones/model');
 
 
-
 app.use(compression());
 
 app.use(
@@ -79,9 +78,8 @@ app.use(require("./modules/equipos/routes"));
 app.use(require("./modules/jugadores/routes"));
 app.use(require("./modules/partidos/routes"));
 app.use(require("./modules/noticias/routes"));
-
-
 app.use(require("./modules/web/index/routes"));
+app.use('/web', require('./modules/web/socios/routes'));
 //app.use(require("./modules/web/equipos/routes"));
 //app.use(require("./modules/web/partidos/routes"));
 app.use(require("./modules/web/noticias/routes"));
