@@ -2,7 +2,7 @@ const db = require('../../../database');
 
 exports.insertSocio = async (data) => {
 
-    // ✅ Validación básica
+    // ✅ Validación básica 
     if (!data.nombre || !data.apellido || !data.dni) {
         throw new Error("Datos obligatorios faltantes");
     }
