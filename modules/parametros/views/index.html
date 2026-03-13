@@ -1,0 +1,169 @@
+{% extends '../../template.html' %}
+
+{% block styles %}
+<style>
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+    <h2>{{ pagename }}</h2>
+    <div class="d-flex align-items-end mb-3" style="gap: 0.2rem;">
+        <input type="text" class="form-control form-control-sm" id="txtFiltro" placeholder="Buscar" style="width: 10rem;" />
+    </div>
+</div>
+<div class="table-responsive" style="height: calc(100vh - 200px)" id="tablaDatos">
+    <table class="table table-sm table-fix table-hover tableFixHead">
+        <thead>
+            <tr>
+                <th scope="col">Acciones</th>
+                <th scope="col">Clave</th>
+                <th scope="col">Descripción</th>
+                <th scope="col">Valor</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<!-- MODAL -->
+<div class="modal fade modal-m" data-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    aria-labelledby="staticBackdropLabel" aria-hidden="true" id="modal">
+    <div class="modal-dialog modal-md">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabel"></h5>
+                <button type="button" class="close" aria-label="Close" onclick="CerrarModal()">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="txtId" />
+                <div class="row">
+                    <div class="form-group col-sm-12">
+                        <label for="txtClave">Clave</label>
+                        <input type="text" class="form-control form-control-sm" id="txtClave" readonly>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12">
+                        <label for="txtDescripcion">Descripción</label>
+                        <input type="text" class="form-control form-control-sm" id="txtDescripcion" readonly>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-12">
+                        <label for="txtValor">Valor</label>
+                        <input type="text" class="form-control form-control-sm" id="txtValor" maxlength="255">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="CerrarModal()">Cancelar</button>
+                <button type="button" class="btn btn-success" id="btnAccion">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(async () => {
+        getLista()
+    })
+
+    $("#txtFiltro").keyup(async function () {
+        Filtrar()
+    })
+
+    const getLista = async () => {
+        $("#preloaderAPP").show()
+        const res = await $.post('/parametros/getListaAjax')
+        let html = ""
+        if (res.status) {
+            for (let i = 0; i < res.data.length; i++) {
+                html += `
+                    <tr>
+                        <td>
+                            <div style="display: flex; gap: 6px; align-items:center;">
+                                {% if permisos.m == 1 %}
+                                    <button class="btn btn-round btn-sm btn-warning"
+                                        data-toggle="tooltip" data-placement="top" title="Modificar" onclick="ModalAccion(${res.data[i].id})">
+                                        <i class="fa fa-pen"></i>
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class='search'>${res.data[i].clave}</td>
+                        <td>${res.data[i].descripcion}</td>
+                        <td>${res.data[i].valor !== null ? res.data[i].valor : ''}</td>
+                    </tr>`
+            }
+        } else {
+            html = `<tr><td class="font-weight-bold" colspan="4">${res.text}</td></tr>`
+        }
+        $('#tablaDatos tbody').html(html)
+        $("#preloaderAPP").hide()
+        $('[data-toggle="tooltip"]').tooltip()
+    }
+
+    const ModalAccion = async (id) => {
+        $("#preloaderAPP").show()
+        let res = await $.post('/parametros/getByIdAjax', { id })
+        if (res.status) {
+            $('#txtId').val(res.data.id)
+            $('#txtClave').val(res.data.clave)
+            $('#txtDescripcion').val(res.data.descripcion)
+            $('#txtValor').val(res.data.valor !== null ? res.data.valor : '')
+        }
+        $('#modalLabel').text('Modificar Parámetro')
+        $('#btnAccion').attr('onclick', `PostRegistro(${id})`)
+        $("#preloaderAPP").hide()
+        $('#modal').modal('show')
+    }
+
+    const PostRegistro = async (id) => {
+        $("#preloaderAPP").show()
+        let body = {
+            id: id,
+            valor: $('#txtValor').val()
+        }
+
+        const res = await $.post('/parametros/modificar', body)
+        $("#preloaderAPP").hide()
+        Swal.fire({
+            icon: res.icon,
+            title: res.title,
+            text: res.text,
+            timer: 2000
+        }).then(() => {
+            if (res.status) {
+                CerrarModal()
+                getLista()
+            }
+        })
+    }
+
+    const Filtrar = () => {
+        $('#tablaDatos tbody tr').each(function () {
+            if ($(this).find('td.search').text().toUpperCase().indexOf($('#txtFiltro').val().toUpperCase()) > -1)
+                $(this).closest('tr').show();
+            else
+                $(this).closest('tr').hide();
+        })
+    }
+
+    const CerrarModal = () => {
+        $('#modal').modal('hide')
+        LimpiarCampos()
+    }
+
+    const LimpiarCampos = () => {
+        $('input[type="text"]').not('[readonly]').val('')
+        $('input[type="hidden"]').val('')
+    }
+</script>
+{% endblock %}
