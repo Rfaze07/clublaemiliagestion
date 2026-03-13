@@ -17,21 +17,20 @@ exports.insertSocio = async (data) => {
         throw new Error("El DNI ya está registrado");
     }
 
-    // ✅ Insertar socio
+    // ✅ Insertar socio titular
     const sql = `
         INSERT INTO socios
-        (fue_socio, tipo_socio, grupo_familiar, nombre, apellido, edad,
+        (tipo_registro, fue_socio, tipo_socio, nombre, apellido,
          fecha_nacimiento, dni, direccion, localidad, ocupacion, mail, telefono, deporte)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     const result = await db.queryMYSQL(sql, [
+        'titular',
         data.fueSocio,
         data.tipoSocio,
-        data.grupoFamiliar,
         data.nombre,
         data.apellido,
-        data.edad,
         data.fechaNacimiento,
         data.dni,
         data.direccion,
@@ -44,33 +43,34 @@ exports.insertSocio = async (data) => {
 
     const socioId = result.insertId;
 
-    // ✅ Insertar familiares (1 a 4)
-    if (data.grupoFamiliar && data.grupoFamiliar.toLowerCase() === "si") {
+// ✅ Insertar familiares en la misma tabla
+if (data.grupoFamiliar && data.grupoFamiliar.toLowerCase() === "si") {
 
-        for (let i = 1; i <= 4; i++) {
+    for (let i = 1; i <= 4; i++) {
 
-            const nombre = data[`nombreFamiliar${i}`];
-            const apellido = data[`apellidoFamiliar${i}`];
-            const edad = data[`edadFamiliar${i}`];
-            const dni = data[`dniFamiliar${i}`];
+        const nombre = data[`nombreFamiliar${i}`];
+        const apellido = data[`apellidoFamiliar${i}`];
+        const fechaNacimiento = data[`fechaNacimientoFamiliar${i}`];
+        const dni = data[`dniFamiliar${i}`];
 
-            if (nombre && nombre.trim() !== "") {
+        if (nombre && nombre.trim() !== "") {
 
-                await db.queryMYSQL(
-                    `INSERT INTO grupo_familiar 
-                     (socio_id, nombre, apellido, edad, dni)
-                     VALUES (?, ?, ?, ?, ?)`,
-                    [
-                        socioId,
-                        nombre,
-                        apellido || null,
-                        edad || null,
-                        dni || null
-                    ]
-                );
-            }
+            await db.queryMYSQL(
+                `INSERT INTO socios
+                 (tipo_registro, socio_titular_id, nombre, apellido, fecha_nacimiento, dni)
+                 VALUES (?, ?, ?, ?, ?, ?)`,
+                [
+                    'familiar',
+                    socioId,
+                    nombre,
+                    apellido || null,
+                    fechaNacimiento || null,
+                    dni || null
+                ]
+            );
         }
     }
+}
 
     return true;
 };

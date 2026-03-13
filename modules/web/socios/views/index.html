@@ -81,7 +81,7 @@ body{
 <div class="container py-5">
 <div class="card card-club shadow-lg">
 <div class="card-header card-header-club">
-<h4 class="mb-0 text-center">Formulario de Inscripción - Club La Emilia</h4>
+<h4 class="mb-0 text-center">Formulario de Solicitud - Club La Emilia</h4>
 </div>
 
 <div class="card-body bg-white">
@@ -103,6 +103,10 @@ Error al enviar la solicitud ❌
 El DNI ya está registrado en el sistema.
 </div>
 {% endif %}
+<div id="mensajeEdad" class="alert alert-warning text-center" style="display:none;">
+La fecha de nacimiento no puede ser mayor a la fecha actual.
+</div>
+
 <div class="row mb-3">
 <div class="col-md-4">
 <label class="form-label">¿Fue socio?</label>
@@ -146,11 +150,12 @@ El DNI ya está registrado en el sistema.
 </div>
 
 <div class="row mb-3">
+
 <div class="col-md-3">
-<input type="number" name="edad" class="form-control" placeholder="Edad" required>
+<input type="date" id="fechaNacimiento" name="fechaNacimiento" class="form-control" required max="">
 </div>
 <div class="col-md-3">
-<input type="date" name="fechaNacimiento" class="form-control" required>
+<input type="number" id="edad" name="edad" class="form-control" placeholder="Edad" readonly>
 </div>
 <div class="col-md-3">
 <input type="text" name="dni" class="form-control" placeholder="DNI" required>
@@ -159,7 +164,6 @@ El DNI ya está registrado en el sistema.
 <input type="text" name="telefono" class="form-control" placeholder="Teléfono" required>
 </div>
 </div>
-
 <div class="row mb-3">
 <div class="col-md-6">
 <input type="text" name="direccion" class="form-control" placeholder="Dirección" required>
@@ -238,20 +242,21 @@ for (let i = 1; i <= 4; i++) {
 camposFamiliares.innerHTML += `
 <div class="row mb-3">
 <div class="col-md-3">
-<input type="text" class="form-control" name="nombreFamiliar${i}" placeholder="Nombre Familiar ${i}">
+<input type="text" class="form-control" name="nombreFamiliar${i}" placeholder="Nombre">
 </div>
 <div class="col-md-3">
-<input type="text" class="form-control" name="apellidoFamiliar${i}" placeholder="Apellido Familiar ${i}">
+<input type="text" class="form-control" name="apellidoFamiliar${i}" placeholder="Apellido">
 </div>
-<div class="col-md-2">
-<input type="number" class="form-control" name="edadFamiliar${i}" placeholder="Edad">
+<div class="col-md-3">
+<input type="date" class="form-control fechaFamiliar" name="fechaNacimientoFamiliar${i}">
 </div>
-<div class="col-md-4">
+<div class="col-md-3">
 <input type="text" class="form-control" name="dniFamiliar${i}" placeholder="DNI">
 </div>
 </div>
 `;
 }
+
 } else {
 familiaresExtra.style.display = "none";
 }
@@ -263,5 +268,65 @@ const urlParams = new URLSearchParams(window.location.search);
 if (urlParams.get('ok') === '1') {
     document.getElementById("formSocio").reset();
 }
+document.getElementById("formSocio").addEventListener("submit", function(e){
+
+    const familiares = [];
+
+    for(let i=1;i<=4;i++){
+
+        const nombre = document.querySelector(`[name="nombreFamiliar${i}"]`)?.value;
+        const apellido = document.querySelector(`[name="apellidoFamiliar${i}"]`)?.value;
+        const fechaNacimiento = document.querySelector(`[name="fechaNacimientoFamiliar${i}"]`)?.value;
+        const dni = document.querySelector(`[name="dniFamiliar${i}"]`)?.value;
+
+        if(nombre && nombre.trim() !== ""){
+            familiares.push({
+                nombre,
+                apellido,
+                edad,
+                dni
+            });
+        }
+    }
+
+    const input = document.createElement("input");
+    input.type = "hidden";
+    input.name = "familiares";
+    input.value = JSON.stringify(familiares);
+
+    this.appendChild(input);
+
+});
+const fechaNacimiento = document.getElementById("fechaNacimiento");
+const edadInput = document.getElementById("edad");
+const mensajeEdad = document.getElementById("mensajeEdad");
+
+const hoy = new Date().toISOString().split("T")[0];
+fechaNacimiento.setAttribute("max", hoy);
+
+fechaNacimiento.addEventListener("change", function(){
+
+    const fecha = new Date(this.value);
+    const hoy = new Date();
+
+    let edad = hoy.getFullYear() - fecha.getFullYear();
+    const mes = hoy.getMonth() - fecha.getMonth();
+
+    if (mes < 0 || (mes === 0 && hoy.getDate() < fecha.getDate())) {
+        edad--;
+    }
+
+    if (edad < 0) {
+
+        mensajeEdad.style.display = "block";
+        edadInput.value = "";
+        this.value = "";
+        return;
+    }
+
+    mensajeEdad.style.display = "none";
+    edadInput.value = edad;
+
+});
 </script>
 {% endblock %}

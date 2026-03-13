@@ -1,0 +1,290 @@
+{% extends '../../template.html' %}
+
+{% block styles %}
+<style>
+.icon-btn-picker {
+    width: 38px; height: 38px;
+    border: 1px solid #ddd;
+    background: #fff;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem;
+    transition: background .15s, border-color .15s;
+    padding: 0;
+}
+.icon-btn-picker:hover { background: #f0f0f0; border-color: #999; }
+.icon-btn-picker.selected { background: #232e38; border-color: #232e38; color: #fff; }
+.icon-picker-panel {
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 10px;
+    margin-top: 8px;
+    background: #fafafa;
+    position: relative;
+    z-index: 10;
+}
+#iconGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(38px, 1fr));
+    gap: 4px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+.icon-preview-box {
+    width: 42px; height: 42px;
+    background: #232e38;
+    border-radius: 5px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+    <h2>{{ pagename }}</h2>
+    <div class="d-flex align-items-end mb-3" style="gap: 0.2rem;">
+    </div>
+</div>
+<div class="table-responsive" style="height: calc(100vh - 200px)" id="tablaDatos">
+    <table class="table table-sm table-fix table-hover tableFixHead">
+        <thead>
+            <tr>
+                <th>Acciones</th>
+                <th>ID</th>
+                <th>Anon.</th>
+                <th>Nombre</th>
+                <th>Email</th>
+                <th>Mensaje</th>
+                <th>Fecha</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+</div>
+<!-- MODAL VER QUEJA -->
+<div class="modal fade" id="modalQueja" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Detalle de Queja</h5>
+      </div>
+
+      <div class="modal-body">
+
+        <div class="row mb-2">
+          <div class="col-md-6">
+            <strong>ID:</strong>
+            <span id="mq_id"></span>
+          </div>
+
+          <div class="col-md-6">
+            <strong>Fecha:</strong>
+            <span id="mq_fecha"></span>
+          </div>
+        </div>
+
+        <div class="row mb-2">
+          <div class="col-md-6">
+            <strong>Nombre:</strong>
+            <span id="mq_nombre"></span>
+          </div>
+
+          <div class="col-md-6">
+            <strong>Email:</strong>
+            <span id="mq_email"></span>
+          </div>
+        </div>
+
+        <div class="mb-2">
+          <strong>Mensaje:</strong>
+          <div id="mq_mensaje" class="border rounded p-3 bg-light" style="white-space: pre-wrap;"></div>
+        </div>
+        <div class="mb-3">
+            <label class="form-label"><strong>Estado</strong></label>
+            <select id="mq_leida" class="form-select">
+                <option value="0">No leída</option>
+                <option value="1">Leída</option>
+            </select>
+        </div>
+
+        </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" onclick="guardarEstado()">
+            Guardar estado
+        </button>
+        <button class="btn btn-secondary" data-bs-dismiss="modal">
+          Cerrar
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+ 
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    cargarQuejas();
+});
+
+function cargarQuejas() {
+    fetch("/quejas/getListaAjax", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        }
+    })
+    .then(res => res.json())
+    .then(response => {
+
+        const tbody = document.querySelector("#tablaDatos tbody");
+        tbody.innerHTML = "";
+
+        if (!response.status) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="8" class="text-center text-muted">
+                        No hay quejas registradas
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        response.data.forEach(q => {
+
+            let anonimo = q.anonimo == 1 
+                ? '<span class="badge bg-secondary">Sí</span>'
+                : '<span class="badge bg-success">No</span>';
+
+            let nombre = q.anonimo == 1 ? "—" : (q.nombre || "");
+            let email  = q.anonimo == 1 ? "—" : (q.email || "");
+
+            let estado = q.leida == 1
+                ? '<span class="badge bg-success">Leída</span>'
+                : '<span class="badge bg-warning text-dark">No leída</span>';
+
+            let fila = `
+                <tr>
+                    <td>
+                        <button class="btn btn-sm btn-primary"
+                            onclick="verQueja(${q.id})">
+                            <i class="fa fa-eye"></i>
+                        </button>
+                    </td>
+                    <td>${q.id}</td>
+                    <td>${anonimo}</td>
+                    <td>${nombre}</td>
+                    <td>${email}</td>
+                    <td style="max-width:250px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                        ${q.mensaje}
+                    </td>
+                    <td>${formatearFecha(q.fecha)}</td>
+                    <td>${estado}</td>
+                </tr>
+            `;
+
+            tbody.innerHTML += fila;
+        });
+
+    })
+    .catch(error => {
+        console.error(error);
+    });
+}
+
+function formatearFecha(fecha) {
+    let f = new Date(fecha);
+    return f.toLocaleString("es-AR");
+}
+function verQueja(id) {
+    quejaActual = id;
+
+    fetch("/quejas/getByIdAjax", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ id })
+    })
+    .then(res => res.json())
+    .then(response => {
+
+        if (!response.status) {
+            alert("Error al cargar la queja");
+            return;
+        }
+
+        let q = response.data;
+
+        if (Array.isArray(q)) {
+            q = q[0];
+        }
+
+        document.getElementById("mq_id").innerText = q.id || "";
+        document.getElementById("mq_fecha").innerText = formatearFecha(q.fecha);
+        document.getElementById("mq_nombre").innerText = q.anonimo == 1 ? "Anónimo" : (q.nombre || "");
+        document.getElementById("mq_email").innerText = q.anonimo == 1 ? "—" : (q.email || "");
+        document.getElementById("mq_mensaje").innerText = q.mensaje || "";
+
+        document.getElementById("mq_leida").value = q.leida;
+
+        let modal = bootstrap.Modal.getOrCreateInstance(
+            document.getElementById("modalQueja")
+        );
+
+        modal.show();
+
+        marcarLeida(id);
+
+    })
+    .catch(error => {
+        console.error(error);
+    });
+}
+let quejaActual = null;
+
+function guardarEstado() {
+
+    const leida = document.getElementById("mq_leida").value;
+
+    fetch("/quejas/updateEstado", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            id: quejaActual,
+            leida: leida
+        })
+    })
+    .then(res => res.json())
+    .then(response => {
+
+        if(!response.status){
+            alert("Error al guardar estado");
+            return;
+        }
+
+        cargarQuejas();
+
+        let modal = bootstrap.Modal.getInstance(
+            document.getElementById("modalQueja")
+        );
+
+        modal.hide();
+
+    })
+}
+
+
+
+</script>
+{% endblock %}

@@ -23220,34 +23220,32 @@ alter table deportes add column icono varchar(50) default null
 
 CREATE TABLE socios (
 id INT AUTO_INCREMENT PRIMARY KEY,
+
+tipo_registro ENUM('titular','familiar'),
+
+socio_titular_id INT NULL,
+
 fue_socio VARCHAR(5),
 tipo_socio VARCHAR(20),
-grupo_familiar VARCHAR(5),
+
 nombre VARCHAR(50),
 apellido VARCHAR(50),
-edad INT,
 fecha_nacimiento DATE,
 dni VARCHAR(20),
+
 direccion VARCHAR(100),
 localidad VARCHAR(50),
 ocupacion VARCHAR(50),
+
 mail VARCHAR(100),
 telefono VARCHAR(20),
+
 deporte VARCHAR(50),
-fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
 
-CREATE TABLE grupo_familiar (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  socio_id INT NOT NULL,
-  nombre VARCHAR(50),
-  apellido VARCHAR(50),
-  edad INT,
-  dni VARCHAR(20),
-  fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-  FOREIGN KEY (socio_id) REFERENCES socios(id)
-    ON DELETE CASCADE
+FOREIGN KEY (socio_titular_id) REFERENCES socios(id)
+ON DELETE CASCADE
 );
 
 ALTER TABLE noticias 

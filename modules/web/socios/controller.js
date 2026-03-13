@@ -5,7 +5,7 @@ exports.getInscripcion = async (req, res) => {
 
         res.render('web/socios/views/index', {
             pagename: "Inscripción Socio",
-            query: req.query   // 🔥 IMPORTANTE
+            query: req.query
         });
 
     } catch (error) {
@@ -14,10 +14,13 @@ exports.getInscripcion = async (req, res) => {
     }
 };
 
-
 exports.postInscripcion = async (req, res) => {
 
     try {
+
+        if(req.body.familiares){
+             req.body.familiares = JSON.parse(req.body.familiares);
+        }
 
         await model.insertSocio(req.body);
 
