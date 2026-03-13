@@ -4,131 +4,399 @@
 
 {% block styles %}
 <style>
-/* =====================
-   HEADER NOTICIAS
-===================== */
-.header-noticias {
-    padding: 60px 0 40px;
-    text-align: center;
-    border-bottom: 1px solid rgba(0,0,0,0.08);
-    margin-bottom: 50px;
-}
-.header-noticias .titulo-linea {
-    display: inline-block;
-    width: 60px;
-    height: 4px;
+/* ====================
+   HERO
+==================== */
+.hero {
     background: #000;
-    margin-bottom: 20px;
+    color: #fff;
+    padding: 90px 0 80px;
+    position: relative;
+    overflow: hidden;
+    border-bottom: 4px solid #fff;
 }
-.header-noticias h2 {
-    font-size: 2.4rem;
+.hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(ellipse at 70% 50%, rgba(255,255,255,.04) 0%, transparent 70%),
+        repeating-linear-gradient(
+            45deg,
+            transparent,
+            transparent 40px,
+            rgba(255,255,255,.015) 40px,
+            rgba(255,255,255,.015) 80px
+        );
+    pointer-events: none;
+}
+.hero-logo {
+    max-height: 450px;
+    filter: drop-shadow(0 0 24px rgba(255,255,255,.25));
+}
+.hero-badge {
+    display: inline-block;
+    background: #fff;
+    color: #000;
     font-weight: 800;
+    font-size: .72rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    padding: 6px 16px;
+    border-radius: 30px;
+    margin-bottom: 18px;
+}
+.hero-title {
+    font-size: clamp(2.2rem, 5vw, 3.8rem);
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    line-height: 1.1;
+    margin: 0 0 18px;
+}
+.hero-sub {
+    font-size: 1.05rem;
+    color: rgba(255,255,255,.7);
+    max-width: 520px;
+    line-height: 1.75;
+    margin-bottom: 32px;
+}
+.hero-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+.hero-btn-primary {
+    background: #fff;
+    color: #000;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-size: .85rem;
+    padding: .7rem 1.8rem;
+    border-radius: 8px;
+    text-decoration: none;
+    border: 2px solid #fff;
+    transition: .2s;
+}
+.hero-btn-primary:hover {
+    background: transparent;
+    color: #fff;
+}
+.hero-btn-secondary {
+    background: transparent;
+    color: #fff;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-size: .85rem;
+    padding: .7rem 1.8rem;
+    border-radius: 8px;
+    text-decoration: none;
+    border: 2px solid rgba(255,255,255,.4);
+    transition: .2s;
+}
+.hero-btn-secondary:hover {
+    border-color: #fff;
+    color: #fff;
+}
+.hero-stat {
+    text-align: center;
+    padding: 20px 0;
+    border-left: 1px solid rgba(255,255,255,.12);
+}
+.hero-stat:first-child { border-left: none; }
+.hero-stat-num {
+    font-size: 2.2rem;
+    font-weight: 900;
+    display: block;
+    line-height: 1;
+}
+.hero-stat-label {
+    font-size: .72rem;
     letter-spacing: 2px;
     text-transform: uppercase;
-    color: #000;
-    margin-bottom: 14px;
-}
-.header-noticias p {
-    font-size: 1rem;
-    color: #555;
-    max-width: 680px;
-    margin: 0 auto;
-    line-height: 1.7;
-}
-
-/* =====================
-   CARDS NOTICIAS
-===================== */
-.noticias-grid {
-    padding-bottom: 70px;
-}
-.card-noticia {
-    border: none;
-    border-radius: 18px;
-    background: #fff;
-    overflow: hidden;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.07);
-    transition: transform .3s ease, box-shadow .3s ease;
-    cursor: pointer;
-    height: 100%;
-}
-.card-noticia:hover {
-    transform: translateY(-7px);
-    box-shadow: 0 18px 40px rgba(0,0,0,0.13);
-}
-.card-noticia-img {
-    width: 100%;
-    height: 200px;
-    object-fit: cover;
+    color: rgba(255,255,255,.5);
+    margin-top: 4px;
     display: block;
 }
-.card-noticia-img-placeholder {
+.hero-divider {
+    border-top: 1px solid rgba(255,255,255,.1);
+    margin-top: 52px;
+    padding-top: 30px;
+}
+/* ====================
+   SECCIÓN TÍTULO
+==================== */
+.section-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+.section-header .line {
+    display: inline-block;
+    width: 50px;
+    height: 4px;
+    background: #000;
+    margin-bottom: 14px;
+}
+.section-header h2 {
+    font-size: 1.9rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #000;
+    margin: 0 0 8px;
+}
+.section-header p {
+    color: #666;
+    font-size: .95rem;
+    margin: 0;
+}
+/* ====================
+   CARRUSEL NOTICIAS
+==================== */
+.section-noticias {
+    padding: 70px 0 80px;
+    background: #fff;
+}
+.carousel-noticia-slide {
+    border-radius: 18px;
+    overflow: hidden;
+    background: #000;
+    position: relative;
+    cursor: pointer;
+}
+.carousel-noticia-img {
     width: 100%;
-    height: 200px;
-    background: linear-gradient(135deg, #000 0%, #333 100%);
+    height: 460px;
+    object-fit: cover;
+    opacity: .55;
+    display: block;
+    transition: opacity .4s;
+}
+.carousel-noticia-placeholder {
+    width: 100%;
+    height: 460px;
+    background: linear-gradient(135deg, #111 0%, #333 100%);
     display: flex;
     align-items: center;
     justify-content: center;
 }
-.card-noticia-img-placeholder i {
-    font-size: 2.5rem;
-    color: rgba(255,255,255,0.3);
+.carousel-noticia-placeholder i {
+    font-size: 5rem;
+    color: rgba(255,255,255,.12);
 }
-.card-noticia-body {
-    padding: 22px 24px 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+.carousel-noticia-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 50px 44px 38px;
+    background: linear-gradient(to top, rgba(0,0,0,.92) 0%, rgba(0,0,0,.5) 60%, transparent 100%);
+    color: #fff;
 }
-.card-noticia-fecha {
-    font-size: .78rem;
-    color: #999;
+.carousel-noticia-fecha {
+    font-size: .75rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: rgba(255,255,255,.55);
+    margin-bottom: 8px;
+}
+.carousel-noticia-titulo {
+    font-size: clamp(1.2rem, 2.5vw, 1.9rem);
+    font-weight: 900;
     text-transform: uppercase;
     letter-spacing: 1px;
+    margin-bottom: 8px;
+    line-height: 1.2;
 }
-.card-noticia-titulo {
-    font-size: 1.05rem;
+.carousel-noticia-subtitulo {
+    font-size: .92rem;
+    color: rgba(255,255,255,.7);
+    line-height: 1.55;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: 16px;
+}
+.carousel-btn-leer {
+    display: inline-block;
+    background: #fff;
+    color: #000;
+    font-size: .78rem;
     font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: .5px;
-    color: #000;
-    margin: 0;
+    letter-spacing: 1.5px;
+    padding: .45rem 1.2rem;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: .2s;
 }
-.card-noticia-subtitulo {
-    font-size: .9rem;
-    color: #555;
-    margin: 0;
-    line-height: 1.5;
+.carousel-btn-leer:hover { background: #e0e0e0; }
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+    background-color: rgba(0,0,0,.6);
+    padding: 20px;
+    border-radius: 50%;
+    background-size: 50%;
+}
+.carousel-indicators [data-bs-target] {
+    background-color: #000;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    opacity: .3;
+}
+.carousel-indicators .active { opacity: 1; }
+.sin-noticias-hero {
+    background: #f5f5f5;
+    border-radius: 18px;
+    padding: 80px 40px;
+    text-align: center;
+    color: #aaa;
+}
+.ver-todas-btn {
+    display: inline-block;
+    margin-top: 28px;
+    background: #000;
+    color: #fff;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-size: .82rem;
+    padding: .7rem 2rem;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: .2s;
+}
+.ver-todas-btn:hover { background: #222; color: #fff; }
+/* ====================
+   DEPORTES
+==================== */
+.section-deportes {
+    padding: 70px 0 80px;
+    background: #0a0a0a;
+    border-top: 4px solid #fff;
+    border-bottom: 4px solid #fff;
+}
+.section-deportes .section-header .line { background: #fff; }
+.section-deportes .section-header h2 { color: #fff; }
+.section-deportes .section-header p { color: rgba(255,255,255,.5); }
+.card-deporte {
+    background: #111;
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 16px;
+    padding: 28px 24px;
+    height: 100%;
+    transition: transform .3s, border-color .3s, box-shadow .3s;
+    text-align: center;
+}
+.card-deporte:hover {
+    transform: translateY(-6px);
+    border-color: rgba(255,255,255,.3);
+    box-shadow: 0 16px 40px rgba(0,0,0,.6);
+}
+.card-deporte-icono {
+    font-size: 2.4rem;
+    color: #fff;
+    margin-bottom: 14px;
+    display: block;
+}
+.card-deporte-nombre {
+    font-size: 1rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #fff;
+    margin-bottom: 10px;
+}
+.card-deporte-desc {
+    font-size: .85rem;
+    color: rgba(255,255,255,.5);
+    line-height: 1.6;
     display: -webkit-box;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    margin: 0;
 }
-.card-noticia-leer {
-    margin-top: 6px;
-    font-size: .82rem;
+.card-deporte-link {
+    display: inline-block;
+    margin-top: 16px;
+    font-size: .75rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 1px;
+    color: rgba(255,255,255,.6);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(255,255,255,.2);
+    transition: .2s;
+}
+.card-deporte-link:hover {
+    color: #fff;
+    border-bottom-color: #fff;
+}
+.sin-deportes {
+    text-align: center;
+    color: rgba(255,255,255,.35);
+    padding: 40px 0;
+}
+/* ====================
+   RESULTADOS / HORARIOS
+==================== */
+.section-partidos {
+    padding: 70px 0 80px;
+    background: #fff;
+}
+.partidos-col-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 22px;
+    padding-bottom: 14px;
+    border-bottom: 3px solid #000;
+}
+.partidos-col-header i { font-size: 1.3rem; }
+.partidos-col-header h3 {
+    font-size: 1rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin: 0;
     color: #000;
 }
-
-/* Sin noticias */
-.sin-noticias {
+.coming-soon-box {
+    background: #f5f5f5;
+    border-radius: 16px;
+    padding: 50px 30px;
     text-align: center;
-    color: #888;
-    padding: 60px 0 80px;
+    border: 2px dashed #ddd;
 }
-
-/* =====================
+.coming-soon-box i {
+    font-size: 3rem;
+    color: #ccc;
+    display: block;
+    margin-bottom: 14px;
+}
+.coming-soon-box p {
+    color: #aaa;
+    font-size: .9rem;
+    margin: 0;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+/* ====================
    MODAL NOTICIA
-===================== */
+==================== */
 #modalNoticia .modal-content {
     border-radius: 18px;
     border: none;
     overflow: hidden;
 }
-#modalNoticia .modal-noticia-img {
+#modalNoticia .mn-img {
     width: 100%;
     max-height: 380px;
     object-fit: cover;
@@ -137,22 +405,22 @@
 #modalNoticia .modal-body {
     padding: 28px 34px 34px;
 }
-#modalNoticia .modal-noticia-fecha {
+#modalNoticia .mn-fecha {
     font-size: .8rem;
     color: #999;
     text-transform: uppercase;
     letter-spacing: 1px;
     margin-bottom: 8px;
 }
-#modalNoticia .modal-noticia-titulo {
+#modalNoticia .mn-titulo {
     font-size: 1.6rem;
-    font-weight: 800;
+    font-weight: 900;
     text-transform: uppercase;
     letter-spacing: 1px;
     color: #000;
     margin-bottom: 8px;
 }
-#modalNoticia .modal-noticia-subtitulo {
+#modalNoticia .mn-subtitulo {
     font-size: 1rem;
     color: #555;
     margin-bottom: 18px;
@@ -160,17 +428,17 @@
     border-bottom: 1px solid #eee;
     padding-bottom: 16px;
 }
-#modalNoticia .modal-noticia-descripcion {
+#modalNoticia .mn-cuerpo {
     font-size: .97rem;
     color: #333;
     line-height: 1.85;
     white-space: pre-line;
 }
-#modalNoticia .btn-close-noticia {
+#modalNoticia .btn-cerrar-mn {
     position: absolute;
     top: 12px;
     right: 14px;
-    background: rgba(0,0,0,0.55);
+    background: rgba(0,0,0,.55);
     border: none;
     color: #fff;
     border-radius: 50%;
@@ -187,68 +455,198 @@
 {% endblock %}
 
 {% block content %}
-<div class="container">
 
-    <!-- HEADER -->
-    <div class="header-noticias">
-        <span class="titulo-linea"></span>
-        <h2>Últimas Noticias</h2>
-        <p>Enterate de todo lo que pasa en el Club La Emilia.</p>
-    </div>
-
-    <!-- GRID -->
-    <div class="noticias-grid">
-        {% if noticias and noticias.length %}
-        <div class="row gy-4">
-            {% for noticia in noticias %}
-            <div class="col-12 col-sm-6 col-lg-4">
-                <div class="card-noticia" onclick="abrirNoticia('{{ noticia.id }}')">
-                    {% if noticia.imagen_url %}
-                        <img class="card-noticia-img" src="{{ noticia.imagen_url }}" alt="{{ noticia.titulo }}">
-                    {% else %}
-                        <div class="card-noticia-img-placeholder">
-                            <i class="bi bi-newspaper"></i>
-                        </div>
-                    {% endif %}
-                    <div class="card-noticia-body">
-                        <span class="card-noticia-fecha">
-                            {{ noticia.fecha | date("d/m/Y") }}
-                        </span>
-                        <h3 class="card-noticia-titulo">{{ noticia.titulo }}</h3>
-                        <p class="card-noticia-subtitulo">{{ noticia.subtitulo }}</p>
-                        <span class="card-noticia-leer">Leer más →</span>
+<!-- ==================== HERO ==================== -->
+<section class="hero">
+    <div class="container">
+        <div class="row align-items-center gy-5">
+            <div class="col-12 col-lg-7">
+                <span class="hero-badge">&#9733; Bienvenidos al Club</span>
+                <h1 class="hero-title">Club<br>La<br>Emilia</h1>
+                <p class="hero-sub">
+                    Somos una institución deportiva y social con historia, pasión y compromiso.
+                    Formamos jugadores, construimos comunidad y defendemos los colores
+                    negro y blanco con orgullo.
+                </p>
+                <div class="hero-actions">
+                    <a href="/web/socios" class="hero-btn-primary">Hacerme Socio</a>
+                    <a href="/web/deportes" class="hero-btn-secondary">Ver Deportes</a>
+                </div>
+            </div>
+            <div class="col-12 col-lg-5 text-center">
+                <img src="/img/escudo-solo.png" class="hero-logo" alt="Club La Emilia">
+            </div>
+        </div>
+        <div class="hero-divider">
+            <div class="row text-center">
+                <div class="col-4">
+                    <div class="hero-stat">
+                        <span class="hero-stat-num"><i class="fa-solid fa-futbol"></i></span>
+                        <span class="hero-stat-label">Distintos deportes</span>
                     </div>
+                </div>
+                <div class="col-4">
+                    <div class="hero-stat">
+                        <span class="hero-stat-num"><i class="fa-solid fa-trophy"></i></span>
+                        <span class="hero-stat-label">Campeonatos</span>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="hero-stat">
+                        <span class="hero-stat-num"><i class="fa-solid fa-people-group"></i></span>
+                        <span class="hero-stat-label">Comunidad</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ==================== NOTICIAS ==================== -->
+<section class="section-noticias">
+    <div class="container">
+        <div class="section-header">
+            <span class="line"></span>
+            <h2>Últimas Noticias</h2>
+            <p>Enterate de todo lo que pasa en el Club La Emilia</p>
+        </div>
+        {% if noticias and noticias.length %}
+        <div id="carouselNoticias" class="carousel slide" data-bs-ride="carousel" data-bs-interval="5000">
+            <div class="carousel-indicators">
+                {% for noticia in noticias %}
+                <button type="button" data-bs-target="#carouselNoticias" data-bs-slide-to="{{ loop.index0 }}"
+                    class="{% if loop.first %}active{% endif %}"
+                    aria-label="Noticia {{ loop.index }}"></button>
+                {% endfor %}
+            </div>
+            <div class="carousel-inner">
+                {% for noticia in noticias %}
+                <div class="carousel-item {% if loop.first %}active{% endif %}">
+                    <div class="carousel-noticia-slide" onclick="abrirNoticia('{{ noticia.id }}')">
+                        {% if noticia.imagen_url %}
+                            <img class="carousel-noticia-img" src="{{ noticia.imagen_url }}" alt="{{ noticia.titulo }}">
+                        {% else %}
+                            <div class="carousel-noticia-placeholder">
+                                <i class="bi bi-newspaper"></i>
+                            </div>
+                        {% endif %}
+                        <div class="carousel-noticia-overlay">
+                            <div class="carousel-noticia-fecha">{{ noticia.fecha | date("d/m/Y") }}</div>
+                            <div class="carousel-noticia-titulo">{{ noticia.titulo }}</div>
+                            {% if noticia.subtitulo %}
+                            <div class="carousel-noticia-subtitulo">{{ noticia.subtitulo }}</div>
+                            {% endif %}
+                            <button class="carousel-btn-leer" onclick="event.stopPropagation(); abrirNoticia('{{ noticia.id }}')">Leer más →</button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#carouselNoticias" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon"></span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#carouselNoticias" data-bs-slide="next">
+                <span class="carousel-control-next-icon"></span>
+            </button>
+        </div>
+        <div class="text-center">
+            <a href="/web/noticias" class="ver-todas-btn">Ver todas las noticias →</a>
+        </div>
+        {% else %}
+        <div class="sin-noticias-hero">
+            <i class="bi bi-newspaper" style="font-size:3.5rem; display:block; margin-bottom:16px; opacity:.25;"></i>
+            <p style="color:#aaa; margin:0;">No hay noticias publicadas por el momento.</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- ==================== DEPORTES ==================== -->
+<section class="section-deportes">
+    <div class="container">
+        <div class="section-header">
+            <span class="line"></span>
+            <h2>Nuestros Deportes</h2>
+            <p>Disciplinas para todas las edades y niveles</p>
+        </div>
+        {% if deportes and deportes.length %}
+        <div class="row gy-4">
+            {% for deporte in deportes %}
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="card-deporte">
+                    {% if deporte.icono %}
+                    <span class="card-deporte-icono"><i class="{{ deporte.icono }}"></i></span>
+                    {% else %}
+                    <span class="card-deporte-icono">&#127941;</span>
+                    {% endif %}
+                    <div class="card-deporte-nombre">{{ deporte.nombre }}</div>
+                    {% if deporte.descripcion %}
+                    <p class="card-deporte-desc">{{ deporte.descripcion }}</p>
+                    {% endif %}
+                    <a href="/web/deportes" class="card-deporte-link">Ver más →</a>
                 </div>
             </div>
             {% endfor %}
         </div>
         {% else %}
-        <div class="sin-noticias">
-            <i class="bi bi-newspaper" style="font-size:3rem; display:block; margin-bottom:16px; opacity:.3;"></i>
-            <p>No hay noticias publicadas por el momento.</p>
+        <div class="sin-deportes">
+            <p>No hay deportes cargados por el momento.</p>
         </div>
         {% endif %}
     </div>
+</section>
 
-</div>
+<!-- ==================== RESULTADOS / HORARIOS ==================== -->
+<section class="section-partidos">
+    <div class="container">
+        <div class="section-header">
+            <span class="line"></span>
+            <h2>Partidos</h2>
+            <p>Resultados y próximas fechas</p>
+        </div>
+        <div class="row gy-4">
+            <div class="col-12 col-md-6">
+                <div class="partidos-col-header">
+                    <i class="bi bi-flag-fill"></i>
+                    <h3>Últimos Resultados</h3>
+                </div>
+                <div class="coming-soon-box">
+                    <i class="bi bi-bar-chart-line"></i>
+                    <p>Próximamente</p>
+                </div>
+            </div>
+            <div class="col-12 col-md-6">
+                <div class="partidos-col-header">
+                    <i class="bi bi-calendar3"></i>
+                    <h3>Próximos Partidos</h3>
+                </div>
+                <div class="coming-soon-box">
+                    <i class="bi bi-calendar-event"></i>
+                    <p>Próximamente</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
 
-<!-- MODAL NOTICIA -->
+<!-- ==================== MODAL NOTICIA ==================== -->
 <div class="modal fade" id="modalNoticia" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content" style="position:relative;">
-            <button class="btn-close-noticia" onclick="$('#modalNoticia').modal('hide')">
+            <button class="btn-cerrar-mn" onclick="var m=bootstrap.Modal.getInstance(document.getElementById('modalNoticia')); m && m.hide();">
                 <i class="bi bi-x"></i>
             </button>
-            <div id="modalNoticiaImgWrap"></div>
+            <div id="mnImgWrap"></div>
             <div class="modal-body">
-                <div class="modal-noticia-fecha" id="mnFecha"></div>
-                <div class="modal-noticia-titulo" id="mnTitulo"></div>
-                <div class="modal-noticia-subtitulo" id="mnSubtitulo"></div>
-                <div class="modal-noticia-descripcion" id="mnDescripcion"></div>
+                <div class="mn-fecha" id="mnFecha"></div>
+                <div class="mn-titulo" id="mnTitulo"></div>
+                <div class="mn-subtitulo" id="mnSubtitulo"></div>
+                <div class="mn-cuerpo" id="mnCuerpo"></div>
             </div>
         </div>
     </div>
 </div>
+
 {% endblock %}
 
 {% block scripts %}
@@ -259,9 +657,9 @@
         const n = _noticias.find(x => x.id === parseInt(id))
         if (!n) return
 
-        const imgWrap = document.getElementById('modalNoticiaImgWrap')
+        const imgWrap = document.getElementById('mnImgWrap')
         imgWrap.innerHTML = n.imagen_url
-            ? `<img class="modal-noticia-img" src="${n.imagen_url}" alt="${n.titulo}">`
+            ? `<img class="mn-img" src="${n.imagen_url}" alt="${n.titulo}">`
             : ''
 
         document.getElementById('mnFecha').textContent = n.fecha
@@ -269,9 +667,9 @@
             : ''
         document.getElementById('mnTitulo').textContent = n.titulo
         document.getElementById('mnSubtitulo').textContent = n.subtitulo || ''
-        document.getElementById('mnDescripcion').textContent = n.descripcion || ''
+        document.getElementById('mnCuerpo').textContent = n.descripcion || ''
 
-        $('#modalNoticia').modal('show')
+        new bootstrap.Modal(document.getElementById('modalNoticia')).show()
     }
 </script>
 {% endblock %}

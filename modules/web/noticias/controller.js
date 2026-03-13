@@ -4,8 +4,11 @@ const eventos = require("../../eventos/controller")
 
 exports.getLista = async (req, res) => {
     try {
+        const noticias = await model.getAll()
         res.render('web/noticias/views/index', {
             pagename: "Noticias",
+            noticias,
+            noticiasJSON: JSON.stringify(noticias)
         })
     }
     catch (error) {

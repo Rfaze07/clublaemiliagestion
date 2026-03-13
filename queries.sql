@@ -23251,3 +23251,26 @@ ON DELETE CASCADE
 ALTER TABLE noticias 
   ADD COLUMN imagen_url VARCHAR(500) NULL,
   ADD COLUMN imagen_public_id VARCHAR(255) NULL;
+
+
+
+CREATE TABLE parametros (
+	id int(11) auto_increment primary key,
+	clave varchar(30) not null,
+	descripcion varchar(100) not null,
+	valor varchar(60)
+)
+
+
+insert into parametros (clave, descripcion, valor)
+values ('valor_visita_invitado', 'Este parametro refleja el valor de la visita de un invitado al club', 20000),
+ ('cuota_socio_activo_mayor', 'Este parametro refleja el el monto de la cuota societaria de un socio activo mayor', 20000),
+ ('alias', 'Este parametro es el alias que figurara en los datos de pago del club', 'TANGO.PELOTA.DUDA')
+
+  insert into parametros (clave, descripcion, valor)
+values ('cuota_socio_deportivo', 'Este parametro refleja el monto de la cuota de socio deportivo', 9300),
+ ('cuota_socio_cadete', 'Este parametro refleja el monto de la cuota societaria de un socio cadete', 15000),
+ ('cuota_socio_menor', 'Este parametro refleja el monto de la cuota societaria de un socio menor', 13000),
+ ('seguro_infantil', 'Este parametro refleja el monto de la cuota del seguro infantil', 6800),
+ ('licencias', 'Este parametro refleja el costo de las licencias', 12000),
+ ('cuota_socio_jubilado', 'Este parametro refleja el monto de la cuota societaria de un socio jubilado', 10200)
