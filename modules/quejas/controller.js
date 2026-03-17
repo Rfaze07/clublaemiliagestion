@@ -112,3 +112,14 @@ exports.updateEstado = async (req, res) => {
         })
     }
 }
+
+exports.countUnreadAjax = async (req, res) => {
+    try {
+        const rows = await model.countUnread();
+        const total = (Array.isArray(rows) && rows[0] && rows[0].total) ? Number(rows[0].total) : 0;
+        return res.json({ status: true, total });
+    } catch (error) {
+        console.log(error);
+        return res.json({ status: false, total: 0 });
+    }
+}
