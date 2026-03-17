@@ -34,3 +34,11 @@ exports.update = o => {
         WHERE id = ?
     `, [o.leida, o.id])
 }
+
+exports.countUnread = () => {
+    return queryMYSQL(`
+        SELECT COUNT(*) AS total
+        FROM quejas
+        WHERE leida = 0
+    `, [])
+}
