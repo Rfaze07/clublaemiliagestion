@@ -23232,6 +23232,7 @@ nombre VARCHAR(50),
 apellido VARCHAR(50),
 fecha_nacimiento DATE,
 dni VARCHAR(20),
+parentesco VARCHAR(50) NULL,
 
 direccion VARCHAR(100),
 localidad VARCHAR(50),

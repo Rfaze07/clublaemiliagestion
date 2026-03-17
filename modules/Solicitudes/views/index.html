@@ -1,0 +1,366 @@
+{% extends '../../template.html' %}
+
+{% block styles %}
+<style>
+.icon-btn-picker {
+    width: 38px; height: 38px;
+    border: 1px solid #ddd;
+    background: #fff;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem;
+    transition: background .15s, border-color .15s;
+    padding: 0;
+}
+.icon-btn-picker:hover { background: #f0f0f0; border-color: #999; }
+.icon-btn-picker.selected { background: #232e38; border-color: #232e38; color: #fff; }
+.icon-picker-panel {
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 10px;
+    margin-top: 8px;
+    background: #fafafa;
+    position: relative;
+    z-index: 10;
+}
+#iconGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(38px, 1fr));
+    gap: 4px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+.icon-preview-box {
+    width: 42px; height: 42px;
+    background: #232e38;
+    border-radius: 5px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center">
+    <h2>{{ pagename }}</h2>
+
+<div class="d-flex align-items-end mb-3" style="gap:10px; flex-wrap:wrap;">
+
+    <div>
+        <label class="form-label">Desde</label>
+        <input type="date" id="filtroDesde" class="form-control form-control-sm">
+    </div>
+
+    <div>
+        <label class="form-label">Hasta</label>
+        <input type="date" id="filtroHasta" class="form-control form-control-sm">
+    </div>
+
+    <div>
+        <button class="btn btn-sm btn-primary" onclick="cargarSolicitudes()">
+            Filtrar
+        </button>
+    </div>
+
+</div>
+</div>
+
+
+<div class="table-responsive" style="height: calc(100vh - 200px)" id="tablaDatos">
+
+<table class="table table-sm table-fix table-hover tableFixHead">
+
+<thead>
+<tr>
+    <th>Acciones</th>
+    <th>Tipo</th>
+    <th>Nombre</th>
+    <th>DNI</th>
+    <th>Fecha Nac.</th>
+    <th>Teléfono</th>
+    <th>Email</th>
+    <th>Deporte</th>
+    <th>Fecha solicitud</th>
+</tr>
+</thead>
+
+<tbody></tbody>
+
+</table>
+
+</div>
+
+
+<!-- MODAL DETALLE SOLICITUD -->
+
+<div class="modal fade" id="modalSolicitud" tabindex="-1">
+
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    Detalle de Solicitud 
+                    <span id="badge_tipo" class="badge ms-2"></span>
+                </h5>
+            </div>
+
+            <div class="modal-body">
+
+                <!-- DATOS PRINCIPALES -->
+                <div class="row mb-3">
+
+                    <div class="col-md-6">
+                        <small class="text-muted">Fecha</small><br>
+                        <strong id="mq_fecha"></strong>
+                    </div>
+
+                    <div class="col-md-6">
+                        <small class="text-muted">Email</small><br>
+                        <strong id="mq_email"></strong>
+                    </div>
+
+                </div>
+
+                <div class="mb-3">
+                    <small class="text-muted">Nombre</small><br>
+                    <h5 id="mq_nombre" style="margin:0;"></h5>
+                </div>
+
+                <!-- INFO -->
+                <div class="mb-3">
+                    <small class="text-muted">Información</small>
+
+                    <div id="mq_info" class="border rounded p-3 bg-light mt-1" style="white-space: pre-wrap;">
+                    </div>
+                </div>
+
+                <!-- GRUPO FAMILIAR -->
+                <div id="bloque_familiares" style="display:none;">
+
+                    <small class="text-muted">Grupo Familiar</small>
+
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered mt-2">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>DNI</th>
+                                    <th>Fecha Nac.</th>
+                                    <th>Parentesco</th>
+                                </tr>
+                            </thead>
+                            <tbody id="mq_familiares"></tbody>
+                        </table>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">
+                    Cerrar
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+
+
+{% block scripts %}
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+    cargarSolicitudes();
+});
+
+
+function cargarSolicitudes() {
+
+    const desde = document.getElementById("filtroDesde").value;
+    const hasta = document.getElementById("filtroHasta").value;
+
+    fetch("/Solicitudes/getListaAjax", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            desde,
+            hasta
+        })
+    })
+    .then(res => res.json())
+    .then(response => {
+
+        const tbody = document.querySelector("#tablaDatos tbody");
+        tbody.innerHTML = "";
+
+        if (!response.status) {
+
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="10" class="text-center text-muted">
+                        No hay solicitudes
+                    </td>
+                </tr>
+            `;
+
+            return;
+        }
+
+        response.data
+            .filter(s => s.tipo_registro === "titular")
+            .forEach(s => {
+            let tipo = s.tipo_registro == "titular"
+                ? '<span style="color:#0d6efd;font-weight:600;">Titular</span>'
+                : '<span style="color:#6f42c1;font-weight:600;">Familiar</span>';
+
+            let titular = s.titular || "—";
+
+            let fila = `
+
+                <tr>
+
+                    <td>
+                        <button class="btn btn-sm btn-info btn-round"
+                            onclick="verSolicitud(${s.id})">
+                            <i class="fa fa-eye"></i>
+                        </button>
+                    </td>
+
+                    <td>${tipo}</td>
+                    <td>${s.nombre} ${s.apellido}</td>
+                    <td>${s.dni || ""}</td>
+                    <td>${formatearFecha(s.fecha_nacimiento)}</td>
+                    <td>${s.telefono || ""}</td>
+                    <td>${s.mail || ""}</td>
+                    <td>${s.deporte || "-"}</td>
+                    <td>${formatearFecha(s.fecha_creacion)}</td>
+
+                </tr>
+
+            `;
+
+            tbody.innerHTML += fila;
+
+        });
+
+    });
+
+}
+
+
+
+function formatearFecha(fecha) {
+
+    if (!fecha) return "-";
+
+    let f = new Date(fecha);
+
+    if (isNaN(f)) return fecha;
+
+    return f.toLocaleDateString("es-AR"); 
+}
+
+
+function verSolicitud(id) {
+
+    fetch("/Solicitudes/getByIdAjax", {
+
+        method: "POST",
+
+        headers: {
+            "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({ id })
+
+    })
+    .then(res => res.json())
+    .then(response => {
+
+        if (!response.status) {
+            alert("Error al cargar la solicitud");
+            return;
+        }
+
+        const { titular, familiares } = response.data;
+
+        // ✅ TITULAR
+        document.getElementById("mq_fecha").innerText =
+            formatearFecha(titular.fecha_creacion);
+
+        document.getElementById("mq_nombre").innerText =
+            titular.nombre + " " + titular.apellido;
+
+        document.getElementById("mq_email").innerText =
+            titular.mail || "";
+
+       document.getElementById("mq_info").innerText =
+       `
+        DNI: ${titular.dni || "-"}
+        Teléfono: ${titular.telefono || "-"}
+        Dirección: ${titular.direccion || "-"}
+        Localidad: ${titular.localidad || "-"}
+        Ocupación: ${titular.ocupacion || "-"}
+        Deporte: ${titular.deporte || "-"}
+        Tipo: ${titular.tipo_registro}`;
+
+                // ✅ FAMILIARES
+                const bloqueFamiliares = document.getElementById("bloque_familiares");
+                const tbodyFam = document.getElementById("mq_familiares");
+                let color = "bg-secondary";
+
+
+
+                bloqueFamiliares.style.display = "none";
+                tbodyFam.innerHTML = "";
+
+                if (familiares && familiares.length > 0) {
+
+                    bloqueFamiliares.style.display = "block";
+
+                    document.querySelector("#bloque_familiares small").innerText =
+                        `Grupo Familiar (${familiares.length})`;
+
+                    familiares.forEach(f => {
+
+                        tbodyFam.innerHTML += `
+                            <tr>
+                                <td>${f.nombre} ${f.apellido}</td>
+                                <td>${f.dni || ""}</td>
+                                <td>${formatearFecha(f.fecha_nacimiento)}</td>
+                                <td>
+                                    <span >
+                                        ${f.parentesco || "-"}
+                                    </span>
+                                </td>
+                            </tr>
+                        `;
+                    });
+
+                }
+
+                let modal = bootstrap.Modal.getOrCreateInstance(
+                    document.getElementById("modalSolicitud")
+                );
+
+                modal.show();
+
+            });
+
+
+}
+
+</script>
+
+{% endblock %}
