@@ -241,18 +241,33 @@ familiaresExtra.style.display = "block";
 for (let i = 1; i <= 4; i++) {
 camposFamiliares.innerHTML += `
 <div class="row mb-3">
-<div class="col-md-3">
+
+<div class="col-md-2">
 <input type="text" class="form-control" name="nombreFamiliar${i}" placeholder="Nombre">
 </div>
-<div class="col-md-3">
+
+<div class="col-md-2">
 <input type="text" class="form-control" name="apellidoFamiliar${i}" placeholder="Apellido">
 </div>
-<div class="col-md-3">
+
+<div class="col-md-2">
 <input type="date" class="form-control fechaFamiliar" name="fechaNacimientoFamiliar${i}">
 </div>
-<div class="col-md-3">
+
+<div class="col-md-2">
 <input type="text" class="form-control" name="dniFamiliar${i}" placeholder="DNI">
 </div>
+
+<div class="col-md-4">
+<select class="form-select" name="parentescoFamiliar${i}">
+<option value="">Parentesco</option>
+<option>Hijo/a</option>
+<option>Esposo/a</option>
+<option>Hermano/a</option>
+<option>Padre/Madre</option>
+</select>
+</div>
+
 </div>
 `;
 }
@@ -272,22 +287,24 @@ document.getElementById("formSocio").addEventListener("submit", function(e){
 
     const familiares = [];
 
-    for(let i=1;i<=4;i++){
+for(let i=1;i<=4;i++){
 
-        const nombre = document.querySelector(`[name="nombreFamiliar${i}"]`)?.value;
-        const apellido = document.querySelector(`[name="apellidoFamiliar${i}"]`)?.value;
-        const fechaNacimiento = document.querySelector(`[name="fechaNacimientoFamiliar${i}"]`)?.value;
-        const dni = document.querySelector(`[name="dniFamiliar${i}"]`)?.value;
+    const nombre = document.querySelector(`[name="nombreFamiliar${i}"]`)?.value;
+    const apellido = document.querySelector(`[name="apellidoFamiliar${i}"]`)?.value;
+    const fechaNacimiento = document.querySelector(`[name="fechaNacimientoFamiliar${i}"]`)?.value;
+    const dni = document.querySelector(`[name="dniFamiliar${i}"]`)?.value;
+    const parentesco = document.querySelector(`[name="parentescoFamiliar${i}"]`)?.value;
 
-        if(nombre && nombre.trim() !== ""){
-            familiares.push({
-                nombre,
-                apellido,
-                edad,
-                dni
-            });
-        }
+    if(nombre && nombre.trim() !== ""){
+        familiares.push({
+            nombre,
+            apellido,
+            fechaNacimiento,
+            dni,
+            parentesco  
+        });
     }
+}
 
     const input = document.createElement("input");
     input.type = "hidden";

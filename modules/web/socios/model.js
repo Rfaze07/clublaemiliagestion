@@ -52,20 +52,22 @@ if (data.grupoFamiliar && data.grupoFamiliar.toLowerCase() === "si") {
         const apellido = data[`apellidoFamiliar${i}`];
         const fechaNacimiento = data[`fechaNacimientoFamiliar${i}`];
         const dni = data[`dniFamiliar${i}`];
+        const parentesco = data[`parentescoFamiliar${i}`];
 
         if (nombre && nombre.trim() !== "") {
 
             await db.queryMYSQL(
                 `INSERT INTO socios
-                 (tipo_registro, socio_titular_id, nombre, apellido, fecha_nacimiento, dni)
-                 VALUES (?, ?, ?, ?, ?, ?)`,
+                (tipo_registro, socio_titular_id, nombre, apellido, fecha_nacimiento, dni, parentesco)
+                VALUES (?, ?, ?, ?, ?, ?, ?)`,
                 [
                     'familiar',
                     socioId,
                     nombre,
                     apellido || null,
                     fechaNacimiento || null,
-                    dni || null
+                    dni || null,
+                    parentesco || null
                 ]
             );
         }

@@ -8,8 +8,8 @@ exports.execQuery = (query, params) => {
 exports.getAll = () => {
     return queryMYSQL(`
         SELECT *
-        from quejas
-        ORDER BY nombre DESC
+        FROM quejas
+        ORDER BY fecha DESC
     `, [])
 }
 
