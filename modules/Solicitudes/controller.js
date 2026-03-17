@@ -1,4 +1,5 @@
 const model = require('./model')
+const utils = require('../../utils')
 
 exports.getLista = async (req, res) => {
 
@@ -25,7 +26,9 @@ exports.getListaAjax = async (req, res) => {
 
     try {
 
-        const { desde, hasta } = req.body
+        let { desde, hasta } = req.body
+        desde = utils.changeDateYMD(desde)
+        hasta = utils.changeDateYMD(hasta)
 
         let data = await model.getAll(desde, hasta)
 

@@ -50,17 +50,17 @@
 
     <div>
         <label class="form-label">Desde</label>
-        <input type="date" id="filtroDesde" class="form-control form-control-sm">
+        <input type="text" id="filtroDesde" class="form-control form-control-sm datepicker">
     </div>
 
     <div>
         <label class="form-label">Hasta</label>
-        <input type="date" id="filtroHasta" class="form-control form-control-sm">
+        <input type="text" id="filtroHasta" class="form-control form-control-sm datepicker" >
     </div>
 
     <div>
-        <button class="btn btn-sm btn-primary" onclick="cargarSolicitudes()">
-            Filtrar
+        <button class="btn btn-sm btn-round btn-primary" onclick="cargarSolicitudes()">
+            <i class="fa fa-magnifying-glass"></i>
         </button>
     </div>
 
@@ -124,18 +124,43 @@
 
                 </div>
 
-                <div class="mb-3">
-                    <small class="text-muted">Nombre</small><br>
-                    <h5 id="mq_nombre" style="margin:0;"></h5>
-                </div>
+                                <div class="mb-3">
+                                        <small class="text-muted">Nombre</small><br>
+                                        <h5 id="mq_nombre" style="margin:0;"></h5>
+                                </div>
 
-                <!-- INFO -->
-                <div class="mb-3">
-                    <small class="text-muted">Información</small>
+                                <div class="row mb-2">
+                                    <div class="col-md-6">
+                                        <small class="text-muted">DNI</small><br>
+                                        <strong id="mq_dni"></strong>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <small class="text-muted">Teléfono</small><br>
+                                        <strong id="mq_telefono"></strong>
+                                    </div>
+                                </div>
 
-                    <div id="mq_info" class="border rounded p-3 bg-light mt-1" style="white-space: pre-wrap;">
-                    </div>
-                </div>
+                                <div class="row mb-2">
+                                    <div class="col-md-6">
+                                        <small class="text-muted">Dirección</small><br>
+                                        <strong id="mq_direccion"></strong>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <small class="text-muted">Localidad</small><br>
+                                        <strong id="mq_localidad"></strong>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <small class="text-muted">Ocupación</small><br>
+                                        <strong id="mq_ocupacion"></strong>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <small class="text-muted">Deporte / Tipo</small><br>
+                                        <strong id="mq_deporte_tipo"></strong>
+                                    </div>
+                                </div>
 
                 <!-- GRUPO FAMILIAR -->
                 <div id="bloque_familiares" style="display:none;">
@@ -178,7 +203,21 @@
 
 <script>
 
-document.addEventListener("DOMContentLoaded", function () {
+
+
+$(function () {
+    try {
+        $("#filtroDesde").val(generateFirstDateActualMonth());
+    } catch (e) {
+        console.warn('generateFirstDateActualMonth not available', e);
+    }
+
+    try {
+        $("#filtroHasta").val(generateTodayDate());
+    } catch (e) {
+        console.warn('generateTodayDate not available', e);
+    }
+
     cargarSolicitudes();
 });
 
@@ -305,15 +344,12 @@ function verSolicitud(id) {
         document.getElementById("mq_email").innerText =
             titular.mail || "";
 
-       document.getElementById("mq_info").innerText =
-       `
-        DNI: ${titular.dni || "-"}
-        Teléfono: ${titular.telefono || "-"}
-        Dirección: ${titular.direccion || "-"}
-        Localidad: ${titular.localidad || "-"}
-        Ocupación: ${titular.ocupacion || "-"}
-        Deporte: ${titular.deporte || "-"}
-        Tipo: ${titular.tipo_registro}`;
+    document.getElementById("mq_dni").innerText = titular.dni || "-";
+    document.getElementById("mq_telefono").innerText = titular.telefono || "-";
+    document.getElementById("mq_direccion").innerText = titular.direccion || "-";
+    document.getElementById("mq_localidad").innerText = titular.localidad || "-";
+    document.getElementById("mq_ocupacion").innerText = titular.ocupacion || "-";
+    document.getElementById("mq_deporte_tipo").innerText = (titular.deporte || "-") + " / " + (titular.tipo_registro || "-");
 
                 // ✅ FAMILIARES
                 const bloqueFamiliares = document.getElementById("bloque_familiares");
