@@ -85,6 +85,7 @@ app.use('/web', require('./modules/web/socios/routes'));
 //app.use(require("./modules/web/equipos/routes"));
 //app.use(require("./modules/web/partidos/routes"));
 app.use(require("./modules/web/noticias/routes"));
+app.use(require('./modules/web/Pagos/routes'))
 app.use(require("./modules/web/deportes/routes"));
 //app.use(require("./modules/web/lideres/routes"));
 app.use(require('./modules/web/secciones/routes'));
