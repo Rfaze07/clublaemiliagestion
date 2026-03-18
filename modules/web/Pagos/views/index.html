@@ -1,0 +1,346 @@
+{% extends '../../template.html' %}
+
+{% block title %}Información de Pagos - Club La Emilia{% endblock %}
+
+{% block styles %}
+<style>
+
+/* =====================
+   HEADER
+===================== */
+.header-deportes {
+    padding: 60px 0 40px;
+    text-align: center;
+    border-bottom: 1px solid #e5e5e5;
+    margin-bottom: 50px;
+}
+.header-deportes h2 {
+    font-size: 2.4rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #000;
+    margin-bottom: 14px;
+}
+.header-deportes p {
+    font-size: 1rem;
+    color: #555;
+    max-width: 680px;
+    margin: 0 auto;
+    line-height: 1.7;
+}
+.header-deportes .titulo-linea {
+    display: inline-block;
+    width: 60px;
+    height: 4px;
+    background: #000;
+    margin-bottom: 20px;
+}
+
+/* HEADER ICONO */
+.deporte-icono-wrap {
+    background: #000;
+    padding: 35px 20px;
+    text-align: center;
+}
+
+.deporte-icono {
+    font-size: 1.8rem;
+    color: #fff;
+}
+
+/* ICONO HEADER */
+.deporte-icono-wrap {
+    background: linear-gradient(135deg, #000, #2c2c2c);
+    padding: 25px;
+    text-align: center;
+}
+
+/* ICONO */
+.deporte-icono {
+    font-size: 1.6rem;
+    color: #fff;
+}
+/* TITULO */
+.deporte-nombre {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #999;
+    letter-spacing: 1px;
+}
+
+/* PANEL PRINCIPAL */
+.panel-pago {
+    background: linear-gradient(135deg, #000, #2c2c2c);
+    color: #fff;
+    border-radius: 14px;
+    padding: 35px;
+    text-align: center;
+}
+
+/* TITULO */
+.panel-titulo {
+    font-size: 0.8rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    opacity: 0.7;
+}
+
+/* ALIAS */
+.panel-alias {
+    font-size: 2rem;
+    font-weight: 800;
+    margin: 10px 0;
+}
+
+
+/* TABLA */
+.tabla-pagos {
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid #eee;
+    overflow: hidden;
+    margin-bottom: 40px;
+}
+
+/* TABLE */
+.tabla-pagos table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+/* HEADER */
+.tabla-pagos th {
+    text-align: left;
+    padding: 16px;
+    background: #f7f7f7;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.tabla-pagos th:last-child {
+    text-align: right;
+}
+
+/* FILAS */
+.tabla-pagos td {
+    padding: 16px;
+    border-top: 1px solid #eee;
+}
+
+/* HOVER */
+.tabla-pagos tr:hover {
+    background: #fafafa;
+}
+
+/* VALOR */
+.tabla-pagos td:last-child {
+    text-align: right;
+    font-weight: 700;
+}
+
+/* WRAP ALIAS */
+.panel-alias-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin: 10px 0;
+    flex-wrap: wrap;
+}
+
+/* TEXTO */
+.panel-alias-wrap span {
+    font-size: 2rem;
+    font-weight: 800;
+}
+
+/* BOTON COPIAR */
+.btn-copiar {
+    background: #fff;
+    color: #000;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.9rem;
+}
+
+/* HOVER */
+.btn-copiar:hover {
+    background: #f0f0f0;
+    transform: scale(1.05);
+}
+.wsp-container {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.btn-wsp {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: #25D366;
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.btn-wsp:hover {
+    background: #1ebe5d;
+    transform: scale(1.05);
+}
+#parametros-container {
+    display: flex;
+    flex-direction: column;
+}
+.wsp-container {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0; 
+}
+
+</style>
+{% endblock %}
+
+
+{% block content %}
+
+<div class="header-deportes">
+    <div class="titulo-linea"></div>
+    <h2>Información de Pagos</h2>
+</div>
+
+<div class="container deportes-grid">
+    <div class="row g-4" id="parametros-container">
+        <!-- JS -->
+    </div>
+
+    <div id="sinDatos" class="sin-deportes d-none">
+        No hay información disponible
+    </div>
+</div>
+
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+async function cargarParametros() {
+
+    try {
+        const res = await fetch('/web/Pagos/listaAjax')
+        const result = await res.json()
+
+        if (!result.status) {
+            document.getElementById('sinDatos').classList.remove('d-none')
+            return
+        }
+
+        const data = result.data
+        const container = document.getElementById('parametros-container')
+
+        container.innerHTML = ''
+
+        const alias = data.find(p => p.clave === 'alias')
+        const otros = data.filter(p => p.clave !== 'alias')
+
+        /* =====================
+           ALIAS
+        ===================== */
+        if (alias) {
+            const aliasDiv = document.createElement('div')
+            aliasDiv.className = 'col-12'
+
+            aliasDiv.innerHTML = `
+                <div class="panel-pago">
+                    <div class="panel-titulo">Alias para Transferencias</div>
+                    <div class="panel-alias-wrap">
+                        <span id="aliasTexto">${alias.valor}</span>
+                        <button class="btn-copiar" onclick="copiarAlias()">
+                            <i class="fa-regular fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+            `
+
+            container.appendChild(aliasDiv)
+            const wspDiv = document.createElement('div')
+                wspDiv.className = 'col-12'
+
+                wspDiv.innerHTML = `
+                    <div class="wsp-container">
+                        <a href="${generarLinkWsp()}" target="_blank" class="btn-wsp">
+                            <i class="fa-brands fa-whatsapp"></i>
+                            Informar pago por WhatsApp
+                        </a>
+                    </div>
+                `
+
+                container.appendChild(wspDiv)
+            
+        }
+
+        /* =====================
+           TABLA
+        ===================== */
+        const tablaDiv = document.createElement('div')
+        tablaDiv.className = 'col-12'
+
+        tablaDiv.innerHTML = `
+            <div class="tabla-pagos">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Concepto</th>
+                            <th>Valor</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${otros.map(p => `
+                            <tr>
+                                <td>${(p.clave || '').replaceAll('_',' ').toUpperCase()}</td>
+                                <td>$ ${new Intl.NumberFormat('es-AR').format(p.valor)}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `
+
+        container.appendChild(tablaDiv)
+
+    } catch (error) {
+        console.error(error)
+    }
+}
+function copiarAlias() {
+    const texto = document.getElementById('aliasTexto').innerText
+
+    navigator.clipboard.writeText(texto)
+
+    // feedback visual
+    const btn = document.querySelector('.btn-copiar')
+    btn.innerHTML = '<i class="fa-solid fa-check"></i>'
+
+    setTimeout(() => {
+        btn.innerHTML = '<i class="fa-regular fa-copy"></i>'
+    }, 1500)
+}
+function generarLinkWsp() {
+    const telefono = "5493364020403"
+
+    const mensaje = encodeURIComponent(
+        "Hola! Quiero informar el pago realizado. Adjunto comprobante y mis datos personales."
+    )
+
+    return `https://wa.me/${telefono}?text=${mensaje}`
+}
+
+document.addEventListener('DOMContentLoaded', cargarParametros)
+</script>
+{% endblock %}
