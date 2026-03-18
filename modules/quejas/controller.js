@@ -18,7 +18,10 @@ exports.getLista = async (req, res) => {
 exports.getListaAjax = async (req, res) => {
     try {
 
-        const { desde, hasta, estado } = req.body
+        let { desde, hasta, estado } = req.body
+
+        desde = utils.changeDateYMD(desde)
+        hasta = utils.changeDateYMD(hasta)
 
         let where = []
         let params = []
@@ -107,5 +110,16 @@ exports.updateEstado = async (req, res) => {
             status: false,
             text: "Error al actualizar estado"
         })
+    }
+}
+
+exports.countUnreadAjax = async (req, res) => {
+    try {
+        const rows = await model.countUnread();
+        const total = (Array.isArray(rows) && rows[0] && rows[0].total) ? Number(rows[0].total) : 0;
+        return res.json({ status: true, total });
+    } catch (error) {
+        console.log(error);
+        return res.json({ status: false, total: 0 });
     }
 }

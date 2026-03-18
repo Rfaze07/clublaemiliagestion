@@ -48,17 +48,17 @@
 
     <div>
         <label class="form-label">Desde</label>
-        <input type="date" id="filtroDesde" class="form-control form-control-sm">
+        <input type="text" id="filtroDesde" class="form-control form-control-sm datepicker maskDate">
     </div>
 
     <div>
         <label class="form-label">Hasta</label>
-        <input type="date" id="filtroHasta" class="form-control form-control-sm">
+        <input type="text" id="filtroHasta" class="form-control form-control-sm datepicker maskDate">
     </div>
 
-    <div>
+    <div class="d-flex flex-column">
         <label class="form-label">Estado</label>
-        <select id="filtroEstado" class="form-select form-select-sm">
+        <select id="filtroEstado" class="form-select form-select-sm selectpicker">
             <option value="">Todas</option>
             <option value="0">No leídas</option>
             <option value="1">Leídas</option>
@@ -66,8 +66,8 @@
     </div>
 
     <div>
-        <button class="btn btn-sm btn-primary" onclick="cargarQuejas()">
-            Filtrar
+        <button class="btn btn-sm btn-round btn-primary" onclick="cargarQuejas()">
+            <i class="fa fa-magnifying-glass"></i>
         </button>
     </div>
 
@@ -126,15 +126,15 @@
         </div>
         <div class="mb-3">
             <label class="form-label"><strong>Estado</strong></label>
-            <select id="mq_leida" class="form-select">
-                <option value="0">No leída</option>
-                <option value="1">Leída</option>
-            </select>
+            <div class="custom-control custom-switch mt-1">
+                <input type="checkbox" class="custom-control-input" id="mq_leida">
+                <label class="custom-control-label" for="mq_leida" id="mq_leida_label">No leída</label>
+            </div>
         </div>
 
         </div>
       <div class="modal-footer">
-        <button class="btn btn-primary" onclick="guardarEstado()">
+        <button class="btn btn-success" onclick="guardarEstado()">
             Guardar estado
         </button>
         <button class="btn btn-secondary" data-bs-dismiss="modal">
@@ -151,7 +151,34 @@
 
 {% block scripts %}
 <script>
-document.addEventListener("DOMContentLoaded", function () {
+$(function () {
+    try {
+        $("#filtroDesde").val(generateFirstDateActualMonth());
+    } catch (e) {
+        console.warn('generateFirstDateActualMonth not available', e);
+    }
+
+    try {
+        $("#filtroHasta").val(generateTodayDate());
+    } catch (e) {
+        console.warn('generateTodayDate not available', e);
+    }
+
+    try {
+        $('.selectpicker').selectpicker();
+    } catch (e) {
+        // selectpicker not loaded
+    }
+
+    // toggle label update for mq_leida (custom-switch)
+    try {
+        $('#mq_leida').on('change', function () {
+            $('#mq_leida_label').text(this.checked ? 'Leída' : 'No leída');
+        });
+    } catch (e) {
+        // element may not exist yet
+    }
+
     cargarQuejas();
 });
 
@@ -263,7 +290,11 @@ function verQueja(id) {
         document.getElementById("mq_email").innerText = q.anonimo == 1 ? "—" : (q.email || "");
         document.getElementById("mq_mensaje").innerText = q.mensaje || "";
 
-        document.getElementById("mq_leida").value = q.leida;
+        // set switch checked state and label (custom-switch)
+        const mqSwitch = document.getElementById("mq_leida");
+        const mqLabel = document.getElementById("mq_leida_label");
+        mqSwitch.checked = (q.leida == 1);
+        mqLabel.innerText = mqSwitch.checked ? 'Leída' : 'No leída';
 
         let modal = bootstrap.Modal.getOrCreateInstance(
             document.getElementById("modalQueja")
@@ -282,7 +313,7 @@ let quejaActual = null;
 
 function guardarEstado() {
 
-    const leida = document.getElementById("mq_leida").value;
+    const leida = document.getElementById("mq_leida").checked ? 1 : 0;
 
     fetch("/quejas/updateEstado", {
         method: "POST",
