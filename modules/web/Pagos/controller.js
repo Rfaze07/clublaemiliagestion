@@ -2,7 +2,7 @@ const model = require('./model')
 
 exports.getLista = async (req, res) => {
     try {
-        res.render('web/pagos/views/index', {
+        res.render('web/Pagos/views/index', {
             pagename: "Información de Pagos",
         })
     } catch (error) {
