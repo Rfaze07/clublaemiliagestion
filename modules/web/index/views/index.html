@@ -35,6 +35,7 @@
     display: grid;
     grid-template-columns: 2fr 54px 1fr;
     min-height: 300px;
+    max-height: 720px;
 }
 .hero-band-light .hero-band-inner {
     grid-template-columns: 1fr 54px 2fr;
@@ -68,11 +69,14 @@
 }
 .band-video {
     min-height: 300px;
+    max-height: 720px;
     height: 100%;
+    overflow: hidden;
 }
 .band-video video {
     width: 100%;
     height: 100%;
+    max-height: 720px;
     object-fit: cover;
     display: block;
 }
@@ -202,21 +206,24 @@
 @media (min-width: 992px) {
     .hero-band-inner {
         grid-template-columns: 1.75fr 42px 1.25fr;
-        min-height: 340px;
+        min-height: 320px;
+        max-height: 660px;
     }
     .hero-band-dark .hero-band-inner {
-        min-height: 305px;
+        min-height: 290px;
+        max-height: 620px;
     }
     .hero-band-light .hero-band-inner {
         grid-template-columns: 1.2fr 42px 1.8fr;
-        min-height: 340px;
+        min-height: 320px;
+        max-height: 660px;
     }
     .band-content {
-        padding: 2.3rem 3rem;
+        padding: 2rem 2.8rem;
     }
     .band-content-dark {
-        padding-top: 2rem;
-        padding-bottom: 1.6rem;
+        padding-top: 1.8rem;
+        padding-bottom: 1.8rem;
     }
     .band-title {
         max-width: 18ch;
@@ -225,28 +232,12 @@
         max-width: 52ch;
     }
     .band-video {
-        min-height: 340px;
-    }
-    .hero-band-dark .band-video {
-        min-height: 305px;
-    }
-}
-
-@media (min-width: 1600px) {
-    .hero-band-inner {
         min-height: 320px;
-    }
-    .hero-band-dark .hero-band-inner {
-        min-height: 290px;
-    }
-    .hero-band-light .hero-band-inner {
-        min-height: 320px;
-    }
-    .band-video {
-        min-height: 320px;
+        max-height: 660px;
     }
     .hero-band-dark .band-video {
         min-height: 290px;
+        max-height: 620px;
     }
 }
 
@@ -628,9 +619,18 @@
         padding-top: 2.1rem;
         padding-bottom: 1.9rem;
     }
+    .hero-band-inner,
+    .hero-band-dark .hero-band-inner,
+    .hero-band-light .hero-band-inner {
+        max-height: none;
+    }
     .band-video {
-        aspect-ratio: 16 / 9; /* Mejor que min-height para video fluido en móvil */
+        aspect-ratio: 16 / 9;
         min-height: auto;
+        max-height: none;
+    }
+    .band-video video {
+        max-height: none;
     }
     .hero-band-light .band-content { order: 1; }
     .hero-band-light .band-divider { order: 2; }
@@ -662,11 +662,6 @@
                 <div class="band-actions">
                     <a href="/web/socios" class="band-btn-primary">Quiero ser socio</a>
                     <a href="/web/deportes" class="band-btn-secondary">Conocé deportes</a>
-                </div>
-                <div class="band-highlights" aria-label="Datos destacados del club">
-                    <div class="band-highlight-item">Escuelas deportivas</div>
-                    <div class="band-highlight-item">Actividades todo el año</div>
-                    <div class="band-highlight-item">Comunidad y familia</div>
                 </div>
             </div>
             <div class="band-divider" aria-hidden="true"></div>
