@@ -485,6 +485,56 @@
    RESULTADOS / HORARIOS
 ==================== */
 .section-partidos { background: #fff; }
+
+/* ====================
+   CÓMO LLEGAR
+==================== */
+.section-llegar {
+    background: #0a0a0a;
+    color: #fff;
+    border-top: 4px solid #fff;
+    border-bottom: 4px solid #fff;
+}
+.section-llegar .section-header .line { background: #fff; }
+.section-llegar .section-header h2 { color: #fff; }
+.section-llegar .section-header p { color: rgba(255,255,255,.5); }
+.llegar-foto {
+    width: 100%;
+    height: 100%;
+    min-height: 320px;
+    object-fit: cover;
+    display: block;
+    border-radius: 14px;
+    filter: brightness(.9);
+}
+.llegar-mapa {
+    width: 100%;
+    height: 100%;
+    min-height: 320px;
+    border-radius: 14px;
+    overflow: hidden;
+    border: none;
+    display: block;
+}
+.llegar-mapa iframe {
+    width: 100%;
+    height: 460px;
+    border: 0;
+    display: block;
+}
+@media (min-width: 992px) {
+    .llegar-mapa iframe { height: 100%; min-height: 420px; }
+    .llegar-foto       { min-height: 420px; }
+}
+.llegar-address {
+    font-size: .85rem;
+    color: rgba(255,255,255,.6);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 14px;
+}
+.llegar-address i { font-size: 1rem; color: #fff; flex-shrink: 0; }
 .partidos-col-header {
     display: flex;
     align-items: center;
@@ -815,6 +865,37 @@
                 <div class="coming-soon-box flex-grow-1 d-flex flex-column justify-content-center">
                     <i class="bi bi-calendar-event"></i>
                     <p>Próximamente</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ==================== CÓMO LLEGAR ==================== -->
+<section class="section-llegar section-padding">
+    <div class="container">
+        <div class="section-header">
+            <span class="line"></span>
+            <h2>¿Cómo llegar?</h2>
+            <p>Encontranos en La Emilia, Buenos Aires</p>
+        </div>
+        <div class="row gy-4 align-items-stretch">
+            <div class="col-12 col-lg-5">
+                <img src="/img/foto-aerea.jpg" class="llegar-foto" alt="Vista aérea del Club La Emilia">
+                <p class="llegar-address">
+                    <i class="bi bi-geo-alt-fill"></i>
+                    Club Social y Deportivo La Emilia &mdash; La Emilia, Buenos Aires, Argentina
+                </p>
+            </div>
+            <div class="col-12 col-lg-7">
+                <div class="llegar-mapa">
+                    <iframe
+                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d13330.977545984091!2d-60.33870577812195!3d-33.35162718564222!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95b765e9952d3c79%3A0x7d370cd0fc20ddc8!2sClub%20Social%20Y%20Deportivo%20La%20Emilia!5e0!3m2!1ses-419!2sar!4v1775776230345!5m2!1ses-419!2sar"
+                        allowfullscreen
+                        loading="lazy"
+                        referrerpolicy="no-referrer-when-downgrade"
+                        title="Mapa Club La Emilia"
+                    ></iframe>
                 </div>
             </div>
         </div>
