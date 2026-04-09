@@ -294,31 +294,40 @@ body {
     <div class="collapse navbar-collapse" id="navbarMain">
 
       <!-- LINKS CENTRALES -->
-      <ul class="navbar-nav mx-auto">
-        <li><a class="nav-link" href="/web">Inicio</a></li>
-        <li><a class="nav-link" href="/web/noticias">Noticias</a></li>
-        <li><a class="nav-link" href="/web/deportes">Deportes</a></li>
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            Secciones <i class="bi bi-chevron-down" style="font-size:.75rem; vertical-align:middle;"></i>
-          </a>
-          <ul class="dropdown-menu">
-            {% if seccionesNav and seccionesNav.length %}
-              {% for seccion in seccionesNav %}
-              <li><a class="dropdown-item" href="/web/secciones/{{ seccion.id }}">{{ seccion.titulo }}</a></li>
-              {% endfor %}
-            {% else %}
-              <li><span class="sin-secciones-nav">Sin secciones cargadas</span></li>
-            {% endif %}
-          </ul>
-        </li>
-      </ul>
+<ul class="navbar-nav mx-auto">
+    
+  <!-- SOCIOS -->
+  <li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+      Socios <i class="bi bi-chevron-down" style="font-size:.75rem; vertical-align:middle;"></i>
+    </a>
 
-      <!-- DERECHA -->
-      <div class="d-flex align-items-center gap-3">
-          <!-- BOTÓN HACERME SOCIO -->
-          <a href="/web/socios" class="btn-socio">Hacerme Socio</a>
-      </div>
+    <ul class="dropdown-menu">
+        <li><a class="dropdown-item" href="/web/socios">Asociarme</a></li>
+        <li><a class="dropdown-item" href="/web/pagos">Información de Pago</a></li>
+    </ul>
+  </li>
+
+  <!-- CONTACTO -->
+  <li class="nav-item">
+    <a class="nav-link" href="https://wa.me/5493364020403" target="_blank" aria-label="WhatsApp">Contacto</a>
+  </li>
+
+  <!-- CLUB DROPDOWN -->
+  <li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+      Club <i class="bi bi-chevron-down" style="font-size:.75rem; vertical-align:middle;"></i>
+    </a>
+
+    <ul class="dropdown-menu">
+      <li><a class="dropdown-item" href="/web/comision-directiva">Comisión Directiva</a></li>
+      <li><a class="dropdown-item" href="/web/historia">Historia</a></li>
+      <li><a class="dropdown-item" href="/web/horarios">Horarios</a></li>
+      <li><a class="dropdown-item" href="/web/instalaciones">Instalaciones</a></li>
+    </ul>
+  </li>
+
+</ul>
 
     </div>
   </div>
