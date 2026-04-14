@@ -70,6 +70,7 @@ app.use(require("./modules/Solicitudes/routes"));
 app.use(require("./modules/parametros/routes"));
 app.use(require("./modules/provincias/routes"));
 app.use(require("./modules/localidades/routes"));
+app.use(require("./modules/recuerdosPaneros/routes"));
 
 
 
@@ -89,6 +90,7 @@ app.use(require('./modules/web/Pagos/routes'))
 app.use(require("./modules/web/deportes/routes"));
 //app.use(require("./modules/web/lideres/routes"));
 app.use(require('./modules/web/secciones/routes'));
+app.use(require('./modules/web/recuerdosPaneros/routes'));
 app.use('/quejas', quejasRoutes);
 
 (async function () {

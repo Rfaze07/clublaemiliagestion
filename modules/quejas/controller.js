@@ -115,11 +115,36 @@ exports.updateEstado = async (req, res) => {
 
 exports.countUnreadAjax = async (req, res) => {
     try {
-        const rows = await model.countUnread();
+        let { desde, hasta } = req.body || {}
+        desde = utils.changeDateYMD(desde)
+        hasta = utils.changeDateYMD(hasta)
+
+        const rows = await model.countUnread(desde, hasta);
         const total = (Array.isArray(rows) && rows[0] && rows[0].total) ? Number(rows[0].total) : 0;
         return res.json({ status: true, total });
     } catch (error) {
         console.log(error);
         return res.json({ status: false, total: 0 });
+    }
+}
+
+exports.eliminar = async (req, res) => {
+    try {
+        const id = req.body.id
+        const data = await model.getById(id)
+
+        if (!Array.isArray(data) || !data.length) {
+            return res.json({ status: false, icon: 'error', title: 'Error', type: 'error', text: 'Queja no encontrada' })
+        }
+
+        const result = await model.delete(id)
+        if (result.status === 0) {
+            return res.json({ status: false, icon: 'error', title: 'Error', type: 'error', text: result.text || 'No se pudo eliminar la queja' })
+        }
+
+        return res.json({ status: true, icon: 'success', title: 'Éxito', type: 'success', text: 'Queja eliminada correctamente' })
+    } catch (error) {
+        console.log(error)
+        return res.json({ status: false, icon: 'error', title: 'Error', type: 'error', text: 'Error del servidor' })
     }
 }

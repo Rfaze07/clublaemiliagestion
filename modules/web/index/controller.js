@@ -6,11 +6,14 @@ exports.getLista = async (req, res) => {
     try {
         const noticias = await model.getNoticias()
         const deportes = await model.getDeportes()
+        const recuerdosPaneros = await model.getRecuerdosPaneros()
         res.render('web/index/views/index', {
             pagename: "Inicio",
             noticias,
             deportes,
-            noticiasJSON: JSON.stringify(noticias)
+            recuerdosPaneros,
+            noticiasJSON: JSON.stringify(noticias),
+            recuerdosPanerosJSON: JSON.stringify(recuerdosPaneros)
         })
     }
     catch (error) {

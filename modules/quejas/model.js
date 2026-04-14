@@ -35,10 +35,23 @@ exports.update = o => {
     `, [o.leida, o.id])
 }
 
-exports.countUnread = () => {
+exports.countUnread = (desde, hasta) => {
+    let where = ['leida = 0']
+    let params = []
+
+    if (desde) {
+        where.push('DATE(fecha) >= ?')
+        params.push(desde)
+    }
+
+    if (hasta) {
+        where.push('DATE(fecha) <= ?')
+        params.push(hasta)
+    }
+
     return queryMYSQL(`
         SELECT COUNT(*) AS total
         FROM quejas
-        WHERE leida = 0
-    `, [])
+        WHERE ${where.join(' AND ')}
+    `, params)
 }

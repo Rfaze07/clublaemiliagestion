@@ -8,6 +8,7 @@ const { auth, checkAcceso } = require('../../middlewares');
 router.get('/Solicitudes', auth, checkAcceso('c'), controller.getLista);
 router.post('/Solicitudes/getListaAjax', auth, checkAcceso('c'), controller.getListaAjax);
 router.post('/Solicitudes/getByIdAjax', auth, checkAcceso('c'), controller.getByIdAjax);
+router.post('/Solicitudes/eliminar', auth, checkAcceso('b'), controller.eliminar);
 
 
 module.exports = router
