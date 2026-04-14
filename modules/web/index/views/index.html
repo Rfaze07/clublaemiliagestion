@@ -578,34 +578,41 @@
 /* ====================
    MODAL NOTICIA
 ==================== */
-#modalNoticia .modal-content {
+#modalNoticia .modal-content,
+#modalRecuerdo .modal-content {
     border-radius: 16px;
     border: none;
     overflow: hidden;
 }
-#modalNoticia .mn-img {
+#modalNoticia .mn-img,
+#modalRecuerdo .mn-img {
     width: 100%;
     max-height: 300px;
     object-fit: cover;
     display: block;
 }
 @media (min-width: 768px) {
-    #modalNoticia .mn-img { max-height: 400px; }
+    #modalNoticia .mn-img,
+    #modalRecuerdo .mn-img { max-height: 400px; }
 }
-#modalNoticia .modal-body {
+#modalNoticia .modal-body,
+#modalRecuerdo .modal-body {
     padding: 24px;
 }
 @media (min-width: 768px) {
-    #modalNoticia .modal-body { padding: 32px 40px; }
+    #modalNoticia .modal-body,
+    #modalRecuerdo .modal-body { padding: 32px 40px; }
 }
-#modalNoticia .mn-fecha {
+#modalNoticia .mn-fecha,
+#modalRecuerdo .mn-fecha {
     font-size: 0.8rem;
     color: #888;
     text-transform: uppercase;
     letter-spacing: 1px;
     margin-bottom: 8px;
 }
-#modalNoticia .mn-titulo {
+#modalNoticia .mn-titulo,
+#modalRecuerdo .mn-titulo {
     font-size: clamp(1.3rem, 3vw, 1.8rem);
     font-weight: 900;
     text-transform: uppercase;
@@ -614,7 +621,8 @@
     margin-bottom: 10px;
     line-height: 1.2;
 }
-#modalNoticia .mn-subtitulo {
+#modalNoticia .mn-subtitulo,
+#modalRecuerdo .mn-subtitulo {
     font-size: 1rem;
     color: #555;
     margin-bottom: 20px;
@@ -622,12 +630,14 @@
     border-bottom: 1px solid #eee;
     padding-bottom: 16px;
 }
-#modalNoticia .mn-cuerpo {
+#modalNoticia .mn-cuerpo,
+#modalRecuerdo .mn-cuerpo {
     font-size: 0.95rem;
     color: #333;
     line-height: 1.8;
 }
-#modalNoticia .btn-cerrar-mn {
+#modalNoticia .btn-cerrar-mn,
+#modalRecuerdo .btn-cerrar-mn {
     position: absolute;
     top: 16px;
     right: 16px;
@@ -645,7 +655,8 @@
     z-index: 10;
     transition: background var(--transition-speed);
 }
-#modalNoticia .btn-cerrar-mn:hover {
+#modalNoticia .btn-cerrar-mn:hover,
+#modalRecuerdo .btn-cerrar-mn:hover {
     background: #000;
 }
 
@@ -838,6 +849,64 @@
     </div>
 </section>
 
+<section class="section-noticias section-padding">
+    <div class="container">
+        <div class="section-header">
+            <span class="line"></span>
+            <h2>Recuerdos Pañeros</h2>
+            <p>Momentos inolvidables que marcaron nuestra historia</p>
+        </div>
+        {% if recuerdosPaneros and recuerdosPaneros.length %}
+        <div id="carouselRecuerdos" class="carousel slide" data-bs-ride="carousel" data-bs-interval="5000">
+            <div class="carousel-indicators">
+                {% for recuerdo in recuerdosPaneros %}
+                <button type="button" data-bs-target="#carouselRecuerdos" data-bs-slide-to="{{ loop.index0 }}"
+                    class="{% if loop.first %}active{% endif %}"
+                    aria-label="Recuerdo {{ loop.index }}"></button>
+                {% endfor %}
+            </div>
+            <div class="carousel-inner">
+                {% for recuerdo in recuerdosPaneros %}
+                <div class="carousel-item {% if loop.first %}active{% endif %}">
+                    <div class="carousel-noticia-slide" onclick="abrirRecuerdo('{{ recuerdo.id }}')">
+                        {% if recuerdo.imagen_url %}
+                            <img class="carousel-noticia-img" src="{{ recuerdo.imagen_url }}" alt="{{ recuerdo.titulo }}">
+                        {% else %}
+                            <div class="carousel-noticia-placeholder">
+                                <i class="bi bi-images"></i>
+                            </div>
+                        {% endif %}
+                        <div class="carousel-noticia-overlay">
+                            <div class="carousel-noticia-fecha">{{ recuerdo.fecha | date("d/m/Y") }}</div>
+                            <div class="carousel-noticia-titulo">{{ recuerdo.titulo }}</div>
+                            {% if recuerdo.subtitulo %}
+                            <div class="carousel-noticia-subtitulo">{{ recuerdo.subtitulo }}</div>
+                            {% endif %}
+                            <button class="carousel-btn-leer" onclick="event.stopPropagation(); abrirRecuerdo('{{ recuerdo.id }}')">Ver recuerdo &rarr;</button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#carouselRecuerdos" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon"></span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#carouselRecuerdos" data-bs-slide="next">
+                <span class="carousel-control-next-icon"></span>
+            </button>
+        </div>
+        <div class="text-center">
+            <a href="/web/recuerdosPaneros" class="ver-todas-btn">Ver todos los recuerdos &rarr;</a>
+        </div>
+        {% else %}
+        <div class="sin-noticias-hero">
+            <i class="bi bi-images" style="font-size:3rem; display:block; margin-bottom:12px; opacity:.3;"></i>
+            <p style="margin:0;">No hay recuerdos publicados por el momento.</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
 <section class="section-partidos section-padding d-none">
     <div class="container">
         <div class="section-header">
@@ -917,11 +986,29 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="modalRecuerdo" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content" style="position:relative;">
+            <button class="btn-cerrar-mn" onclick="var m=bootstrap.Modal.getInstance(document.getElementById('modalRecuerdo')); m && m.hide();">
+                <i class="bi bi-x"></i>
+            </button>
+            <div id="mrImgWrap"></div>
+            <div class="modal-body">
+                <div class="mn-fecha" id="mrFecha"></div>
+                <div class="mn-titulo" id="mrTitulo"></div>
+                <div class="mn-subtitulo" id="mrSubtitulo"></div>
+                <div class="mn-cuerpo" id="mrCuerpo"></div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
 <script>
     const _noticias = {{ noticiasJSON | safe }};
+    const _recuerdosPaneros = {{ recuerdosPanerosJSON | safe }};
 
     const sanitizeHtml = (html = '') => {
         const temp = document.createElement('div');
@@ -964,6 +1051,29 @@
         document.getElementById('mnCuerpo').innerHTML = sanitizeHtml(n.descripcion || '');
 
         new bootstrap.Modal(document.getElementById('modalNoticia')).show();
+    };
+
+    const abrirRecuerdo = (id) => {
+        const r = _recuerdosPaneros.find(x => x.id === parseInt(id));
+        if (!r) return;
+
+        const imgWrap = document.getElementById('mrImgWrap');
+        imgWrap.innerHTML = r.imagen_url
+            ? `<img class="mn-img" src="${r.imagen_url}" alt="${r.titulo}">`
+            : '';
+
+        let fechaFormat = '';
+        if (r.fecha) {
+            const fechaObj = new Date(r.fecha + (r.fecha.includes('T') ? '' : 'T00:00:00'));
+            fechaFormat = fechaObj.toLocaleDateString('es-AR', { day: '2-digit', month: 'long', year: 'numeric' });
+        }
+
+        document.getElementById('mrFecha').textContent = fechaFormat;
+        document.getElementById('mrTitulo').textContent = r.titulo;
+        document.getElementById('mrSubtitulo').textContent = r.subtitulo || '';
+        document.getElementById('mrCuerpo').innerHTML = sanitizeHtml(r.descripcion || '');
+
+        new bootstrap.Modal(document.getElementById('modalRecuerdo')).show();
     };
 </script>
 {% endblock %}

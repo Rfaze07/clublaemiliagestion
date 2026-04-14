@@ -16,3 +16,12 @@ exports.getDeportes = () => {
         ORDER BY nombre ASC
     `, [])
 }
+
+exports.getRecuerdosPaneros = () => {
+    return queryMYSQL(`
+        SELECT id, titulo, subtitulo, descripcion, imagen_url, fecha
+        FROM recuerdos_paneros
+        ORDER BY fecha DESC, id DESC
+        LIMIT 5
+    `, [])
+}

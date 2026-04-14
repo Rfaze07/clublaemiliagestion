@@ -111,3 +111,32 @@ exports.getByIdAjax = async (req, res) => {
     }
 
 };
+
+exports.eliminar = async (req, res) => {
+    try {
+        const id = req.body.id
+        let registro = await model.getById(id)
+
+        if (!Array.isArray(registro) || !registro.length) {
+            return res.json({ status: false, icon: 'error', title: 'Error', type: 'error', text: 'Solicitud no encontrada' })
+        }
+
+        registro = registro[0]
+
+        let result
+        if (registro.tipo_registro === 'titular') {
+            result = await model.deleteGrupoByTitularId(registro.id)
+        } else {
+            result = await model.deleteById(registro.id)
+        }
+
+        if (result.status === 0) {
+            return res.json({ status: false, icon: 'error', title: 'Error', type: 'error', text: result.text || 'No se pudo eliminar la solicitud' })
+        }
+
+        return res.json({ status: true, icon: 'success', title: 'Éxito', type: 'success', text: 'Solicitud eliminada correctamente' })
+    } catch (error) {
+        console.log(error)
+        return res.json({ status: false, icon: 'error', title: 'Error', type: 'error', text: 'Error del servidor' })
+    }
+}

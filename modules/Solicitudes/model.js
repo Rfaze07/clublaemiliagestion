@@ -90,3 +90,17 @@ exports.getGrupoFamiliar = (titularId) => {
     `, [titularId, titularId]);
 
 };
+
+exports.deleteById = id => {
+    return queryMYSQL(`
+        DELETE FROM socios
+        WHERE id = ?
+    `, [id])
+}
+
+exports.deleteGrupoByTitularId = titularId => {
+    return queryMYSQL(`
+        DELETE FROM socios
+        WHERE id = ? OR socio_titular_id = ?
+    `, [titularId, titularId])
+}

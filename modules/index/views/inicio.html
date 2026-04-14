@@ -139,9 +139,18 @@
 <script type="text/javascript">
 
     const updateQuejasUnread = () => {
+        const desde = (typeof generateFirstDateActualMonth === 'function')
+            ? generateFirstDateActualMonth()
+            : ''
+
+        const hasta = (typeof generateTodayDate === 'function')
+            ? generateTodayDate()
+            : ''
+
         fetch('/quejas/countUnread', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ desde, hasta })
         })
         .then(res => res.json())
         .then(response => {

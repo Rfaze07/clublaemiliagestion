@@ -23275,3 +23275,17 @@ values ('cuota_socio_deportivo', 'Este parametro refleja el monto de la cuota de
  ('seguro_infantil', 'Este parametro refleja el monto de la cuota del seguro infantil', 6800),
  ('licencias', 'Este parametro refleja el costo de las licencias', 12000),
  ('cuota_socio_jubilado', 'Este parametro refleja el monto de la cuota societaria de un socio jubilado', 10200)
+
+
+
+ CREATE TABLE `recuerdos_paneros` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `titulo` varchar(100) NOT NULL,
+  `subtitulo` varchar(200) NOT NULL,
+  `fecha` date NOT NULL,
+  `descripcion` text NOT NULL,
+  `path_foto` varchar(300) DEFAULT NULL,
+  `imagen_url` varchar(500) DEFAULT NULL,
+  `imagen_public_id` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

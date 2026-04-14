@@ -10,6 +10,7 @@ router.post('/quejas/getListaAjax', auth, checkAcceso('c'), controller.getListaA
 router.post('/quejas/getByIdAjax', auth, checkAcceso('c'), controller.getByIdAjax);
 router.post('/quejas/updateEstado', auth, checkAcceso('c'), controller.updateEstado);
 router.post('/quejas/countUnread', auth, checkAcceso('c'), controller.countUnreadAjax);
+router.post('/quejas/eliminar', auth, checkAcceso('b'), controller.eliminar);
 
 
 module.exports = router
