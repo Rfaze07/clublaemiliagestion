@@ -3,6 +3,14 @@ const utils = require('../../utils')
 const eventos = require("../eventos/controller")
 const cloudinary = require('../cloudinary/controller')
 
+const getPlainTextFromHtml = (html = '') => {
+    return String(html)
+        .replace(/<[^>]*>/g, ' ')
+        .replace(/&nbsp;/gi, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+}
+
 const uploadToCloudinary = (buffer, folder) => {
     return new Promise((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
@@ -59,7 +67,7 @@ exports.alta = async (req, res) => {
         if (!req.body.subtitulo || req.body.subtitulo.trim() === '') {
             return res.json({ status: false, icon: 'error', title: 'Error', type: 'error', text: 'El subtítulo es obligatorio' })
         }
-        if (!req.body.descripcion || req.body.descripcion.trim() === '') {
+        if (!req.body.descripcion || getPlainTextFromHtml(req.body.descripcion) === '') {
             return res.json({ status: false, icon: 'error', title: 'Error', type: 'error', text: 'La descripción es obligatoria' })
         }
 
@@ -89,7 +97,7 @@ exports.modificar = async (req, res) => {
         if (!req.body.subtitulo || req.body.subtitulo.trim() === '') {
             return res.json({ status: false, icon: 'error', title: 'Error', type: 'error', text: 'El subtítulo es obligatorio' })
         }
-        if (!req.body.descripcion || req.body.descripcion.trim() === '') {
+        if (!req.body.descripcion || getPlainTextFromHtml(req.body.descripcion) === '') {
             return res.json({ status: false, icon: 'error', title: 'Error', type: 'error', text: 'La descripción es obligatoria' })
         }
 
