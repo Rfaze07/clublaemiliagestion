@@ -4,6 +4,7 @@
 <style>
 
 </style>
+<link href="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-bs4.min.css" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
@@ -56,7 +57,7 @@
                 <div class="row">
                     <div class="form-group col-sm-12">
                         <label for="descripcion">Descripcion</label>
-                        <textarea class="form-control form-control-sm" id="descripcion" rows="10" maxlength="3000"></textarea>
+                        <textarea class="form-control form-control-sm" id="descripcion"></textarea>
                     </div>
                 </div>
                 <div class="row mt-2">
@@ -101,8 +102,20 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-bs4.min.js"></script>
 <script>
     $(document).ready(async () => {
+        $('#descripcion').summernote({
+            height: 260,
+            placeholder: 'Escriba la descripcion de la noticia...',
+            toolbar: [
+                ['style', ['bold', 'italic', 'underline', 'clear']],
+                ['para', ['ul', 'ol', 'paragraph']],
+                ['insert', ['link']],
+                ['view', ['codeview']]
+            ]
+        })
+
         getLista()
 
         $('#imagen').on('change', function() {
@@ -170,13 +183,14 @@
             $('#modalLabel').text('Nueva noticia')
             $('#btnAccion').attr('onclick', `PostRegistro("a")`)
             $('#btnAccion').text('Guardar')
+            $('#descripcion').summernote('code', '')
         }
         if (accion == 'm') {
             let res = await $.post(`/noticias/getByIdAjax`, {id})
             if (res.status != 0) {
                 $('#titulo').val(res.data[0].titulo)
                 $('#subtitulo').val(res.data[0].subtitulo)
-                $('#descripcion').val(res.data[0].descripcion)
+                $('#descripcion').summernote('code', res.data[0].descripcion || '')
                 if (res.data[0].imagen_url) {
                     $('#imagenPreview').attr('src', res.data[0].imagen_url)
                     $('#imagenActualLabel').text('Imagen actual (subir nueva reemplaza esta)')
@@ -204,8 +218,7 @@
                 let d = res.data[0]
                 $('#verTitulo').text(d.titulo)
                 $('#verSubtitulo').text(d.subtitulo)
-                // Mantener saltos de línea
-                $('#verDescripcion').html((d.descripcion || '').replace(/\n/g, '<br/>'))
+                $('#verDescripcion').html(d.descripcion || '')
                 $('#modalVer').modal('show')
             } else {
                 Swal.fire({ icon: 'warning', title: 'Atención', text: res.text || 'No se encontró la noticia', timer: 2000 })
@@ -224,7 +237,7 @@
         const formData = new FormData()
         formData.append('titulo', $('#titulo').val())
         formData.append('subtitulo', $('#subtitulo').val())
-        formData.append('descripcion', $('#descripcion').val())
+        formData.append('descripcion', $('#descripcion').summernote('code'))
         const imagenFile = $('#imagen')[0].files[0]
         if (imagenFile) formData.append('imagen', imagenFile)
 
@@ -303,7 +316,8 @@
 
     const LimpiarCampos = () => {
         $('input[type="text"]').val('')
-        $('textarea').val('')
+        $('textarea').not('#descripcion').val('')
+        $('#descripcion').summernote('code', '')
         $('#imagen').val('')
         $('#imagenPreviewWrap').hide()
         $('#imagenPreview').attr('src', '')

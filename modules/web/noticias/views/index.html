@@ -162,7 +162,6 @@
     font-size: .97rem;
     color: #333;
     line-height: 1.85;
-    white-space: pre-line;
 }
 #modalNoticia .btn-cerrar-mn {
     position: absolute;
@@ -255,6 +254,25 @@
 <script>
     const _noticias = {{ noticiasJSON | safe }};
 
+    const sanitizeHtml = (html = '') => {
+        const temp = document.createElement('div')
+        temp.innerHTML = String(html)
+
+        temp.querySelectorAll('script, iframe, object, embed, form').forEach(el => el.remove())
+
+        temp.querySelectorAll('*').forEach(el => {
+            ;[...el.attributes].forEach(attr => {
+                const name = attr.name.toLowerCase()
+                const value = (attr.value || '').toLowerCase().trim()
+                if (name.startsWith('on') || value.startsWith('javascript:')) {
+                    el.removeAttribute(attr.name)
+                }
+            })
+        })
+
+        return temp.innerHTML
+    }
+
     const abrirNoticia = (id) => {
         const n = _noticias.find(x => x.id === parseInt(id))
         if (!n) return
@@ -269,7 +287,7 @@
             : ''
         document.getElementById('mnTitulo').textContent = n.titulo
         document.getElementById('mnSubtitulo').textContent = n.subtitulo || ''
-        document.getElementById('mnCuerpo').textContent = n.descripcion || ''
+        document.getElementById('mnCuerpo').innerHTML = sanitizeHtml(n.descripcion || '')
 
         new bootstrap.Modal(document.getElementById('modalNoticia')).show()
     }
