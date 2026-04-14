@@ -35,12 +35,16 @@ body {
     border-bottom: 4px solid #fff;
     box-shadow: 0 4px 14px rgba(0,0,0,.6);
 }
+
 .logo {
     max-height: 80px;
 }
+
 .navbar-nav {
     gap: 2rem;
 }
+
+/* LINKS PRINCIPALES */
 .navbar-nav .nav-link {
     color: #fff;
     font-weight: 700;
@@ -48,6 +52,8 @@ body {
     font-size: .95rem;
     position: relative;
 }
+
+/* SUBRAYADO NAV */
 .navbar-nav .nav-link::after {
     content: "";
     position: absolute;
@@ -58,22 +64,29 @@ body {
     background: #fff;
     transition: .25s;
 }
+
 .navbar-nav .nav-link:hover::after {
     width: 100%;
 }
+
+/* ICONOS */
 .icon-btn {
     color: #fff;
     font-size: 1.3rem;
 }
+
+/* TOGGLER */
 .custom-toggler {
     border: none;
 }
+
 .custom-toggler .navbar-toggler-icon {
     background-color: #fff;
     height: 3px;
     width: 26px;
     position: relative;
 }
+
 .custom-toggler .navbar-toggler-icon::before,
 .custom-toggler .navbar-toggler-icon::after {
     content: "";
@@ -83,10 +96,13 @@ body {
     background: #fff;
     left: 0;
 }
+
 .custom-toggler .navbar-toggler-icon::before { top: -8px; }
 .custom-toggler .navbar-toggler-icon::after { top: 8px; }
 
-/* DROPDOWN SECCIONES */
+/* =====================
+   DROPDOWN
+===================== */
 .navbar-ecommerce .dropdown-menu {
     background: #111;
     border: 1px solid rgba(255,255,255,.15);
@@ -95,38 +111,66 @@ body {
     min-width: 200px;
     box-shadow: 0 8px 24px rgba(0,0,0,.5);
 }
+
+/* ITEMS IGUALES A NAV */
 .navbar-ecommerce .dropdown-item {
     color: #fff;
-    font-weight: 600;
+    font-weight: 700;
     text-transform: uppercase;
     font-size: .85rem;
     padding: 10px 20px;
     letter-spacing: .5px;
-    transition: background .2s;
+    position: relative;
+    background: transparent;
 }
+
+/* SUBRAYADO DROPDOWN */
+.navbar-ecommerce .dropdown-item::after {
+    content: "";
+    position: absolute;
+    bottom: 6px;
+    left: 20px;
+    width: 0;
+    height: 3px;
+    background: #fff;
+    transition: .25s;
+}
+
+/* HOVER DROPDOWN */
 .navbar-ecommerce .dropdown-item:hover {
-    background: rgba(255,255,255,.1);
     color: #fff;
+    background: transparent;
 }
+
+.navbar-ecommerce .dropdown-item:hover::after {
+    width: calc(100% - 40px);
+}
+
+/* FLECHA DROPDOWN */
 .navbar-ecommerce .dropdown-toggle::after {
     border-top-color: #fff;
 }
+
+/* FIX BOOTSTRAP ACTIVE */
 .navbar-ecommerce .nav-item.dropdown .nav-link.show,
 .navbar-ecommerce .nav-item.dropdown .nav-link:focus,
 .navbar-ecommerce .nav-item.dropdown .nav-link:active {
     color: #fff !important;
     background: transparent;
 }
+
+/* SACAR SUBRAYADO EN PADRES CON DROPDOWN */
 .navbar-ecommerce .nav-item.dropdown > .nav-link::after {
     display: none;
 }
+
+/* TEXTO DESHABILITADO */
 .sin-secciones-nav {
     color: rgba(255,255,255,.45);
     font-size: .8rem;
     padding: 10px 20px;
     pointer-events: none;
 }
-
 /* =====================
    FOOTER
 ===================== */
@@ -295,6 +339,21 @@ body {
 
       <!-- LINKS CENTRALES -->
 <ul class="navbar-nav mx-auto">
+
+    <!-- CLUB DROPDOWN -->
+  <li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+      Club <i class="bi bi-chevron-down" style="font-size:.75rem; vertical-align:middle;"></i>
+    </a>
+
+    <ul class="dropdown-menu">
+    <li><a class="dropdown-item" href="/web/comision-directiva">Comisión Directiva</a></li>
+    <li><a class="dropdown-item" href="/web/historia">Historia</a></li>
+    <li><a class="dropdown-item" href="/web/horarios">Horarios</a></li>
+    <li><a class="dropdown-item" href="/web/instalaciones">Instalaciones</a></li>
+    <li class="nav-item"><a class="dropdown-item" href="/web/recuerdosPaneros" >Recuerdos Pañeros</a></li>
+    </ul>
+  </li>
     
   <!-- SOCIOS -->
   <li class="nav-item dropdown">
@@ -305,26 +364,19 @@ body {
     <ul class="dropdown-menu">
         <li><a class="dropdown-item" href="/web/socios">Asociarme</a></li>
         <li><a class="dropdown-item" href="/web/pagos">Información de Pago</a></li>
+        <li><a href="https://CLUBLAEMILIA.brio.club" class="dropdown-item">Sede Virtual</a></li>
     </ul>
   </li>
 
   <!-- CONTACTO -->
-  <li class="nav-item">
-    <a class="nav-link" href="https://wa.me/5493364020403" target="_blank" aria-label="WhatsApp">Contacto</a>
+   <li class="nav-item">
+    <a class="nav-link" href="/web/deportes">Deportes</a>
   </li>
-
-  <!-- CLUB DROPDOWN -->
-  <li class="nav-item dropdown">
-    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-      Club <i class="bi bi-chevron-down" style="font-size:.75rem; vertical-align:middle;"></i>
-    </a>
-
-    <ul class="dropdown-menu">
-      <li><a class="dropdown-item" href="/web/comision-directiva">Comisión Directiva</a></li>
-      <li><a class="dropdown-item" href="/web/historia">Historia</a></li>
-      <li><a class="dropdown-item" href="/web/horarios">Horarios</a></li>
-      <li><a class="dropdown-item" href="/web/instalaciones">Instalaciones</a></li>
-    </ul>
+   <li class="nav-item">
+    <a class="nav-link" href="/web/noticias" >Noticias</a>
+  </li>
+    <li class="nav-item">
+    <a class="nav-link" href="https://wa.me/5493364020403" target="_blank" aria-label="WhatsApp">Contacto</a>
   </li>
 
 </ul>
@@ -370,10 +422,13 @@ body {
       <!-- LINKS + REDES -->
       <div class="col-12 col-md-4 text-center">
         <ul class="footer-links">
-          <li><a href="/web">Inicio</a></li>
-          <li><a href="/web/historia">Historia</a></li>
-          <li><a href="/web/Comision-directiva">Comision directiva</a></li>
-          <li><a href="/web/instalaciones">Instalaciones</a></li>
+        <li><a href="/web">Inicio</a></li>
+        <li><a href="/web/historia">Historia</a></li>
+        <li><a href="/web/instalaciones">Instalaciones</a></li>
+        <li><a href="/web/deportes">Deportes</a></li>
+        <li><a href="/web/noticias">noticias</a></li>
+
+
 
         </ul>
         <div class="footer-social">
