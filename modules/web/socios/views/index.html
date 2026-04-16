@@ -1,6 +1,6 @@
 {% extends '../../template.html' %}
 
-{% block title %}Deportes - Club La Emilia{% endblock %}
+{% block title %}Socios - Club La Emilia{% endblock %}
 
 {% block styles %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
@@ -72,11 +72,44 @@ body{
     border-radius:10px;
 }
 
+.noticias-page-header {
+    background: #fff;
+    color: #000;
+    padding: 50px 0 44px;
+    border-bottom: 1px solid rgba(0,0,0,.08);
+    text-align: center;
+}
+
+.noticias-page-header h1 {
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    margin: 0 0 10px;
+    color: #000;
+}
+
+.noticias-page-header p {
+    color: #666;
+    font-size: .95rem;
+    margin: 0;
+}
+
 </style>
 {% endblock %}
 
 
 {% block content %}
+
+<div class="noticias-page-header">
+    <div class="container">
+        <h1>Ser parte es mucho más</h1>
+        <p>
+            Formar parte del club es integrarse a una comunidad activa, con acceso a actividades,
+            beneficios y espacios pensados para disfrutar todo el año. Te invitamos a sumarte y vivir el club desde adentro.
+        </p>
+    </div>
+</div>
 
 <div class="container py-5">
 <div class="card card-club shadow-lg">
@@ -85,7 +118,6 @@ body{
 </div>
 
 <div class="card-body bg-white">
-
 
 <form id="formSocio" method="POST" action="/web/socios">
 {% if query.ok %}
