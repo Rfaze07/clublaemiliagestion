@@ -4,64 +4,170 @@
 
 {% block styles %}
 <style>
-.construccion-wrap {
-	min-height: 60vh;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	padding: 80px 24px;
-	background: #fff;
-}
-.construccion-box {
-	text-align: center;
-	max-width: 520px;
-}
-.construccion-icon {
-	font-size: 4.5rem;
-	color: #000;
-	margin-bottom: 24px;
-	display: block;
-	line-height: 1;
-}
-.construccion-badge {
-	display: inline-block;
-	background: #000;
-	color: #fff;
-	font-size: .72rem;
-	font-weight: 800;
-	letter-spacing: 3px;
-	text-transform: uppercase;
-	padding: 6px 18px;
-	border-radius: 999px;
-	margin-bottom: 20px;
-}
-.construccion-title {
-	font-size: clamp(1.8rem, 5vw, 2.8rem);
-	font-weight: 900;
-	text-transform: uppercase;
-	letter-spacing: 2px;
-	color: #000;
-	margin: 0 0 14px;
-	line-height: 1.1;
-}
-.construccion-sub {
-	font-size: .98rem;
-	color: #666;
-	line-height: 1.7;
-	margin: 0;
-}
+	/* Encabezado interno del sitio */
+	.noticias-page-header {
+		background: #fff;
+		color: #000;
+		padding: 50px 0 44px;
+		border-bottom: 1px solid rgba(0,0,0,.08);
+		text-align: center;
+	}
+	.noticias-page-header h1 {
+		font-size: clamp(1.8rem, 4vw, 2.8rem);
+		font-weight: 900;
+		text-transform: uppercase;
+		letter-spacing: 4px;
+		margin: 0 0 10px;
+		color: #000;
+	}
+	.noticias-page-header p {
+		color: #666;
+		font-size: .95rem;
+		margin: 0;
+	}
+
+	.comision-wrap {
+		max-width: 1100px;
+		margin: 54px auto 90px;
+		padding: 0 24px;
+	}
+	.comision-intro {
+		max-width: 760px;
+		margin: 0 auto 38px;
+		text-align: center;
+	}
+	.comision-intro p {
+		font-size: 1.04rem;
+		line-height: 1.8;
+		color: #4f4f4f;
+		margin: 0;
+	}
+
+	.comision-grid {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 16px;
+	}
+	.comision-card {
+		background: #fff;
+		border: 1px solid #e7e7e7;
+		border-left: 4px solid #000;
+		border-radius: 8px;
+		padding: 18px 20px;
+		box-shadow: 0 8px 26px rgba(0,0,0,.04);
+	}
+	.comision-card h3 {
+		font-size: .77rem;
+		text-transform: uppercase;
+		letter-spacing: 2px;
+		font-weight: 800;
+		color: #777;
+		margin: 0 0 8px;
+	}
+	.comision-card p {
+		font-size: 1.05rem;
+		line-height: 1.55;
+		font-weight: 700;
+		color: #111;
+		margin: 0;
+	}
+
+	.comision-cierre {
+		margin-top: 34px;
+		padding: 24px;
+		border-radius: 8px;
+		background: linear-gradient(180deg, #f8f8f8 0%, #f1f1f1 100%);
+		border: 1px solid #e4e4e4;
+		text-align: center;
+	}
+	.comision-cierre p {
+		margin: 0;
+		font-size: .98rem;
+		color: #555;
+		line-height: 1.75;
+	}
+
+	@media (max-width: 780px) {
+		.comision-grid {
+			grid-template-columns: 1fr;
+		}
+		.comision-wrap {
+			margin-top: 42px;
+		}
+	}
 </style>
 {% endblock %}
 
 {% block content %}
-<section class="construccion-wrap">
-	<div class="construccion-box">
-		<span class="construccion-icon"><i class="bi bi-cone-striped"></i></span>
-		<span class="construccion-badge">En construcción</span>
-		<h1 class="construccion-title">Comisión Directiva</h1>
-		<p class="construccion-sub">
-			Estamos preparando esta sección con los integrantes y autoridades
-			de la Comisión Directiva del club. ¡Volvé pronto!
+<!-- Encabezado -->
+<div class="noticias-page-header">
+	<div class="container">
+		<h1>Comisión directiva</h1>
+		<p>Club Social y Deportivo La Emilia</p>
+	</div>
+</div>
+
+<!-- Cuerpo -->
+<section class="comision-wrap">
+	<div class="comision-intro">
+		<p>
+			Conocé a las autoridades que, con compromiso y trabajo diario,
+			llevan adelante la gestión institucional del club.
+		</p>
+	</div>
+
+	<div class="comision-grid">
+		<article class="comision-card">
+			<h3>Presidenta</h3>
+			<p>Romina Bernardotti</p>
+		</article>
+		<article class="comision-card">
+			<h3>Vicepresidente</h3>
+			<p>Víctor Fenossi</p>
+		</article>
+
+		<article class="comision-card">
+			<h3>Secretario</h3>
+			<p>Ruiz Aldo</p>
+		</article>
+		<article class="comision-card">
+			<h3>Prosecretario</h3>
+			<p>Lucas Verna</p>
+		</article>
+
+		<article class="comision-card">
+			<h3>Tesorero</h3>
+			<p>Damián Quercetti</p>
+		</article>
+		<article class="comision-card">
+			<h3>Protesorero</h3>
+			<p>Cristian Ramallo</p>
+		</article>
+
+		<article class="comision-card">
+			<h3>Vocal titular</h3>
+			<p>Gabriel Gómez</p>
+		</article>
+		<article class="comision-card">
+			<h3>Vocales suplentes</h3>
+			<p>Joaquín del Pozo, Tomás Sánchez y Federico Conte</p>
+		</article>
+
+		<article class="comision-card">
+			<h3>Revisores titulares</h3>
+			<p>Rubén del Pozo y Sebastián Cuevas</p>
+		</article>
+		<article class="comision-card">
+			<h3>Revisores suplentes</h3>
+			<p>Melisa Lete, Hugo Oviedo y Pablo Pesci</p>
+		</article>
+	</div>
+
+	<div class="comision-cierre">
+		<p>
+			La Comisión Directiva trabaja para fortalecer la vida social,
+			deportiva y cultural del Club La Emilia, sosteniendo su historia
+			y proyectando su crecimiento.
 		</p>
 	</div>
 </section>
