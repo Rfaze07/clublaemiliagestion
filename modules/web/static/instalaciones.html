@@ -4,65 +4,586 @@
 
 {% block styles %}
 <style>
-.construccion-wrap {
-	min-height: 60vh;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	padding: 80px 24px;
+.instalaciones-hero {
 	background: #fff;
-}
-.construccion-box {
-	text-align: center;
-	max-width: 520px;
-}
-.construccion-icon {
-	font-size: 4.5rem;
 	color: #000;
-	margin-bottom: 24px;
-	display: block;
-	line-height: 1;
+	padding: 50px 0 44px;
+	border-bottom: 1px solid rgba(0,0,0,.08);
+	text-align: center;
 }
-.construccion-badge {
-	display: inline-block;
-	background: #000;
-	color: #fff;
-	font-size: .72rem;
-	font-weight: 800;
-	letter-spacing: 3px;
-	text-transform: uppercase;
-	padding: 6px 18px;
-	border-radius: 999px;
-	margin-bottom: 20px;
-}
-.construccion-title {
-	font-size: clamp(1.8rem, 5vw, 2.8rem);
+.instalaciones-hero h1 {
+	font-size: clamp(1.8rem, 4vw, 2.8rem);
 	font-weight: 900;
 	text-transform: uppercase;
-	letter-spacing: 2px;
-	color: #000;
-	margin: 0 0 14px;
-	line-height: 1.1;
+	letter-spacing: 4px;
+	margin: 0 0 10px;
 }
-.construccion-sub {
-	font-size: .98rem;
+.instalaciones-hero p {
+	max-width: 760px;
+	margin: 0 auto;
+	font-size: .95rem;
+	line-height: 1.75;
 	color: #666;
+}
+.instalaciones-nav {
+	padding: 26px 0;
+	background: #fff;
+	border-bottom: 1px solid rgba(0,0,0,.08);
+}
+.instalaciones-nav .nav {
+	gap: 10px;
+	justify-content: center;
+}
+.instalaciones-nav .nav-link {
+	border: 1px solid rgba(0,0,0,.14);
+	border-radius: 999px;
+	padding: 8px 16px;
+	font-size: .78rem;
+	font-weight: 800;
+	letter-spacing: .8px;
+	text-transform: uppercase;
+	color: #000;
+	background: #fff;
+	white-space: nowrap;
+	flex: 0 0 auto;
+}
+.instalaciones-nav .nav-link:hover {
+	background: #000;
+	border-color: #000;
+	color: #fff;
+}
+.facility-band {
+	padding: 88px 0;
+}
+.band-light {
+	background: #fff;
+	color: #111;
+}
+.band-dark {
+	background: #050505;
+	color: #fff;
+}
+.facility-copy {
+	max-width: 620px;
+}
+.facility-copy h2 {
+	font-size: clamp(1.55rem, 3.2vw, 2.2rem);
+	font-weight: 900;
+	letter-spacing: .4px;
+	margin: 0 0 12px;
+	line-height: 1.15;
+}
+.facility-subtitle {
+	font-size: 1.05rem;
+	font-weight: 600;
+	margin: 0 0 18px;
 	line-height: 1.7;
+	opacity: .9;
+}
+.facility-copy p {
+	margin: 0 0 14px;
+	font-size: .98rem;
+	line-height: 1.9;
+	color: inherit;
+	opacity: .92;
+}
+.facility-list {
+	list-style: none;
+	padding: 0;
+	margin: 24px 0 0;
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 10px 16px;
+}
+.facility-list li {
+	position: relative;
+	padding-left: 18px;
+	font-size: .95rem;
+	line-height: 1.55;
+}
+.facility-list li::before {
+	content: '';
+	position: absolute;
+	left: 0;
+	top: 9px;
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: currentColor;
+}
+.facility-note {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	margin-top: 20px;
+	padding: 12px 16px;
+	border-radius: 16px;
+	font-size: .92rem;
+	line-height: 1.6;
+}
+.band-light .facility-note {
+	background: #f5f5f5;
+	color: #1a1a1a;
+	border: 1px solid rgba(0,0,0,.08);
+}
+.band-dark .facility-note {
+	background: rgba(255,255,255,.08);
+	color: #fff;
+	border: 1px solid rgba(255,255,255,.12);
+}
+.facility-media {
+	position: relative;
+}
+.facility-carousel {
+	border-radius: 24px;
+	overflow: hidden;
+	box-shadow: 0 22px 56px rgba(0,0,0,.2);
+	background: #111;
+}
+.facility-carousel img {
+	width: 100%;
+	aspect-ratio: 16 / 10;
+	object-fit: contain;
+	object-position: center;
+	display: block;
+}
+.facility-carousel .carousel-indicators {
+	margin-bottom: 1rem;
+}
+.facility-carousel .carousel-indicators [data-bs-target] {
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	border: 0;
+	margin: 0 4px;
+}
+.facility-carousel .carousel-control-prev,
+.facility-carousel .carousel-control-next {
+	width: 12%;
+}
+.facility-carousel .carousel-control-prev-icon,
+.facility-carousel .carousel-control-next-icon {
+	width: 2.6rem;
+	height: 2.6rem;
+	border-radius: 50%;
+	background-color: rgba(0,0,0,.55);
+	background-size: 48%;
+}
+.facility-placeholder {
+	min-height: 360px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	padding: 32px;
+	border-radius: 24px;
+	border: 1px dashed rgba(255,255,255,.25);
+	background: rgba(255,255,255,.04);
+	box-shadow: inset 0 0 0 1px rgba(255,255,255,.03);
+}
+.band-light .facility-placeholder {
+	background: #f6f6f6;
+	border-color: rgba(0,0,0,.18);
+	box-shadow: none;
+}
+.facility-placeholder i {
+	font-size: 3rem;
+	margin-bottom: 16px;
+	opacity: .75;
+}
+.facility-placeholder strong {
+	font-size: 1.15rem;
+	text-transform: uppercase;
+	letter-spacing: 1px;
+	margin-bottom: 8px;
+}
+.facility-placeholder p {
+	max-width: 380px;
 	margin: 0;
+	line-height: 1.7;
+	opacity: .84;
+}
+@media (max-width: 991px) {
+	.facility-band {
+		padding: 72px 0;
+	}
+	.facility-copy {
+		max-width: none;
+	}
+}
+@media (max-width: 767px) {
+	.instalaciones-hero {
+		padding: 44px 0 38px;
+	}
+	.instalaciones-nav {
+		padding: 18px 0;
+	}
+	.instalaciones-nav .nav {
+		justify-content: flex-start;
+		flex-wrap: nowrap;
+		overflow-x: auto;
+		padding: 0 4px 6px;
+		scroll-snap-type: x proximity;
+		-webkit-overflow-scrolling: touch;
+		scrollbar-width: none;
+		-ms-overflow-style: none;
+	}
+	.instalaciones-nav .nav::-webkit-scrollbar {
+		display: none;
+	}
+	.instalaciones-nav .nav-link {
+		padding: 7px 14px;
+		font-size: .74rem;
+		letter-spacing: .6px;
+		scroll-snap-align: start;
+	}
+	.facility-list {
+		grid-template-columns: 1fr;
+	}
+	.facility-placeholder {
+		min-height: 280px;
+	}
 }
 </style>
 {% endblock %}
 
 {% block content %}
-<section class="construccion-wrap">
-	<div class="construccion-box">
-		<span class="construccion-icon"><i class="bi bi-cone-striped"></i></span>
-		<span class="construccion-badge">En construcción</span>
-		<h1 class="construccion-title">Instalaciones</h1>
-		<p class="construccion-sub">
-			Estamos preparando esta sección con toda la información sobre
-			las instalaciones del club. ¡Volvé pronto!
+{% set instalaciones = [
+	{
+		'id': 'salon-social',
+		'tag': 'Social',
+		'title': 'Salón social',
+		'subtitle': 'Un punto de encuentro para celebraciones, reuniones y actividades durante todo el año.',
+		'description': [
+			'Con capacidad para aproximadamente 80 personas, el salón social es uno de los espacios más versátiles del club. A lo largo del tiempo fue escenario de numerosos eventos y hoy sigue siendo un lugar central para compartir momentos entre socios, familias y amigos.',
+			'Cuando se reserva para uso exclusivo, los socios pueden invitar a personas no socias para disfrutar del espacio. Fuera de esas ocasiones, funciona como un sector común del club, abierto al uso y disfrute de todos los socios.'
+		],
+		'features': ['Parrilla interior', 'Parrilla en la terraza', 'Cocina equipada', 'Mesas y sillas', 'Heladera y freezer'],
+		'note': 'Para consultar disponibilidad y valores actualizados del alquiler exclusivo, es necesario comunicarse con secretaría.',
+		'photos': [
+			{'src': '/img/club/salon-social/salon-social.jpeg', 'caption': 'Una vista amplia del salón, preparado para recibir encuentros y celebraciones.'},
+			{'src': '/img/club/salon-social/salon-social-1.jpeg', 'caption': 'El corazón del espacio social, pensado para reuniones cómodas durante todo el año.'},
+			{'src': '/img/club/salon-social/salon-social-2.jpeg', 'caption': 'Detalle del sector interior con mobiliario listo para eventos y encuentros familiares.'},
+			{'src': '/img/club/salon-social/salon-social-3.jpeg', 'caption': 'Otra perspectiva del salón, con su amplitud y distribución como protagonistas.'},
+			{'src': '/img/club/salon-social/WhatsApp Image 2026-04-27 at 2.19.03 PM (3).jpeg', 'caption': 'El salón en modo social, listo para compartir un buen momento entre socios.'},
+			{'src': '/img/club/salon-social/WhatsApp Image 2026-04-27 at 2.19.04 PM (1).jpeg', 'caption': 'Un rincón funcional del espacio, pensado para acompañar celebraciones y reuniones.'},
+			{'src': '/img/club/salon-social/WhatsApp Image 2026-04-27 at 2.19.04 PM (2).jpeg', 'caption': 'Vista interior del salón, con sectores preparados para encuentros y actividades.'},
+			{'src': '/img/club/salon-social/WhatsApp Image 2026-04-27 at 2.19.04 PM (3).jpeg', 'caption': 'La amplitud del salón permite adaptarlo con facilidad a distintos tipos de eventos.'},
+			{'src': '/img/club/salon-social/WhatsApp Image 2026-04-27 at 2.19.04 PM.jpeg', 'caption': 'Una postal del salón social, uno de los espacios más utilizados del club.'},
+			{'src': '/img/club/salon-social/WhatsApp Image 2026-04-27 at 2.19.05 PM (1).jpeg', 'caption': 'El salón listo para seguir sumando historias, reuniones y celebraciones.'}
+		]
+	},
+	{
+		'id': 'canchas-tenis',
+		'tag': 'Deporte',
+		'title': 'Canchas de tenis',
+		'subtitle': 'Tres canchas reacondicionadas para entrenamiento, recreación y competencia.',
+		'description': [
+			'El club cuenta con tres canchas de tenis recientemente reacondicionadas para brindar mejores condiciones de juego durante todo el año. Se trata de uno de los sectores más activos del predio, con gran participación de socios y una dinámica constante de entrenamientos y partidos.',
+			'El uso es exclusivo para socios del tenis, aunque personas no socias pueden acceder abonando el canon correspondiente. Las reservas se gestionan de forma simple a través de una turnera digital online.'
+		],
+		'note': 'La actividad está acompañada por su propia subcomisión, que organiza torneos y trabaja en el desarrollo del tenis dentro del club.',
+		'photos': [
+			{'src': '/img/club/canchas-tenis/WhatsApp Image 2026-04-27 at 2.18.57 PM.jpeg', 'caption': 'Las canchas reacondicionadas ofrecen un entorno ideal para jugar y entrenar todo el año.'},
+			{'src': '/img/club/canchas-tenis/WhatsApp Image 2026-04-27 at 2.18.58 PM (2).jpeg', 'caption': 'Otra vista del sector de tenis, uno de los espacios con mayor movimiento del club.'}
+		]
+	},
+	{
+		'id': 'cancha-padel',
+		'tag': 'Deporte',
+		'title': 'Cancha de pádel',
+		'subtitle': 'Un espacio en crecimiento para jugar de forma recreativa o competitiva.',
+		'description': [
+			'La cancha de pádel puede reservarse solicitando turno a través del número de portería. Es un sector que sigue creciendo gracias al interés de los socios y de la comunidad, y que combina partidos informales con propuestas competitivas.',
+			'La actividad cuenta además con una subcomisión activa que organiza torneos y trabaja en proyectos de mejora para seguir potenciando la disciplina dentro del club.'
+		],
+		'photos': [
+			{'src': '/img/club/cancha-padel/WhatsApp Image 2026-04-27 at 2.18.59 PM (3).jpeg', 'caption': 'La cancha de pádel preparada para sumar partidos durante todo el año.'},
+			{'src': '/img/club/cancha-padel/WhatsApp Image 2026-04-27 at 2.19.00 PM (1).jpeg', 'caption': 'Otra perspectiva del sector, pensado para encuentros recreativos y torneos.'},
+			{'src': '/img/club/cancha-padel/WhatsApp Image 2026-04-27 at 2.19.00 PM.jpeg', 'caption': 'Un espacio que no deja de crecer dentro de la vida deportiva del club.'}
+		]
+	},
+	{
+		'id': 'playon',
+		'tag': 'Multideporte',
+		'title': 'Playón deportivo',
+		'subtitle': 'El playón “Comisión Fundadora 1981”, uno de los sectores más activos y visibles del predio.',
+		'description': [
+			'Ubicado en una zona central y rodeado de mesas y parrillas, el playón es un espacio de uso múltiple donde se practican actividades como básquet, vóley y patín, además de otras propuestas recreativas que no requieren reserva.',
+			'Durante la temporada también se transforma en punto de encuentro y diversión, recibiendo artistas invitados y convirtiéndose muchas veces en pista de baile. Por su ubicación y movimiento constante, es uno de los lugares donde mejor se mezclan el deporte, la vida social y los buenos momentos.'
+		],
+		'photos': [
+			{'src': '/img/club/playon/WhatsApp Image 2026-04-27 at 2.19.01 PM (3).jpeg', 'caption': 'El playón a cielo abierto, siempre listo para el deporte y el encuentro.'},
+		]
+	},
+	{
+		'id': 'cancha-tejo',
+		'tag': 'Tradición',
+		'title': 'Cancha de tejo',
+		'subtitle': 'Un clásico del club para disfrutar al aire libre, sin reserva previa.',
+		'description': [
+			'Ubicada cerca de la zona de beach vóley, la cancha de tejo ofrece un entorno ideal para relajarse y compartir. Es uno de los espacios más tradicionales del club, presente desde sus inicios y elegido por distintas generaciones.',
+			'No requiere reserva previa, lo que permite acercarse en cualquier momento para disfrutar en familia o con amigos.'
+		],
+		'photos': [
+			{'src': '/img/club/cancha-tejo/WhatsApp Image 2026-04-27 at 2.18.55 PM (3).jpeg', 'caption': 'La cancha de tejo mantiene viva una de las tradiciones más queridas del club.'}
+		]
+	},
+	{
+		'id': 'beach-voley',
+		'tag': 'Aire libre',
+		'title': 'Cancha de beach vóley',
+		'subtitle': 'Un sector activo durante todo el año, tanto en verano como en invierno.',
+		'description': [
+			'La cancha de beach vóley es uno de esos espacios que siempre invitan a jugar. Es utilizada por distintas generaciones para entrenar, organizar partidos espontáneos o simplemente disfrutar del movimiento dentro del club.',
+			'Por su ubicación y circulación constante, es uno de los sectores que suele estar siempre en actividad.'
+		],
+		'photos': [
+			{'src': '/img/club/cancha-beach-voley/WhatsApp Image 2026-04-27 at 2.19.00 PM (2).jpeg', 'caption': 'La cancha de beach vóley, lista para partidos informales y jornadas de entrenamiento.'}
+		]
+	},
+	{
+		'id': 'estadio',
+		'tag': 'Fútbol',
+		'title': 'Estadio Jacinto “Gato” López',
+		'subtitle': 'La cancha de fútbol 11, uno de los espacios más representativos de La Emilia.',
+		'description': [
+			'Ubicado en la parte trasera del club, este estadio acompaña la historia del predio desde hace muchos años. Fue escenario de incontables partidos, alegrías, momentos inolvidables y también de esos que marcan desde el sentimiento deportivo.',
+			'Lleva el nombre de una figura muy importante de la institución y cuenta con capacidad para miles de personas, consolidándose como un punto de encuentro clave para la comunidad. La subcomisión de fútbol trabaja de forma permanente para acompañar el crecimiento de la actividad y mantener en valor este lugar tan importante.'
+		],
+		'note': 'Aún no hay fotos cargadas de este sector en la carpeta del club.',
+		'photos': []
+	},
+	{
+		'id': 'baby-futbol',
+		'tag': 'Formación',
+		'title': 'Cancha de baby fútbol',
+		'subtitle': 'El lugar donde las generaciones más chicas dan sus primeros pasos en el deporte.',
+		'description': [
+			'Ubicada en la parte trasera del club, sobre uno de sus laterales y cerca del arroyo, la cancha de baby fútbol es un espacio al aire libre con pequeñas tribunas que acompañan cada entrenamiento y partido.',
+			'Es un lugar muy importante para la institución porque allí empiezan los primeros partidos, los primeros goles y el vínculo con el fútbol que luego crece con los años.'
+		],
+		'note': 'Aún no hay fotos cargadas de esta cancha en la carpeta del club.',
+		'photos': []
+	},
+	{
+		'id': 'cancha-auxiliar',
+		'tag': 'Desarrollo',
+		'title': 'Cancha de fútbol auxiliar',
+		'subtitle': 'Un espacio clave para el crecimiento de las categorías juveniles e inferiores.',
+		'description': [
+			'Ubicadas al costado de la cancha de baby fútbol, las canchas auxiliares acompañan la etapa intermedia entre el baby y la primera. Allí entrenan y juegan las categorías juveniles e inferiores, sumando experiencia y afianzándose en el deporte.',
+			'Es un espacio pensado para seguir creciendo, aprender, disfrutar del fútbol y formar a muchos de los futuros jugadores del club.'
+		],
+		'note': 'Aún no hay fotos cargadas de las canchas auxiliares en la carpeta del club.',
+		'photos': []
+	},
+	{
+		'id': 'gimnasio',
+		'tag': 'Cubierto',
+		'title': 'Gimnasio cubierto',
+		'subtitle': 'Uno de los espacios principales para básquet, vóley y múltiples encuentros deportivos.',
+		'description': [
+			'En el gimnasio cubierto entrenan y compiten disciplinas como básquet y vóley, desde las categorías formativas hasta primera división. También funciona como sede de torneos y encuentros a lo largo del año.',
+			'Ubicado en una zona central del club, es uno de los espacios más utilizados del predio. En 2022 se renovó su piso para mejorar las condiciones de práctica deportiva.'
+		],
+		'photos': [
+			{'src': '/img/club/gimnasio/WhatsApp Image 2026-04-27 at 2.18.57 PM (2).jpeg', 'caption': 'El gimnasio cubierto, eje de buena parte de la actividad deportiva del club.'}
+		]
+	},
+	{
+		'id': 'cantina',
+		'tag': 'Encuentro',
+		'title': 'Cantina',
+		'subtitle': 'Un espacio cotidiano del club, atendido con la cercanía de siempre.',
+		'description': [
+			'La cantina acompaña la vida del club todos los días. Actualmente está atendida por Andrea y el Colo, y ofrece opciones para desayunar, merendar, almorzar o cenar, tanto para socios como para quienes quieran acercarse a disfrutar de una buena comida.',
+			'Durante la temporada también suma presencia en el kiosco exterior, ampliando la atención dentro del predio. Aunque funciona como concesión, es parte del día a día y de la identidad del club.'
+		],
+		'photos': [
+			{'src': '/img/club/cantina/WhatsApp Image 2026-04-27 at 2.19.02 PM (1).jpeg', 'caption': 'La cantina, un espacio que acompaña el movimiento diario del club.'},
+			{'src': '/img/club/cantina/WhatsApp Image 2026-04-27 at 2.19.02 PM (2).jpeg', 'caption': 'Otra postal de la cantina, siempre lista para recibir a socios y visitantes.'}
+		]
+	},
+	{
+		'id': 'quinchos',
+		'tag': 'Reuniones',
+		'title': 'Quincho y patios cerveceros',
+		'subtitle': 'Espacios pensados para compartir comidas, festejos y encuentros dentro del club.',
+		'description': [
+			'El club cuenta con un quincho cerrado, equipado con cuatro parrillas, mesada, bachas, canillas y tablones, que puede reservarse de forma sencilla a través de la portería.',
+			'Además, hay dos patios cerveceros al aire libre que amplían las opciones para disfrutar del predio. Uno de ellos fue inaugurado recientemente en la parte trasera y suma también un fogonero para cocinar y pasar un buen momento entre amigos o en familia.'
+		],
+		'features': ['Quincho cerrado', 'Cuatro parrillas', 'Mesada y bachas', 'Canillas y tablones', 'Patios cerveceros al aire libre', 'Fogonero en el patio trasero'],
+		'photos': [
+			{'src': '/img/club/quinchos-y-patios-cerveceros/WhatsApp Image 2026-04-27 at 2.18.54 PM.jpeg', 'caption': 'El sector de quinchos y patios pensado para encuentros relajados dentro del predio.'},
+			{'src': '/img/club/quinchos-y-patios-cerveceros/WhatsApp Image 2026-04-27 at 2.18.56 PM (1).jpeg', 'caption': 'Un espacio preparado para compartir asados, reuniones y festejos.'},
+			{'src': '/img/club/quinchos-y-patios-cerveceros/WhatsApp Image 2026-04-27 at 2.18.56 PM (2).jpeg', 'caption': 'Vista del área social donde el club suma comodidad y encuentro al aire libre.'},
+			{'src': '/img/club/quinchos-y-patios-cerveceros/WhatsApp Image 2026-04-27 at 2.18.58 PM (1).jpeg', 'caption': 'Otra perspectiva del sector, ideal para reuniones entre amigos o en familia.'},
+			{'src': '/img/club/quinchos-y-patios-cerveceros/WhatsApp Image 2026-04-27 at 2.18.58 PM (3).jpeg', 'caption': 'Los patios cerveceros suman una propuesta distendida para disfrutar del club.'},
+			{'src': '/img/club/quinchos-y-patios-cerveceros/WhatsApp Image 2026-04-27 at 2.18.58 PM (4).jpeg', 'caption': 'El sector trasero combina sombra, reunión y movimiento social.'},
+			{'src': '/img/club/quinchos-y-patios-cerveceros/WhatsApp Image 2026-04-27 at 2.18.59 PM (1).jpeg', 'caption': 'Una mirada más cercana al espacio de encuentro, pensado para usarse mucho.'},
+			{'src': '/img/club/quinchos-y-patios-cerveceros/WhatsApp Image 2026-04-27 at 2.18.59 PM (2).jpeg', 'caption': 'El patio y sus sectores de apoyo acompañan festejos y comidas durante todo el año.'},
+			{'src': '/img/club/quinchos-y-patios-cerveceros/WhatsApp Image 2026-04-27 at 2.18.59 PM.jpeg', 'caption': 'El área social al aire libre, uno de los rincones más disfrutables del club.'},
+			{'src': '/img/club/quinchos-y-patios-cerveceros/WhatsApp Image 2026-04-27 at 2.19.01 PM (1).jpeg', 'caption': 'Los nuevos patios cerveceros suman otra forma de vivir el predio.'},
+			{'src': '/img/club/quinchos-y-patios-cerveceros/WhatsApp Image 2026-04-27 at 2.19.01 PM.jpeg', 'caption': 'Una postal del sector recientemente renovado para reuniones y encuentros.'}
+		]
+	},
+	{
+		'id': 'alojamiento',
+		'tag': 'Hospedaje',
+		'title': 'Alojamiento',
+		'subtitle': 'Seis habitaciones preparadas para recibir delegaciones y visitantes dentro del predio.',
+		'description': [
+			'El club dispone de seis habitaciones con capacidad para alojar hasta 30 personas. Cada una está equipada con camas individuales, baño privado, placares, televisores y mesas de luz, ofreciendo un espacio cómodo y funcional.',
+			'Como dato histórico, estas instalaciones se encuentran en el lugar donde, en los inicios del club, funcionaban las canchas de bowling. Para hacer uso del alojamiento, es necesario reservar previamente a través de secretaría.'
+		],
+		'note': 'Aún no hay fotos cargadas del alojamiento en la carpeta del club.',
+		'photos': []
+	},
+	{
+		'id': 'pension',
+		'tag': 'Hospedaje',
+		'title': 'Pensión',
+		'subtitle': 'Un espacio reacondicionado para alojar deportistas y grupos dentro del club.',
+		'description': [
+			'La pensión tiene capacidad para hasta 16 personas y fue recientemente reacondicionada para brindar mayor comodidad. Cuenta con camas con colchones nuevos, baños renovados y espacios comunes totalmente equipados.',
+			'Se utiliza principalmente para alojar a deportistas del club, especialmente del fútbol y otras disciplinas que necesitan quedarse dentro del predio, aunque también puede alquilarse mediante reserva por secretaría.'
+		],
+		'note': 'Aún no hay fotos cargadas de la pensión en la carpeta del club.',
+		'photos': []
+	},
+	{
+		'id': 'pelota-paleta',
+		'tag': 'Historia',
+		'title': 'Cancha de pelota paleta',
+		'subtitle': 'Una de las instalaciones más históricas del club y de las pocas que siguen en actividad en la zona.',
+		'description': [
+			'La cancha de pelota paleta mantiene vivo un deporte con mucha tradición, donde todavía se acercan jugadores y aficionados para compartir y seguir practicándolo.',
+			'Aunque hoy no sea una de las actividades más populares, este espacio conserva una parte importante de la historia y de la identidad del club.'
+		],
+		'photos': [
+			{'src': '/img/club/cancha-pelota-paleta/WhatsApp Image 2026-04-27 at 2.19.02 PM (3).jpeg', 'caption': 'La cancha de pelota paleta, testigo silenciosa de décadas de historia deportiva.'},
+			{'src': '/img/club/cancha-pelota-paleta/WhatsApp Image 2026-04-27 at 2.19.03 PM (1).jpeg', 'caption': 'Otra mirada a uno de los espacios más tradicionales que conserva el club.'},
+			{'src': '/img/club/cancha-pelota-paleta/WhatsApp Image 2026-04-27 at 2.19.03 PM (2).jpeg', 'caption': 'La esencia de la pelota paleta sigue viva en este rincón histórico del predio.'},
+			{'src': '/img/club/cancha-pelota-paleta/WhatsApp Image 2026-04-27 at 2.19.03 PM.jpeg', 'caption': 'Un espacio con identidad propia, donde la tradición sigue teniendo lugar.'}
+		]
+	},
+	{
+		'id': 'natatorio',
+		'tag': 'Verano',
+		'title': 'Natatorio / pileta',
+		'subtitle': 'La pileta semiolímpica, protagonista de la temporada de verano en el club.',
+		'description': [
+			'El natatorio es uno de los espacios más utilizados durante el verano. Cuenta con amplias dimensiones y un sector profundo que alcanza casi los cinco metros, convirtiéndose en un punto central para la vida social y recreativa de la temporada.',
+			'Además del uso libre de los socios, allí se desarrollan actividades como aquagym para adultos y escuela de natación para los más chicos.'
+		],
+		'photos': [
+			{'src': '/img/club/natatorio-pileta/WhatsApp Image 2026-04-27 at 2.18.55 PM.jpeg', 'caption': 'El natatorio, uno de los grandes protagonistas de cada verano en La Emilia.'},
+			{'src': '/img/club/natatorio-pileta/WhatsApp Image 2026-04-27 at 2.18.56 PM.jpeg', 'caption': 'Otra vista de la pileta semiolímpica, pensada para disfrutar y entrenar.'},
+			{'src': '/img/club/natatorio-pileta/WhatsApp Image 2026-04-27 at 2.18.57 PM (3).jpeg', 'caption': 'Un espacio amplio y convocante que reúne deporte, descanso y verano.'}
+		]
+	},
+	{
+		'id': 'cine-teatro',
+		'tag': 'Patrimonio',
+		'title': 'Cine Teatro La Emilia',
+		'subtitle': 'Un espacio histórico que todavía forma parte de la identidad visual y emocional del predio.',
+		'description': [
+			'Dentro del club se encuentra el antiguo cine de La Emilia, inaugurado a mediados de los años 40 como parte de la obra social de la fábrica textil. Llegó a tener una capacidad cercana a las 1.400 personas y fue durante décadas un verdadero punto de encuentro para vecinos y familias.',
+			'Allí no solo se proyectaban películas: también se realizaban espectáculos y actividades culturales que marcaron la vida del pueblo. Aunque hoy ya no funciona como cine, su fachada sigue conservándose como parte del paisaje y de la memoria del club.'
+		],
+		'note': 'Aún no hay fotos cargadas del cine teatro en la carpeta del club.',
+		'photos': []
+	}
+] %}
+
+<header class="instalaciones-hero">
+	<div class="container">
+		<h1>Instalaciones</h1>
+		<p>
+			Cada rincón del club cuenta una parte de la historia de La Emilia. Acá vas a encontrar
+			los espacios donde se vive el deporte, el encuentro social, la tradición y los mejores momentos compartidos.
 		</p>
 	</div>
+</header>
+
+<div class="instalaciones-nav">
+	<div class="container">
+		<nav class="nav" aria-label="Navegación de instalaciones">
+			{% for instalacion in instalaciones %}
+			<a class="nav-link" href="#{{ instalacion.id }}">{{ instalacion.title }}</a>
+			{% endfor %}
+		</nav>
+	</div>
+</div>
+
+{% for instalacion in instalaciones %}
+<section id="{{ instalacion.id }}" class="facility-band {% if loop.index0 % 2 == 0 %}band-light{% else %}band-dark{% endif %}">
+	<div class="container">
+		<div class="row align-items-center g-5 {% if loop.index0 % 2 == 1 %}flex-lg-row-reverse{% endif %}">
+			<div class="col-lg-6">
+				<div class="facility-media">
+					{% if instalacion.photos %}
+					<div id="carousel-{{ instalacion.id }}" class="carousel slide facility-carousel" data-bs-ride="carousel">
+						{% if instalacion.photos.length > 1 %}
+						<div class="carousel-indicators">
+							{% for photo in instalacion.photos %}
+							<button type="button" data-bs-target="#carousel-{{ instalacion.id }}" data-bs-slide-to="{{ loop.index0 }}" class="{% if loop.first %}active{% endif %}" {% if loop.first %}aria-current="true"{% endif %} aria-label="Foto {{ loop.index }} de {{ instalacion.title }}"></button>
+							{% endfor %}
+						</div>
+						{% endif %}
+						<div class="carousel-inner">
+							{% for photo in instalacion.photos %}
+							<div class="carousel-item{% if loop.first %} active{% endif %}">
+								<img src="{{ photo.src }}" alt="{{ instalacion.title }} - imagen {{ loop.index }}">
+							</div>
+							{% endfor %}
+						</div>
+						{% if instalacion.photos.length > 1 %}
+						<button class="carousel-control-prev" type="button" data-bs-target="#carousel-{{ instalacion.id }}" data-bs-slide="prev">
+							<span class="carousel-control-prev-icon" aria-hidden="true"></span>
+							<span class="visually-hidden">Anterior</span>
+						</button>
+						<button class="carousel-control-next" type="button" data-bs-target="#carousel-{{ instalacion.id }}" data-bs-slide="next">
+							<span class="carousel-control-next-icon" aria-hidden="true"></span>
+							<span class="visually-hidden">Siguiente</span>
+						</button>
+						{% endif %}
+					</div>
+					{% else %}
+					<div class="facility-placeholder">
+						<i class="bi bi-image-alt"></i>
+						<strong>Aún no hay fotos cargadas</strong>
+						<p>
+							Este sector ya forma parte de la página, pero todavía no tiene imágenes disponibles en la carpeta del club.
+						</p>
+					</div>
+					{% endif %}
+				</div>
+			</div>
+			<div class="col-lg-6">
+				<div class="facility-copy">
+					<h2>{{ instalacion.title }}</h2>
+					<p class="facility-subtitle">{{ instalacion.subtitle }}</p>
+					{% for paragraph in instalacion.description %}
+					<p>{{ paragraph }}</p>
+					{% endfor %}
+					{% if instalacion.features %}
+					<ul class="facility-list">
+						{% for feature in instalacion.features %}
+						<li>{{ feature }}</li>
+						{% endfor %}
+					</ul>
+					{% endif %}
+					{% if instalacion.note %}
+					<p class="facility-note"><i class="bi bi-info-circle"></i>{{ instalacion.note }}</p>
+					{% endif %}
+				</div>
+			</div>
+		</div>
+	</div>
 </section>
+{% endfor %}
 {% endblock %}
