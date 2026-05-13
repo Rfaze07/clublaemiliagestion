@@ -70,5 +70,5 @@ exports.getInstalaciones = async (req, res) => {
     }
 }
 exports.getOlimpiadas = (req, res) => {
-    res.render('web/static/olimpiadas')
+    res.render('web/static/Olimpiadas')
 }
