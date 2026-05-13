@@ -1,0 +1,529 @@
+{% extends '../template.html' %}
+
+{% block title %}Olimpiadas - Club La Emilia{% endblock %}
+
+{% block styles %}
+<style>
+.olimpiadas-hero {
+	background: #fff;
+	color: #000;
+	padding: 70px 0 60px;
+	border-bottom: 1px solid rgba(0,0,0,.08);
+	text-align: center;
+}
+
+.olimpiadas-hero h1 {
+	font-size: clamp(2rem, 5vw, 3.4rem);
+	font-weight: 900;
+	text-transform: uppercase;
+	letter-spacing: 5px;
+	margin-bottom: 14px;
+}
+
+.olimpiadas-hero p {
+	max-width: 850px;
+	margin: 0 auto;
+	font-size: 1rem;
+	line-height: 1.9;
+	color: #666;
+}
+.olimpiadas-logos {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: 30px;
+	margin-top: 40px;
+	flex-wrap: wrap;
+}
+
+.olimpiadas-logos img {
+	width: 90px;
+	height: 90px;
+	object-fit: contain;
+	transition: transform .3s ease;
+}
+
+.olimpiadas-logos img:hover {
+	transform: scale(1.08);
+}
+
+.olimpiadas-banner {
+	min-height: 420px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 80px 0;
+	background: #000;
+	color: #fff;
+}
+
+.olimpiadas-banner-content {
+	max-width: 900px;
+}
+
+.olimpiadas-banner h2 {
+	font-size: clamp(2.3rem, 5vw, 4rem);
+	font-weight: 900;
+	line-height: 1.1;
+	text-transform: uppercase;
+	margin-bottom: 24px;
+	letter-spacing: 2px;
+}
+
+.olimpiadas-banner p {
+	font-size: 1.1rem;
+	line-height: 1.9;
+	color: rgba(255,255,255,.75);
+	max-width: 760px;
+	margin: 0 auto;
+}
+.olimpiadas-section {
+	padding: 95px 0;
+}
+#sectionult {
+	padding: 100px 0;
+	text-align: center;
+	background: #fff;
+	color: #000;
+}
+
+.band-light{
+	background: #fff;
+	color: #111;
+}
+
+.band-dark {
+	background: #050505;
+	color: #fff;
+}
+
+.olimpiadas-copy {
+	max-width: 700px;
+}
+
+.olimpiadas-copy h3 {
+	font-size: clamp(1.7rem, 3vw, 2.4rem);
+	font-weight: 900;
+	margin-bottom: 20px;
+	line-height: 1.12;
+}
+
+.olimpiadas-copy p {
+	font-size: 1rem;
+	line-height: 1.95;
+	margin-bottom: 18px;
+	opacity: .92;
+}
+
+.olimpiadas-carousel {
+	border-radius: 28px;
+	overflow: hidden;
+	background: #111;
+	box-shadow: 0 24px 55px rgba(0,0,0,.25);
+}
+
+.olimpiadas-carousel .carousel-item {
+	height: 620px;
+	background: #000;
+}
+
+.olimpiadas-carousel img {
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+	background: #000;
+}
+
+.olimpiadas-carousel .carousel-control-prev,
+.olimpiadas-carousel .carousel-control-next {
+	width: 12%;
+}
+
+.olimpiadas-carousel .carousel-control-prev-icon,
+.olimpiadas-carousel .carousel-control-next-icon {
+	width: 3rem;
+	height: 3rem;
+	border-radius: 50%;
+	background-color: rgba(0,0,0,.55);
+	background-size: 50%;
+}
+
+.olimpiadas-carousel .carousel-indicators {
+	margin-bottom: 1rem;
+}
+
+.olimpiadas-carousel .carousel-indicators [data-bs-target] {
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	border: 0;
+	margin: 0 4px;
+}
+
+.timeline-grid {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 24px;
+	margin-top: 40px;
+}
+
+.timeline-card {
+	padding: 28px;
+	border-radius: 24px;
+	background: rgba(255,255,255,.05);
+	border: 1px solid rgba(255,255,255,.08);
+	height: 100%;
+}
+
+.band-light .timeline-card {
+	background: #f8f8f8;
+	border: 1px solid rgba(0,0,0,.08);
+}
+
+.timeline-card strong {
+	display: block;
+	font-size: 2rem;
+	font-weight: 900;
+	margin-bottom: 10px;
+}
+
+.timeline-card p {
+	margin: 0;
+	font-size: .95rem;
+	line-height: 1.8;
+}
+
+
+.olimpiadas-quote blockquote {
+	max-width: 920px;
+	margin: 0 auto;
+	font-size: clamp(1.4rem, 3vw, 2.2rem);
+	font-weight: 700;
+	line-height: 1.6;
+	letter-spacing: .4px;
+}
+
+.olimpiadas-quote span {
+	display: block;
+	margin-top: 24px;
+	font-size: .9rem;
+	letter-spacing: 3px;
+	text-transform: uppercase;
+	opacity: .7;
+}
+
+@media (max-width: 991px) {
+
+	.olimpiadas-banner {
+		min-height: 360px;
+		padding: 60px 0;
+	}
+
+	.olimpiadas-banner h2 {
+		font-size: 2.5rem;
+	}
+
+	.olimpiadas-carousel .carousel-item {
+		height: 440px;
+	}
+
+	.timeline-grid {
+		grid-template-columns: 1fr;
+	}
+}
+
+@media (max-width: 767px) {
+
+	.olimpiadas-hero {
+		padding: 55px 0 48px;
+	}
+
+	.olimpiadas-banner {
+		min-height: 300px;
+		padding: 50px 0;
+	}
+
+	.olimpiadas-banner h2 {
+		font-size: 2rem;
+	}
+
+	.olimpiadas-banner p {
+		font-size: 1rem;
+	}
+
+	.olimpiadas-section {
+		padding: 72px 0;
+	}
+
+	.olimpiadas-carousel .carousel-item {
+		height: 300px;
+	}
+}
+@media (max-width: 767px) {
+
+	.olimpiadas-logos {
+		gap: 18px;
+		margin-top: 30px;
+	}
+
+	.olimpiadas-logos img {
+		width: 65px;
+		height: 65px;
+	}
+
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<header class="olimpiadas-hero">
+	<div class="container">
+
+		<h1>Olimpiadas</h1>
+
+		<p>
+			Una tradición que atraviesa generaciones y mantiene vivo el espíritu del Club Social y Deportivo La Emilia.
+			Cada verano, el club vuelve a llenarse de colores, familias, amistad y recuerdos que quedan para siempre.
+		</p>
+		<div class="olimpiadas-logos">
+
+	<img src="/img/olimpiadas/Amarillo.svg" alt="Equipo Amarillo">
+	<img src="/img/olimpiadas/Azul.svg" alt="Equipo Azul">
+	<img src="/img/olimpiadas/Rojo.svg" alt="Equipo Rojo">
+	<img src="/img/olimpiadas/Verde.svg" alt="Equipo Verde">
+
+</div>
+
+	</div>
+</header>
+
+<section class="olimpiadas-banner band-dark">
+
+	<div class="container h-100 d-flex align-items-center justify-content-center text-center">
+
+		<div class="olimpiadas-banner-content">
+
+			<h2>
+				Más de tres décadas compartiendo historia, pasión y pertenencia.
+			</h2>
+
+			<p>
+				Una tradición que reúne generaciones enteras alrededor del deporte,
+				la amistad y el sentido de pertenencia.
+			</p>
+
+		</div>
+
+	</div>
+
+</section>
+
+<section class="olimpiadas-section band-light">
+
+	<div class="container">
+
+		<div class="row align-items-center g-5">
+
+			<div class="col-lg-6">
+
+				<div class="olimpiadas-copy">
+
+					<h3>Una tradición que nos une</h3>
+
+					<p>
+						Desde 1990, vivimos una de nuestras expresiones más representativas:
+						las Olimpiadas del Club Social y Deportivo La Emilia.
+					</p>
+
+					<p>
+						Lo que comenzó como un encuentro entre amigos se transformó,
+						con el paso de los años,
+						en una verdadera tradición que atraviesa generaciones.
+					</p>
+
+					<p>
+						Cada verano, el club se llena de vida, color y entusiasmo,
+						reuniendo a cientos de socios y familias que participan con el mismo espíritu:
+						compartir, competir y encontrarse.
+					</p>
+
+					<p>
+						Hoy, las Olimpiadas representan mucho más que una competencia:
+						son parte de la identidad del club y uno de los momentos más esperados por toda la comunidad.
+					</p>
+
+				</div>
+
+			</div>
+
+			<div class="col-lg-6">
+
+				<div id="carouselOlimpiadas1" class="carousel slide olimpiadas-carousel" data-bs-ride="carousel">
+
+					<div class="carousel-indicators">
+						<button type="button" data-bs-target="#carouselOlimpiadas1" data-bs-slide-to="0" class="active"></button>
+						<button type="button" data-bs-target="#carouselOlimpiadas1" data-bs-slide-to="1"></button>
+					</div>
+
+					<div class="carousel-inner">
+
+						<div class="carousel-item active">
+							<img src="/img/olimpiadas/olimpiadas-1.jpeg" alt="Club La Emilia">
+						</div>
+
+						<div class="carousel-item">
+							<img src="/img/olimpiadas/olimpiadas-2.jpeg" alt="Olimpiadas">
+						</div>
+
+
+
+					</div>
+
+					<button class="carousel-control-prev" type="button" data-bs-target="#carouselOlimpiadas1" data-bs-slide="prev">
+						<span class="carousel-control-prev-icon"></span>
+					</button>
+
+					<button class="carousel-control-next" type="button" data-bs-target="#carouselOlimpiadas1" data-bs-slide="next">
+						<span class="carousel-control-next-icon"></span>
+					</button>
+
+				</div>
+
+			</div>
+
+		</div>
+
+	</div>
+
+</section>
+
+<section class="olimpiadas-section band-dark">
+
+	<div class="container">
+
+		<div class="row align-items-center g-5 flex-lg-row-reverse">
+
+			<div class="col-lg-6">
+
+				<div class="olimpiadas-copy">
+
+					<h3>Mucho más que competir</h3>
+
+					<p>
+						Organizados en equipos por colores,
+						grandes y chicos forman parte de distintas disciplinas deportivas y recreativas,
+						donde el resultado es solo una parte de la experiencia.
+					</p>
+
+					<p>
+						Lo más importante sucede en el camino:
+						el compañerismo, la alegría y el sentido de pertenencia
+						que se renueva en cada edición.
+					</p>
+
+					<p>
+						Cada equipo representa amistad, esfuerzo y unión.
+						Las canciones, las banderas, las antorchas y cada encuentro
+						hacen que el club viva jornadas únicas.
+					</p>
+
+					<div class="timeline-grid">
+
+						<div class="timeline-card">
+
+							<strong>1990</strong>
+
+							<p>
+								Nacen las primeras Olimpiadas del club
+								como una propuesta recreativa entre socios y amigos.
+							</p>
+
+						</div>
+
+						<div class="timeline-card">
+
+							<strong>+30</strong>
+
+							<p>
+								Más de tres décadas manteniendo viva una tradición
+								que sigue creciendo generación tras generación.
+							</p>
+
+						</div>
+
+						<div class="timeline-card">
+
+							<strong>1 Club</strong>
+
+							<p>
+								Una comunidad entera reunida cada verano
+								para compartir deporte, amistad y pertenencia.
+							</p>
+
+						</div>
+
+					</div>
+
+				</div>
+
+			</div>
+
+			<div class="col-lg-6">
+
+				<div id="carouselOlimpiadas2" class="carousel slide olimpiadas-carousel" data-bs-ride="carousel">
+
+					<div class="carousel-indicators">
+						<button type="button" data-bs-target="#carouselOlimpiadas2" data-bs-slide-to="0" class="active"></button>
+						<button type="button" data-bs-target="#carouselOlimpiadas2" data-bs-slide-to="1"></button>
+					</div>
+
+					<div class="carousel-inner">
+
+						<div class="carousel-item active">
+							<img src="/img/olimpiadas/olimpiadas-1.jpeg" alt="Olimpiadas Club">
+						</div>
+
+						<div class="carousel-item">
+							<img src="/img/olimpiadas/olimpiadas-5.jpeg" alt="Antorcha">
+						</div>
+
+					</div>
+
+					<button class="carousel-control-prev" type="button" data-bs-target="#carouselOlimpiadas2" data-bs-slide="prev">
+						<span class="carousel-control-prev-icon"></span>
+					</button>
+
+					<button class="carousel-control-next" type="button" data-bs-target="#carouselOlimpiadas2" data-bs-slide="next">
+						<span class="carousel-control-next-icon"></span>
+					</button>
+
+				</div>
+
+			</div>
+
+		</div>
+
+	</div>
+
+</section>
+
+<section  class="olimpiadas-section band-light" id="sectionult">
+
+	<div class="container">
+
+		<blockquote>
+			“Las Olimpiadas siguen siendo mucho más que un evento.
+			Son un ritual del club,
+			un momento esperado por toda la comunidad
+			y una muestra viva de lo que somos:
+			unión, identidad y pasión compartida.”
+		</blockquote>
+
+		<span>Club Social y Deportivo La Emilia</span>
+
+	</div>
+
+</section>
+
+{% endblock %}

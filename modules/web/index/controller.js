@@ -69,3 +69,6 @@ exports.getInstalaciones = async (req, res) => {
         res.redirect('/inicio')
     }
 }
+exports.getOlimpiadas = (req, res) => {
+    res.render('web/static/olimpiadas')
+}
