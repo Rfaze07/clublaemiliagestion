@@ -9,7 +9,7 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <style>
 
 /* =====================
@@ -38,6 +38,14 @@ body {
 
 .logo {
     max-height: 80px;
+}
+
+.campo-honeypot {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
 }
 
 .navbar-nav {
@@ -443,20 +451,52 @@ body {
         <h5 class="footer-title">Libro de Quejas</h5>
 
         <form method="POST" action="/quejas" class="form-quejas">
-          <div class="form-check mb-2">
-            <input class="form-check-input" type="checkbox" id="anonimo" name="anonimo" value="1" checked>
-            <label class="form-check-label">Enviar de forma anónima</label>
-          </div>
 
-          <div id="datosPersonales" style="display:none;">
-            <input class="footer-input mb-2" name="nombre" placeholder="Nombre y apellido">
-            <input class="footer-input mb-2" name="email" placeholder="Email">
-          </div>
+            <div class="form-check mb-2">
+                <input class="form-check-input"
+                    type="checkbox"
+                    id="anonimo"
+                    name="anonimo"
+                    value="1"
+                    checked>
 
-          <textarea class="footer-textarea mb-2" name="mensaje" rows="4"
-            placeholder="Escriba su queja o sugerencia..." required></textarea>
+                <label class="form-check-label">
+                    Enviar de forma anónima
+                </label>
+            </div>
 
-          <button class="footer-btn">Enviar</button>
+            <div id="datosPersonales" style="display:none;">
+                <input class="footer-input mb-2"
+                    name="nombre"
+                    placeholder="Nombre y apellido">
+
+                <input class="footer-input mb-2"
+                    name="email"
+                    type="email"
+                    placeholder="Email">
+            </div>
+
+            <textarea class="footer-textarea mb-2"
+                    name="mensaje"
+                    rows="4"
+                    placeholder="Escriba su queja o sugerencia..."
+                    required></textarea>
+
+            <div class="cf-turnstile mb-3"
+                data-sitekey="0x4AAAAAAE-3qaVMeHHXmS23">
+            </div>
+
+            <div class="campo-honeypot">
+                <input type="text"
+                    name="website"
+                    tabindex="-1"
+                    autocomplete="off">
+            </div>
+
+            <button class="footer-btn" type="submit">
+                Enviar
+            </button>
+
         </form>
       </div>
 
