@@ -39,6 +39,7 @@
     flex-shrink: 0;
 }
 </style>
+<link href="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-bs4.min.css" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
@@ -94,13 +95,13 @@
                 <div class="row">
                     <div class="form-group col-sm-12">
                         <label for="horarios">Horarios</label>
-                        <textarea class="form-control form-control-sm" id="horarios" rows="6" maxlength="600"></textarea>
+                        <textarea class="form-control form-control-sm" id="horarios"></textarea>
                     </div>
                 </div>
                 <div class="row">
                     <div class="form-group col-sm-12">
                         <label for="profesores">Profesores</label>
-                        <textarea class="form-control form-control-sm" id="profesores" rows="6" maxlength="1000"></textarea>
+                        <textarea class="form-control form-control-sm" id="profesores"></textarea>
                     </div>
                 </div>
                 <div class="row">
@@ -169,8 +170,29 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-bs4.min.js"></script>
 <script>
     $(document).ready(async () => {
+
+         $('#horarios').summernote({
+        height: 180,
+        toolbar: [
+            ['style', ['bold', 'italic', 'underline']],
+            ['para', ['ul', 'ol', 'paragraph']],
+            ['view', ['fullscreen', 'codeview']]
+        ]
+    })
+
+    $('#profesores').summernote({
+        height: 180,
+        toolbar: [
+            ['style', ['bold', 'italic', 'underline']],
+            ['para', ['ul', 'ol', 'paragraph']],
+            ['view', ['fullscreen', 'codeview']]
+        ]
+    })
+
+
         getLista()
     })
 
@@ -238,8 +260,8 @@
             if (res.status != 0) {
                 $('#nombre').val(res.data[0].nombre)
                 $('#descripcion').val(res.data[0].descripcion)
-                $('#horarios').val(res.data[0].horarios)
-                $('#profesores').val(res.data[0].profesores)
+                $('#horarios').summernote('code', res.data[0].horarios || '')
+                $('#profesores').summernote('code', res.data[0].profesores || '')
                 const iconoCls = res.data[0].icono || ''
                 $('#icono').val(iconoCls)
                 document.getElementById('iconPreviewIcon').className = (iconoCls || 'fas fa-award') + ' fa-fw'
@@ -268,30 +290,20 @@
                 // Descripción con saltos
                 $('#verDescripcion').html((d.descripcion || '').toString().replace(/\n/g, '<br/>'))
 
-                // Horarios: renderizar como lista (separadores: coma o salto de línea)
                 let horariosRaw = (d.horarios || '').toString().trim()
+
                 if (!horariosRaw) {
                     $('#verHorarios').html('<em>No hay horarios cargados</em>')
                 } else {
-                    let items = horariosRaw.split(/\r?\n|,/).map(s => s.trim()).filter(Boolean)
-                    if (items.length) {
-                        $('#verHorarios').html('<ul style="margin:0; padding-left:1rem;">' + items.map(it => `<li>${it}</li>`).join('') + '</ul>')
-                    } else {
-                        $('#verHorarios').text(horariosRaw)
-                    }
+                    $('#verHorarios').html(horariosRaw)
                 }
 
-                // Profesores: renderizar como lista si corresponde
                 let profsRaw = (d.profesores || '').toString().trim()
+
                 if (!profsRaw) {
                     $('#verProfesores').html('<em>No hay profesores listados</em>')
                 } else {
-                    let profs = profsRaw.split(/\r?\n|,/).map(s => s.trim()).filter(Boolean)
-                    if (profs.length) {
-                        $('#verProfesores').html('<ul style="margin:0; padding-left:1rem;">' + profs.map(p => `<li>${p}</li>`).join('') + '</ul>')
-                    } else {
-                        $('#verProfesores').text(profsRaw)
-                    }
+                    $('#verProfesores').html(profsRaw)
                 }
 
                 $('#modalVer').modal('show')
@@ -308,13 +320,13 @@
     const PostRegistro = async (accion, Id) => {
         $("#preloaderAPP").show()
         let url = '/deportes/alta',
-            body = {
-                nombre: $('#nombre').val(),
-                descripcion: $('#descripcion').val(),
-                horarios: $('#horarios').val(),
-                profesores: $('#profesores').val(),
-                icono: $('#icono').val()
-            }
+           body = {
+            nombre: $('#nombre').val(),
+            descripcion: $('#descripcion').val(),
+            horarios: $('#horarios').summernote('code'),
+            profesores: $('#profesores').summernote('code'),
+            icono: $('#icono').val()
+        }
 
         if (accion === 'm') {
             url = '/deportes/modificar'
@@ -385,11 +397,18 @@
 
     const LimpiarCampos = () => {
         $('input[type="text"]').val('')
-        $('textarea').val('')
+
+        $('#descripcion').val('')
+
+        $('#horarios').summernote('reset')
+        $('#profesores').summernote('reset')
+
         $('#cmbEquipo').val('')
         $('input[type="checkbox"]').prop('checked', false)
         $('input[type="radio"]').prop('checked', false)
+
         $('#icono').val('')
+
         document.getElementById('iconPreviewIcon').className = 'fas fa-award'
         document.getElementById('iconPickerPanel').style.display = 'none'
         document.getElementById('iconSearch').value = ''

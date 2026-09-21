@@ -23289,3 +23289,8 @@ values ('cuota_socio_deportivo', 'Este parametro refleja el monto de la cuota de
   `imagen_public_id` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+--21/09
+ALTER TABLE deportes MODIFY COLUMN horarios text default null,
+					MODIFY COLUMN profesores text default null

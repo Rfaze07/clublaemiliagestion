@@ -43,7 +43,34 @@
 .deportes-grid {
     padding-bottom: 60px;
 }
+.deporte-meta-html {
+    align-items: flex-start;
+}
 
+.deporte-contenido-html {
+    flex: 1;
+    font-size: 0.82rem;
+    color: #444;
+    line-height: 1.5;
+}
+
+.deporte-contenido-html p {
+    margin: 0 0 4px;
+}
+
+.deporte-contenido-html p:last-child {
+    margin-bottom: 0;
+}
+
+.deporte-contenido-html ul,
+.deporte-contenido-html ol {
+    margin: 0;
+    padding-left: 18px;
+}
+
+.deporte-contenido-html br {
+    line-height: 1.5;
+}
 /* =====================
    TARJETA
 ===================== */
@@ -249,58 +276,98 @@ $(document).ready(async function () {
 const getLista = async () => {
     try {
         $('#preloaderAPP').show();
+
         const res = await $.post('/web/deportes/getLista', {});
 
-        if (!res.status) {
+        if (!res.status || !Array.isArray(res.data) || res.data.length === 0) {
             $('#deportes-container').html(`
                 <div class="col-12 sin-deportes">
                     <i class="bi bi-emoji-neutral"></i>
                     <p>No hay deportes disponibles en este momento.</p>
                 </div>
             `);
+
             $('#preloaderAPP').hide();
             return;
         }
 
         res.data.forEach(deporte => {
-            /* Si tiene icono guardado (FA class) lo usamos; si no, fallback por nombre */
-            const iconoCls = deporte.icono || getIcono(deporte.nombre)
-            const esFa = iconoCls.startsWith('fas ') || iconoCls.startsWith('far ') || iconoCls.startsWith('fab ') || iconoCls.startsWith('fa ')
+
+            const iconoCls = deporte.icono || getIcono(deporte.nombre);
+
+            const esFa =
+                iconoCls.startsWith('fas ') ||
+                iconoCls.startsWith('far ') ||
+                iconoCls.startsWith('fab ') ||
+                iconoCls.startsWith('fa ');
+
             const iconTag = esFa
                 ? `<i class="${iconoCls} deporte-icono"></i>`
                 : `<i class="bi ${iconoCls} deporte-icono"></i>`;
 
-            const horarioHtml = deporte.horarios
-                ? `<div class="deporte-meta-item">
-                       <i class="bi bi-clock"></i>
-                       <span>${deporte.horarios}</span>
-                   </div>`
+            /*
+             * HORARIOS Y PROFESORES
+             * Se muestran como HTML porque vienen de Summernote.
+             */
+            const horarioHtml = deporte.horarios && deporte.horarios.trim()
+                ? `
+                    <div class="deporte-meta-item deporte-meta-html">
+                        <i class="bi bi-clock"></i>
+                        <div class="deporte-contenido-html">
+                            ${deporte.horarios}
+                        </div>
+                    </div>
+                `
                 : '';
 
-            const profesoresHtml = deporte.profesores
-                ? `<div class="deporte-meta-item">
-                       <i class="bi bi-person-fill"></i>
-                       <span>${deporte.profesores}</span>
-                   </div>`
+            const profesoresHtml = deporte.profesores && deporte.profesores.trim()
+                ? `
+                    <div class="deporte-meta-item deporte-meta-html">
+                        <i class="bi bi-person-fill"></i>
+                        <div class="deporte-contenido-html">
+                            ${deporte.profesores}
+                        </div>
+                    </div>
+                `
                 : '';
 
-            const metaHtml = (horarioHtml || profesoresHtml)
-                ? `<div class="deporte-meta">${horarioHtml}${profesoresHtml}</div>`
+            const metaHtml = horarioHtml || profesoresHtml
+                ? `
+                    <div class="deporte-meta">
+                        ${horarioHtml}
+                        ${profesoresHtml}
+                    </div>
+                `
                 : '';
 
             const card = $(`
                 <div class="col-12 col-sm-6 col-lg-4">
                     <div class="card-deporte">
+
                         <div class="deporte-icono-wrap">
                             ${iconTag}
                         </div>
+
                         <div class="card-body">
-                            <h5 class="deporte-nombre">${deporte.nombre}</h5>
-                            ${deporte.descripcion
-                                ? `<p class="deporte-descripcion">${deporte.descripcion}</p>`
-                                : ''}
+
+                            <h5 class="deporte-nombre">
+                                ${deporte.nombre}
+                            </h5>
+
+                            ${
+                                deporte.descripcion
+                                    ? `
+                                        <p class="deporte-descripcion">
+                                            ${deporte.descripcion}
+                                        </p>
+                                    `
+                                    : ''
+                            }
+
                             ${metaHtml}
+
                         </div>
+
                     </div>
                 </div>
             `);
@@ -309,8 +376,18 @@ const getLista = async () => {
         });
 
         $('#preloaderAPP').hide();
+
     } catch (error) {
+
         console.error('Error al obtener deportes:', error);
+
+        $('#deportes-container').html(`
+            <div class="col-12 sin-deportes">
+                <i class="bi bi-exclamation-circle"></i>
+                <p>Ocurrió un error al cargar los deportes.</p>
+            </div>
+        `);
+
         $('#preloaderAPP').hide();
     }
 };
