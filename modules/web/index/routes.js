@@ -11,6 +11,6 @@ router.get('/web/comision-directiva', controller.getComisionDirectiva);
 router.get('/web/historia', controller.getHistoria);
 router.get('/web/horarios', controller.getHorarios);
 router.get('/web/instalaciones', controller.getInstalaciones);
-
+router.get('/web/olimpiadas', controller.getOlimpiadas)
 
 module.exports = router
