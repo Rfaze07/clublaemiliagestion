@@ -3,8 +3,34 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>La Emilia</title>
+<title>{% block title %}Club Social y Deportivo La Emilia{% endblock %}</title>
+<meta name="description" content="{% block description %}Sitio oficial del Club Social y Deportivo La Emilia. Conocé nuestros deportes, noticias, instalaciones y cómo asociarte.{% endblock %}">
+<meta name="theme-color" content="#111111">
+<meta property="og:locale" content="es_AR">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Club Social y Deportivo La Emilia">
 <link rel="icon" type="image/png" href="/img/escudo-solo.png">
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "SportsOrganization",
+    "name": "Club Social y Deportivo La Emilia",
+    "alternateName": "Club La Emilia",
+    "telephone": "+54-336-402-0403",
+    "email": "csydlaemilia@hotmail.com",
+    "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Puerto Argentino 144",
+        "addressLocality": "La Emilia",
+        "addressRegion": "Buenos Aires",
+        "addressCountry": "AR"
+    },
+    "sameAs": [
+        "https://www.instagram.com/clublaemilia/",
+        "https://www.facebook.com/ClubSocialyDeportivoLaEmilia/?locale=es_LA"
+    ]
+}
+</script>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
@@ -15,6 +41,15 @@
 /* =====================
    BASE
 ===================== */
+:root {
+    --club-ink: #111;
+    --club-white: #fff;
+    --club-paper: #f5f5f5;
+    --club-muted: #666;
+    --club-border: #e2e2e2;
+    --club-radius: 8px;
+    --club-shadow: 0 8px 24px rgba(0,0,0,.08);
+}
 html, body {
     height: 100%;
     margin: 0;
@@ -22,22 +57,49 @@ html, body {
 body {
     display: flex;
     flex-direction: column;
+    color: var(--club-ink);
+    background: #f7f7f8;
 }
 .contenido-principal {
     flex: 1;
+}
+.skip-link {
+    position: fixed;
+    top: .75rem;
+    left: .75rem;
+    z-index: 1100;
+    padding: .7rem 1rem;
+    color: #111;
+    background: #fff;
+    border: 2px solid #111;
+    transform: translateY(-180%);
+}
+.skip-link:focus {
+    transform: translateY(0);
+}
+.contenido-principal:focus {
+    outline: none;
+}
+.contenido-principal {
+    scroll-margin-top: 5rem;
 }
 
 /* =====================
    NAVBAR
 ===================== */
 .navbar-ecommerce {
-    background-color: #000;
-    border-bottom: 4px solid #fff;
-    box-shadow: 0 4px 14px rgba(0,0,0,.6);
+    background: #101113;
+    border-top: 3px solid #fff;
+    border-bottom: 1px solid rgba(255,255,255,.1);
+    box-shadow: 0 8px 24px rgba(0,0,0,.18);
 }
 
 .logo {
-    max-height: 80px;
+    display: block;
+    width: auto;
+    height: 58px;
+    max-width: min(250px, 52vw);
+    object-fit: contain;
 }
 
 .campo-honeypot {
@@ -49,32 +111,39 @@ body {
 }
 
 .navbar-nav {
-    gap: 2rem;
+    gap: .45rem;
 }
 
 /* LINKS PRINCIPALES */
 .navbar-nav .nav-link {
-    color: #fff;
+    color: rgba(255,255,255,.82);
     font-weight: 700;
     text-transform: uppercase;
-    font-size: .95rem;
+    font-size: .78rem;
+    letter-spacing: .08em;
     position: relative;
+    padding: .8rem .85rem;
+    border-radius: 4px;
+    transition: color .2s ease, background-color .2s ease;
 }
 
-/* SUBRAYADO NAV */
-.navbar-nav .nav-link::after {
-    content: "";
-    position: absolute;
-    bottom: -6px;
-    left: 0;
-    width: 0;
-    height: 3px;
-    background: #fff;
-    transition: .25s;
+.navbar-nav .nav-link:hover,
+.navbar-nav .nav-link:focus-visible,
+.navbar-nav .nav-link.show {
+    color: #fff;
+    background: rgba(255,255,255,.1);
 }
-
-.navbar-nav .nav-link:hover::after {
-    width: 100%;
+.navbar-nav .nav-link[aria-current="page"] {
+    color: #fff;
+    background: rgba(255,255,255,.12);
+    box-shadow: inset 0 -2px #fff;
+}
+.navbar-nav .nav-link.nav-section-current {
+    color: #fff;
+    background: rgba(255,255,255,.08);
+}
+.navbar-nav button.nav-link {
+    text-align: left;
 }
 
 /* ICONOS */
@@ -85,78 +154,63 @@ body {
 
 /* TOGGLER */
 .custom-toggler {
-    border: none;
+    border: 1px solid rgba(255,255,255,.35);
+    padding: .55rem .65rem;
+}
+.custom-toggler:focus {
+    box-shadow: 0 0 0 .2rem rgba(255,255,255,.28);
 }
 
 .custom-toggler .navbar-toggler-icon {
-    background-color: #fff;
-    height: 3px;
-    width: 26px;
-    position: relative;
+    width: 1.35rem;
+    height: 1.15rem;
+    background-image: linear-gradient(#fff, #fff), linear-gradient(#fff, #fff), linear-gradient(#fff, #fff);
+    background-size: 100% 2px;
+    background-position: center top, center, center bottom;
+    background-repeat: no-repeat;
 }
-
-.custom-toggler .navbar-toggler-icon::before,
-.custom-toggler .navbar-toggler-icon::after {
-    content: "";
-    position: absolute;
-    width: 26px;
-    height: 3px;
-    background: #fff;
-    left: 0;
-}
-
-.custom-toggler .navbar-toggler-icon::before { top: -8px; }
-.custom-toggler .navbar-toggler-icon::after { top: 8px; }
 
 /* =====================
    DROPDOWN
 ===================== */
 .navbar-ecommerce .dropdown-menu {
-    background: #111;
-    border: 1px solid rgba(255,255,255,.15);
-    border-radius: 10px;
-    padding: 8px 0;
-    min-width: 200px;
-    box-shadow: 0 8px 24px rgba(0,0,0,.5);
+    background: #fff;
+    border: 1px solid #e6e6e8;
+    border-top: 3px solid #111;
+    border-radius: 0 0 6px 6px;
+    padding: .45rem;
+    min-width: 220px;
+    box-shadow: 0 14px 32px rgba(0,0,0,.18);
 }
 
 /* ITEMS IGUALES A NAV */
 .navbar-ecommerce .dropdown-item {
-    color: #fff;
+    color: #242629;
     font-weight: 700;
     text-transform: uppercase;
-    font-size: .85rem;
-    padding: 10px 20px;
-    letter-spacing: .5px;
+    font-size: .76rem;
+    padding: .7rem .8rem;
+    letter-spacing: .04em;
     position: relative;
     background: transparent;
-}
-
-/* SUBRAYADO DROPDOWN */
-.navbar-ecommerce .dropdown-item::after {
-    content: "";
-    position: absolute;
-    bottom: 6px;
-    left: 20px;
-    width: 0;
-    height: 3px;
-    background: #fff;
-    transition: .25s;
+    border-radius: 3px;
 }
 
 /* HOVER DROPDOWN */
 .navbar-ecommerce .dropdown-item:hover {
-    color: #fff;
-    background: transparent;
+    color: #000;
+    background: #f5f5f6;
 }
-
-.navbar-ecommerce .dropdown-item:hover::after {
-    width: calc(100% - 40px);
+.navbar-ecommerce .dropdown-item[aria-current="page"] {
+    color: #000;
+    background: #ededed;
+    box-shadow: inset 3px 0 #111;
 }
 
 /* FLECHA DROPDOWN */
 .navbar-ecommerce .dropdown-toggle::after {
-    border-top-color: #fff;
+    border-top-color: rgba(255,255,255,.65);
+    display: none;
 }
 
 /* FIX BOOTSTRAP ACTIVE */
@@ -164,34 +218,64 @@ body {
 .navbar-ecommerce .nav-item.dropdown .nav-link:focus,
 .navbar-ecommerce .nav-item.dropdown .nav-link:active {
     color: #fff !important;
-    background: transparent;
+    background: rgba(255,255,255,.1);
 }
 
 /* SACAR SUBRAYADO EN PADRES CON DROPDOWN */
 .navbar-ecommerce .nav-item.dropdown > .nav-link::after {
-    display: none;
+    border-top-color: rgba(255,255,255,.65);
 }
 
 /* TEXTO DESHABILITADO */
 .sin-secciones-nav {
-    color: rgba(255,255,255,.45);
+    color: #777;
     font-size: .8rem;
     padding: 10px 20px;
     pointer-events: none;
+}
+
+@media (max-width: 991.98px) {
+    .navbar-ecommerce .navbar-collapse {
+        padding: .7rem 0 1rem;
+        border-top: 1px solid rgba(255,255,255,.12);
+        margin-top: .65rem;
+    }
+    .navbar-nav {
+        gap: .15rem;
+    }
+    .navbar-nav .nav-link {
+        padding: .75rem .85rem;
+    }
+    .navbar-ecommerce .dropdown-menu {
+        background: rgba(255,255,255,.06);
+        border: 0;
+        border-left: 2px solid rgba(255,255,255,.7);
+        border-radius: 0;
+        box-shadow: none;
+        margin: .2rem .85rem .55rem;
+        padding: .25rem .4rem;
+    }
+    .navbar-ecommerce .dropdown-item {
+        color: rgba(255,255,255,.8);
+    }
+    .navbar-ecommerce .dropdown-item:hover,
+    .navbar-ecommerce .dropdown-item:focus {
+        color: #fff;
+        background: rgba(255,255,255,.1);
+    }
 }
 /* =====================
    FOOTER
 ===================== */
 .footer-portal {
-    background: #000;
+    background: #101113;
     color: #fff;
-    border-top: 4px solid #fff;
-    box-shadow: 0 -4px 14px rgba(0,0,0,.6);
+    border-top: 3px solid #fff;
+    box-shadow: 0 -8px 24px rgba(0,0,0,.08);
 }
 .footer-logo {
     max-height: 90px;
-    transform: scale(1.5);
-    transform-origin: left center;
+    max-width: 100%;
 }
 .footer-links {
     list-style: none;
@@ -202,14 +286,16 @@ body {
     margin: .5rem 0;
 }
 .footer-links a {
-    color: #fff;
+    color: rgba(255,255,255,.82);
     font-weight: 700;
     text-transform: uppercase;
-    font-size: .9rem;
+    font-size: .78rem;
+    letter-spacing: .06em;
     text-decoration: none;
+    transition: color .2s ease;
 }
 .footer-links a:hover {
-    opacity: .75;
+    color: #fff;
 }
 
 /* =====================
@@ -223,9 +309,9 @@ body {
 }
 .form-quejas {
     background: #ffffff;
-    border-radius: 16px;
+    border-radius: var(--club-radius);
     padding: 1.5rem;
-    box-shadow: 0 8px 25px rgba(0,0,0,.25);
+    box-shadow: 0 8px 24px rgba(0,0,0,.12);
 }
 
 /* 🔥 AGREGAR ESTO */
@@ -251,19 +337,19 @@ body {
 }
 .footer-btn {
     width: 100%;
-    background: #000;
+    background: #111;
     color: #fff;
     border: none;
     padding: .6rem;
     font-weight: 700;
     text-transform: uppercase;
     font-size: .8rem;
-    border-radius: 8px;
+    border-radius: 4px;
     transition: .2s;
 }
 
 .footer-btn:hover {
-    background: #222;
+    background: #333;
 }
 .footer-bottom {
     border-top: 1px solid rgba(255,255,255,.15);
@@ -283,17 +369,17 @@ body {
     justify-content: center;
     width: 40px;
     height: 40px;
-    border-radius: 50%;
-    border: 1px solid rgba(255,255,255,.25);
+    border-radius: 4px;
+    border: 1px solid rgba(255,255,255,.22);
     color: #fff;
     font-size: 1.05rem;
     text-decoration: none;
     transition: background .2s, border-color .2s;
 }
 .footer-social a:hover {
-    background: rgba(255,255,255,.12);
-    border-color: rgba(255,255,255,.6);
-    color: #fff;
+    background: #fff;
+    border-color: #fff;
+    color: #000;
 }
 .btn-socio {
     background-color: transparent;
@@ -303,7 +389,7 @@ body {
     font-size: .85rem;
     padding: .45rem .9rem;
     border-radius: 6px;
-    border: 2px solid rgba(255,255,255,.5);
+    border: 1px solid rgba(255,255,255,.5);
     transition: .2s ease-in-out;
     text-decoration: none;
 }
@@ -319,7 +405,40 @@ body {
     transition: color .2s;
 }
 .gestion-link:hover {
-    color: rgba(255,255,255,.65);
+    color: #fff;
+}
+
+.navbar-ecommerce a:focus-visible,
+.navbar-ecommerce button:focus-visible,
+.footer-portal a:focus-visible,
+.footer-portal button:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 3px;
+}
+
+@media (max-width: 575.98px) {
+    .footer-portal .container {
+        padding-top: 2.25rem !important;
+        padding-bottom: 2.25rem !important;
+    }
+    .footer-portal .text-center {
+        text-align: left !important;
+    }
+    .footer-social {
+        justify-content: flex-start;
+        margin-top: .8rem;
+    }
+    .footer-bottom {
+        padding: .9rem 1rem;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        scroll-behavior: auto !important;
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+    }
 }
 
 </style>
@@ -329,17 +448,19 @@ body {
 
 <body>
 
+<a class="skip-link" href="#contenido-principal">Saltar al contenido</a>
+
 <!-- =====================
      NAVBAR
 ===================== -->
-<nav class="navbar navbar-expand-lg navbar-ecommerce sticky-top">
+<nav class="navbar navbar-expand-lg navbar-ecommerce sticky-top" aria-label="Navegación principal">
   <div class="container">
 
-    <a class="navbar-brand" href="/">
-      <img src="/img/logo.png" class="logo">
+        <a class="navbar-brand" href="/web" aria-label="Club Social y Deportivo La Emilia, inicio" {% if currentPath == '/' or currentPath == '/web' %}aria-current="page"{% endif %}>
+            <img src="/img/logo.png" class="logo" alt="Club Social y Deportivo La Emilia" fetchpriority="high">
     </a>
 
-    <button class="navbar-toggler custom-toggler" data-bs-toggle="collapse" data-bs-target="#navbarMain">
+        <button class="navbar-toggler custom-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain" aria-controls="navbarMain" aria-expanded="false" aria-label="Abrir o cerrar menú">
       <span class="navbar-toggler-icon"></span>
     </button>
 
@@ -350,41 +471,41 @@ body {
 
     <!-- CLUB DROPDOWN -->
   <li class="nav-item dropdown">
-    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+        <button class="nav-link dropdown-toggle border-0 {% if currentPath == '/web/comision-directiva' or currentPath == '/web/historia' or currentPath == '/web/instalaciones' or currentPath == '/web/olimpiadas' or currentPath == '/web/recuerdospaneros' %}nav-section-current{% endif %}" type="button" data-bs-toggle="dropdown" aria-expanded="false">
       Club <i class="bi bi-chevron-down" style="font-size:.75rem; vertical-align:middle;"></i>
-    </a>
+        </button>
 
     <ul class="dropdown-menu">
-    <li><a class="dropdown-item" href="/web/comision-directiva">Comisión Directiva</a></li>
-    <li><a class="dropdown-item" href="/web/historia">Historia</a></li>
-    <li><a class="dropdown-item" href="/web/instalaciones">Instalaciones</a></li>
-    <li><a class="dropdown-item" href="/web/olimpiadas">Olimpiadas</a></li>
-    <li class="nav-item"><a class="dropdown-item" href="/web/recuerdosPaneros" >Recuerdos Pañeros</a></li>
+        <li><a class="dropdown-item" href="/web/comision-directiva" {% if currentPath == '/web/comision-directiva' %}aria-current="page"{% endif %}>Comisión Directiva</a></li>
+        <li><a class="dropdown-item" href="/web/historia" {% if currentPath == '/web/historia' %}aria-current="page"{% endif %}>Historia</a></li>
+        <li><a class="dropdown-item" href="/web/instalaciones" {% if currentPath == '/web/instalaciones' %}aria-current="page"{% endif %}>Instalaciones</a></li>
+        <li><a class="dropdown-item" href="/web/olimpiadas" {% if currentPath == '/web/olimpiadas' %}aria-current="page"{% endif %}>Olimpiadas</a></li>
+        <li><a class="dropdown-item" href="/web/recuerdospaneros" {% if currentPath == '/web/recuerdospaneros' %}aria-current="page"{% endif %}>Recuerdos Pañeros</a></li>
     </ul>
   </li>
     
   <!-- SOCIOS -->
   <li class="nav-item dropdown">
-    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+        <button class="nav-link dropdown-toggle border-0 {% if currentPath == '/web/socios' or currentPath == '/web/pagos' %}nav-section-current{% endif %}" type="button" data-bs-toggle="dropdown" aria-expanded="false">
       Socios <i class="bi bi-chevron-down" style="font-size:.75rem; vertical-align:middle;"></i>
-    </a>
+        </button>
 
     <ul class="dropdown-menu">
-        <li><a class="dropdown-item" href="/web/socios">Asociarme</a></li>
-        <li><a class="dropdown-item" href="/web/pagos">Información de Pago</a></li>
-        <li><a href="https://CLUBLAEMILIA.brio.club" class="dropdown-item">Sede Virtual</a></li>
+                <li><a class="dropdown-item" href="/web/socios" {% if currentPath == '/web/socios' %}aria-current="page"{% endif %}>Asociarme</a></li>
+                <li><a class="dropdown-item" href="/web/pagos" {% if currentPath == '/web/pagos' %}aria-current="page"{% endif %}>Información de Pago</a></li>
+                <li><a href="https://CLUBLAEMILIA.brio.club" class="dropdown-item" target="_blank" rel="noopener noreferrer">Sede Virtual <span class="visually-hidden">(abre en una pestaña nueva)</span></a></li>
     </ul>
   </li>
 
   <!-- CONTACTO -->
    <li class="nav-item">
-    <a class="nav-link" href="/web/deportes">Deportes</a>
+    <a class="nav-link" href="/web/deportes" {% if currentPath == '/web/deportes' %}aria-current="page"{% endif %}>Deportes</a>
   </li>
    <li class="nav-item">
-    <a class="nav-link" href="/web/noticias" >Noticias</a>
+    <a class="nav-link" href="/web/noticias" {% if currentPath == '/web/noticias' %}aria-current="page"{% endif %}>Noticias</a>
   </li>
     <li class="nav-item">
-    <a class="nav-link" href="https://wa.me/5493364020403" target="_blank" aria-label="WhatsApp">Contacto</a>
+    <a class="nav-link" href="https://wa.me/5493364020403" target="_blank" rel="noopener noreferrer" aria-label="Contacto por WhatsApp (abre en una pestaña nueva)">Contacto</a>
   </li>
 
 </ul>
@@ -394,9 +515,9 @@ body {
 </nav>
 
 
-<div class="contenido-principal">
+<main class="contenido-principal" id="contenido-principal" tabindex="-1">
     {% block content %}{% endblock %}
-</div>
+</main>
 
 <!-- =====================
      FOOTER
@@ -440,9 +561,9 @@ body {
 
         </ul>
         <div class="footer-social">
-          <a href="https://www.instagram.com/clublaemilia/" target="_blank" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
-          <a href="https://www.facebook.com/ClubSocialyDeportivoLaEmilia/?locale=es_LA" target="_blank" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
-          <a href="https://wa.me/5493364020403" target="_blank" aria-label="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
+          <a href="https://www.instagram.com/clublaemilia/" target="_blank" rel="noopener noreferrer" aria-label="Instagram (abre en una pestaña nueva)"><i class="fa-brands fa-instagram" aria-hidden="true"></i></a>
+          <a href="https://www.facebook.com/ClubSocialyDeportivoLaEmilia/?locale=es_LA" target="_blank" rel="noopener noreferrer" aria-label="Facebook (abre en una pestaña nueva)"><i class="fa-brands fa-facebook-f" aria-hidden="true"></i></a>
+          <a href="https://wa.me/5493364020403" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp (abre en una pestaña nueva)"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i></a>
         </div>
       </div>
 
@@ -460,23 +581,29 @@ body {
                     value="1"
                     checked>
 
-                <label class="form-check-label">
+                <label class="form-check-label" for="anonimo">
                     Enviar de forma anónima
                 </label>
             </div>
 
             <div id="datosPersonales" style="display:none;">
+                <label class="visually-hidden" for="quejaNombre">Nombre y apellido</label>
                 <input class="footer-input mb-2"
+                    id="quejaNombre"
                     name="nombre"
                     placeholder="Nombre y apellido">
 
+                <label class="visually-hidden" for="quejaEmail">Email</label>
                 <input class="footer-input mb-2"
+                    id="quejaEmail"
                     name="email"
                     type="email"
                     placeholder="Email">
             </div>
 
+            <label class="visually-hidden" for="quejaMensaje">Queja o sugerencia</label>
             <textarea class="footer-textarea mb-2"
+                    id="quejaMensaje"
                     name="mensaje"
                     rows="4"
                     placeholder="Escriba su queja o sugerencia..."

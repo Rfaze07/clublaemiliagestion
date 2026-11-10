@@ -29,6 +29,7 @@ app.use(
 
 app.use(function (req, res, next) {
   res.locals.session = req.session;
+  res.locals.currentPath = req.path.toLowerCase();
   next();
 });
 

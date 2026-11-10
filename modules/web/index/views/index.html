@@ -1,6 +1,7 @@
 {% extends '../../template.html' %}
 
 {% block title %}Inicio - Club La Emilia{% endblock %}
+{% block description %}Sitio oficial del Club Social y Deportivo La Emilia: noticias, deportes, actividades, instalaciones y propuestas para ser parte del club.{% endblock %}
 
 {% block styles %}
 <style>
@@ -24,6 +25,88 @@
 .hero-band-dark {
     background: #000;
     color: #fff;
+}
+.hero-featured {
+    min-height: 570px;
+    background: #000;
+    isolation: isolate;
+}
+.hero-featured .band-video {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    min-height: 0;
+    max-height: none;
+    height: 100%;
+    opacity: .36;
+}
+.hero-featured .band-video video {
+    max-height: none;
+}
+.hero-featured .hero-band-inner {
+    position: relative;
+    z-index: 1;
+    grid-template-columns: minmax(0, 1.2fr) minmax(260px, .8fr);
+    min-height: 570px;
+    max-height: none;
+}
+.hero-featured .band-content-dark {
+    justify-content: center;
+    padding: 3.5rem 1.5rem 3.5rem max(2rem, calc((100vw - 1200px) / 2));
+    background: transparent;
+}
+.featured-identity {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: .75rem;
+    padding: 2rem;
+    border-left: 1px solid rgba(255,255,255,.35);
+    text-align: center;
+}
+.featured-crest {
+    display: block;
+    width: clamp(240px, 27vw, 350px);
+    max-height: 360px;
+    object-fit: contain;
+    filter: drop-shadow(0 16px 30px rgba(0,0,0,.55));
+}
+.featured-identity figcaption {
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .14em;
+}
+.hero-band-light .hero-band-inner {
+    min-height: 300px;
+    max-height: 380px;
+}
+.hero-band-light .band-content {
+    padding: 2rem 2.8rem;
+}
+.hero-band-light .band-title {
+    font-size: clamp(1.8rem, 3.4vw, 2.6rem);
+    margin-bottom: .65rem;
+}
+.hero-band-light .band-sub {
+    margin-bottom: 1rem;
+}
+.hero-featured .band-brand {
+    display: none;
+}
+.hero-featured .band-title {
+    max-width: 12ch;
+    font-size: clamp(2.6rem, 5vw, 4.5rem);
+    line-height: .98;
+}
+.hero-featured .band-tag {
+    padding: .45rem .8rem;
+    border: 1px solid rgba(255,255,255,.32);
+    border-radius: 4px;
+    background: transparent;
+    color: rgba(255,255,255,.72);
 }
 .hero-band-light {
     background: #fff;
@@ -87,7 +170,7 @@
     letter-spacing: 2px;
     text-transform: uppercase;
     padding: 0.4rem 1rem;
-    border-radius: 999px;
+    border-radius: 4px;
     margin-bottom: 1rem;
     align-self: flex-start;
 }
@@ -240,6 +323,24 @@
         max-height: 620px;
     }
 }
+@media (max-width: 991.98px) {
+    .hero-featured,
+    .hero-featured .hero-band-inner {
+        min-height: 570px;
+    }
+    .hero-featured .hero-band-inner {
+        grid-template-columns: minmax(0, 1fr) minmax(190px, .65fr);
+    }
+    .hero-featured .band-content-dark {
+        padding: 2.5rem 1.25rem 2.5rem 2rem;
+    }
+    .featured-identity {
+        padding: 1.25rem;
+    }
+    .featured-crest {
+        width: min(100%, 280px);
+    }
+}
 
 /* ====================
    SECCIONES GENERALES
@@ -281,7 +382,7 @@
 ==================== */
 .section-noticias { background: #fff; }
 .carousel-noticia-slide {
-    border-radius: 18px;
+    border-radius: var(--club-radius);
     overflow: hidden;
     background: #000;
     position: relative;
@@ -385,8 +486,8 @@
 }
 .carousel-indicators .active { opacity: 1; }
 .sin-noticias-hero {
-    background: #f8f9fa;
-    border-radius: 18px;
+    background: var(--club-paper);
+    border-radius: var(--club-radius);
     padding: 60px 20px;
     text-align: center;
     color: #aaa;
@@ -411,9 +512,9 @@
    DEPORTES
 ==================== */
 .section-deportes {
-    background: #0a0a0a;
-    border-top: 4px solid #fff;
-    border-bottom: 4px solid #fff;
+    background: #111;
+    border-top: 1px solid #333;
+    border-bottom: 1px solid #333;
 }
 .section-deportes .section-header .line { background: #fff; }
 .section-deportes .section-header h2 { color: #fff; }
@@ -421,7 +522,7 @@
 .card-deporte {
     background: #111;
     border: 1px solid rgba(255,255,255,.08);
-    border-radius: 16px;
+    border-radius: var(--club-radius);
     padding: 24px 16px;
     height: 100%;
     display: flex;
@@ -490,10 +591,10 @@
    CÓMO LLEGAR
 ==================== */
 .section-llegar {
-    background: #0a0a0a;
+    background: #111;
     color: #fff;
-    border-top: 4px solid #fff;
-    border-bottom: 4px solid #fff;
+    border-top: 1px solid #333;
+    border-bottom: 1px solid #333;
 }
 .section-llegar .section-header .line { background: #fff; }
 .section-llegar .section-header h2 { color: #fff; }
@@ -504,14 +605,14 @@
     min-height: 320px;
     object-fit: cover;
     display: block;
-    border-radius: 14px;
+    border-radius: var(--club-radius);
     filter: brightness(.9);
 }
 .llegar-mapa {
     width: 100%;
     height: 100%;
     min-height: 320px;
-    border-radius: 14px;
+    border-radius: var(--club-radius);
     overflow: hidden;
     border: none;
     display: block;
@@ -553,11 +654,11 @@
     color: #000;
 }
 .coming-soon-box {
-    background: #f8f9fa;
-    border-radius: 16px;
+    background: var(--club-paper);
+    border-radius: var(--club-radius);
     padding: 40px 20px;
     text-align: center;
-    border: 2px dashed #e3e3e3;
+    border: 1px dashed var(--club-border);
     height: 100%;
 }
 .coming-soon-box i {
@@ -580,7 +681,7 @@
 ==================== */
 #modalNoticia .modal-content,
 #modalRecuerdo .modal-content {
-    border-radius: 16px;
+    border-radius: var(--club-radius);
     border: none;
     overflow: hidden;
 }
@@ -701,35 +802,145 @@
         grid-template-columns: 1fr;
         max-width: 100%;
     }
+    .hero-featured .hero-band-inner {
+        grid-template-columns: 1fr;
+        min-height: 610px;
+    }
+    .hero-featured .band-content-dark {
+        justify-content: flex-end;
+        padding: 1.25rem 1.25rem 2rem;
+    }
+    .hero-featured .band-tag {
+        margin-bottom: .5rem;
+    }
+    .hero-featured .band-title {
+        max-width: 14ch;
+        font-size: clamp(2.25rem, 10vw, 3.2rem);
+    }
+    .hero-featured .band-sub {
+        max-width: 42ch;
+    }
+    .hero-featured .band-actions {
+        flex-direction: row;
+    }
+    .hero-featured .band-btn-primary,
+    .hero-featured .band-btn-secondary {
+        flex: 1 1 0;
+        width: auto;
+        padding: .75rem .55rem;
+        font-size: .72rem;
+        letter-spacing: .06em;
+    }
+    .featured-identity {
+        position: absolute;
+        top: 1rem;
+        left: 50%;
+        right: auto;
+        width: auto;
+        padding: 0;
+        border: 0;
+        transform: translateX(-50%);
+    }
+    .featured-crest {
+        width: 200px;
+        max-height: 220px;
+    }
+    .featured-identity figcaption {
+        font-size: .9rem;
+    }
+    .hero-band-light .hero-band-inner {
+        min-height: 0;
+        max-height: none;
+    }
+    .hero-band-light .band-content {
+        padding: 2rem 1.25rem;
+    }
+    .hero-band-light .band-actions {
+        flex-direction: row;
+        width: auto;
+    }
+    .hero-band-light .band-btn-primary,
+    .hero-band-light .band-btn-secondary {
+        flex: 1 1 0;
+        width: auto;
+        padding: .75rem .55rem;
+        font-size: .72rem;
+        letter-spacing: .06em;
+    }
+}
+@media (min-width: 992px) {
+    .hero-band-light .hero-band-inner {
+        height: 380px;
+        min-height: 380px;
+        max-height: 380px;
+    }
+    .hero-band-light .band-content {
+        padding: 1.5rem 2.8rem;
+    }
+    .hero-band-light .band-title {
+        font-size: clamp(1.7rem, 2.6vw, 2.2rem);
+        line-height: 1.05;
+    }
+    .hero-band-light .band-sub {
+        font-size: .92rem;
+        line-height: 1.45;
+        margin: .55rem 0 .75rem;
+    }
+    .hero-band-light .band-video {
+        min-height: 0;
+        max-height: none;
+        height: 100%;
+    }
+    .hero-band-light .band-video video {
+        max-height: none;
+    }
+}
+@media (max-width: 991.98px) {
+    .hero-band-light .band-content {
+        padding: 1.5rem 1.25rem;
+    }
+    .hero-band-light .band-title {
+        font-size: clamp(1.55rem, 7.5vw, 2rem);
+        line-height: 1.05;
+    }
+    .hero-band-light .band-sub {
+        font-size: .9rem;
+        line-height: 1.45;
+        margin: .5rem 0 .75rem;
+    }
+    .hero-band-light .band-video {
+        height: auto;
+        min-height: 0;
+        aspect-ratio: 16 / 9;
+    }
 }
 </style>
 {% endblock %}
 
 {% block content %}
 <section class="hero-bands">
-    <div class="hero-band hero-band-dark">
+    <div class="hero-band hero-band-dark hero-featured">
+        <div class="band-video" aria-hidden="true">
+            <video autoplay loop muted playsinline preload="metadata" aria-label="Video institucional del Club La Emilia">
+                <source src="/img/video-1.mp4" type="video/mp4">
+            </video>
+        </div>
         <div class="hero-band-inner">
             <div class="band-content band-content-dark">
-                <span class="band-tag">Bienvenidos</span>
-                <div class="band-brand">
-                    <strong>Club La Emilia</strong>
-                </div>
-                <h1 class="band-title">Historia, pasión y pertenencia</h1>
+                <span class="band-tag">Historia, pasión y pertenencia</span>
+                <h1 class="band-title">Club La Emilia</h1>
                 <p class="band-sub">
-                    Construimos comunidad desde el deporte y los valores. Un espacio para crecer,
-                    competir y compartir en familia, defendiendo nuestros colores negro y blanco.
+                    Un lugar para entrenar, compartir y ser parte de una comunidad que crece unida.
                 </p>
                 <div class="band-actions">
                     <a href="/web/socios" class="band-btn-primary">Quiero ser socio</a>
                     <a href="/web/deportes" class="band-btn-secondary">Conocé deportes</a>
                 </div>
             </div>
-            <div class="band-divider" aria-hidden="true"></div>
-            <div class="band-video">
-                <video autoplay loop muted playsinline preload="metadata" aria-label="Video institucional del Club La Emilia">
-                    <source src="/img/video-1.mp4" type="video/mp4">
-                </video>
-            </div>
+            <figure class="featured-identity">
+                <img class="featured-crest" src="/img/escudo-solo.png" alt="Escudo del Club Social y Deportivo La Emilia" width="500" height="500" fetchpriority="high">
+                <figcaption>Los Pañeros</figcaption>
+            </figure>
         </div>
     </div>
 
@@ -743,10 +954,9 @@
             <div class="band-divider" aria-hidden="true"></div>
             <div class="band-content band-content-light">
                 <span class="band-tag">Más del Club</span>
-                <h2 class="band-title">Tu lugar para entrenar y compartir</h2>
+                <h2 class="band-title">Entrená y compartí</h2>
                 <p class="band-sub">
-                    Escuelas deportivas, actividades sociales, torneos y propuestas para todas las edades.
-                    Sumate a la vida del club y participá de cada temporada con beneficios para socios.
+                    Deportes y actividades para todas las edades. Sumate a la vida del club.
                 </p>
                 <div class="band-actions">
                     <a href="https://CLUBLAEMILIA.brio.club" class="band-btn-primary">Sede Virtual</a>
