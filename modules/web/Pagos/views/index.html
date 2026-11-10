@@ -1,6 +1,7 @@
 {% extends '../../template.html' %}
 
 {% block title %}Información de Pagos - Club La Emilia{% endblock %}
+{% block description %}Consultá la información y los medios de pago para socios del Club Social y Deportivo La Emilia.{% endblock %}
 
 {% block styles %}
 <style>
@@ -9,15 +10,15 @@
    HEADER
 ===================== */
 .header-deportes {
-    padding: 60px 0 40px;
+    padding: 48px 0 36px;
     text-align: center;
-    border-bottom: 1px solid #e5e5e5;
-    margin-bottom: 50px;
+    border-bottom: 1px solid var(--club-border);
+    margin-bottom: 36px;
 }
-.header-deportes h2 {
-    font-size: 2.4rem;
+.header-deportes h1 {
+    font-size: clamp(1.7rem, 3vw, 2.4rem);
     font-weight: 800;
-    letter-spacing: 2px;
+    letter-spacing: .06em;
     text-transform: uppercase;
     color: #000;
     margin-bottom: 14px;
@@ -51,7 +52,7 @@
 
 /* ICONO HEADER */
 .deporte-icono-wrap {
-    background: linear-gradient(135deg, #000, #2c2c2c);
+    background: linear-gradient(135deg, #000, #333);
     padding: 25px;
     text-align: center;
 }
@@ -71,9 +72,9 @@
 
 /* PANEL PRINCIPAL */
 .panel-pago {
-    background: linear-gradient(135deg, #000, #2c2c2c);
+    background: linear-gradient(135deg, #000, #333);
     color: #fff;
-    border-radius: 14px;
+    border-radius: var(--club-radius);
     padding: 35px;
     text-align: center;
 }
@@ -97,8 +98,8 @@
 /* TABLA */
 .tabla-pagos {
     background: #fff;
-    border-radius: 14px;
-    border: 1px solid #eee;
+    border-radius: var(--club-radius);
+    border: 1px solid var(--club-border);
     overflow: hidden;
     margin-bottom: 40px;
 }
@@ -181,17 +182,17 @@
     display: inline-flex;
     align-items: center;
     gap: 10px;
-    background: #25D366;
+    background: #111;
     color: #fff;
     padding: 12px 20px;
-    border-radius: 10px;
+    border-radius: var(--club-radius);
     text-decoration: none;
     font-weight: 600;
     transition: all 0.2s;
 }
 
 .btn-wsp:hover {
-    background: #1ebe5d;
+    background: #333;
     transform: scale(1.05);
 }
 #parametros-container {
@@ -211,7 +212,7 @@
 {% block content %}
 
 <div class="header-deportes">
-    <h2>Información de Pagos</h2>
+    <h1>Información de Pagos</h1>
 </div>
 
 <div class="container deportes-grid">

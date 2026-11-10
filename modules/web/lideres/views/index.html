@@ -1,6 +1,7 @@
 {% extends '../../template.html' %}
 
 {% block title %}Bienvenido - Torneo Acercamiento{% endblock %}
+{% block description %}Información de posiciones y líderes del torneo del Club Social y Deportivo La Emilia.{% endblock %}
 
 
 {% block styles %}
@@ -13,11 +14,12 @@
 
 /* CARD */
 .card-noticia {
-  border: none;
-  border-radius: 0;
+  border: 1px solid var(--club-border);
+  border-radius: var(--club-radius);
   background-color: #fff;
   transition: transform 0.25s ease, box-shadow 0.25s ease;
   overflow: hidden;
+  box-shadow: var(--club-shadow);
 }
 
 /* HOVER */
@@ -156,7 +158,8 @@
 /* CONTENEDOR */
 .tabla-posiciones {
   background: #fff;
-  border: 1px solid #e5e5e5;
+  border: 1px solid var(--club-border);
+  border-radius: var(--club-radius);
   padding: 24px;
 }
 
@@ -171,7 +174,7 @@
 /* TABLA */
 .table-posiciones {
   margin-bottom: 16px;
-  border: 1px solid #e5e5e5;
+  border: 1px solid var(--club-border);
 }
 
 .table-posiciones thead {
@@ -198,12 +201,12 @@
 
 /* POSICIONES */
 .pos-1 {
-  background-color: #f0f8ff;
+  background-color: #ededed;
   font-weight: 600;
 }
 
 .pos-2 {
-  background-color: #f7f7f7;
+  background-color: #f5f5f5;
 }
 
 /* NOTA */

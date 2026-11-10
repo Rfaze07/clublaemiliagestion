@@ -1,6 +1,7 @@
 {% extends '../../template.html' %}
 
 {% block title %}Deportes - Club La Emilia{% endblock %}
+{% block description %}Conocé las disciplinas deportivas, actividades y propuestas para todas las edades del Club Social y Deportivo La Emilia.{% endblock %}
 
 {% block styles %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
@@ -14,7 +15,7 @@
     border-bottom: 1px solid #e5e5e5;
     margin-bottom: 50px;
 }
-.header-deportes h2 {
+.header-deportes h1 {
     font-size: 2.4rem;
     font-weight: 800;
     letter-spacing: 2px;
@@ -76,7 +77,7 @@
 ===================== */
 .card-deporte {
     border: none;
-    border-radius: 22px;
+    border-radius: var(--club-radius);
     background: #ffffff;
     overflow: hidden;
     transition: transform .35s ease, box-shadow .35s ease;
@@ -182,7 +183,7 @@
     padding: 34px 24px;
     max-width: 860px;
     text-align: center;
-    border-top: 1px solid #e5e5e5;
+    border-top: 1px solid var(--club-border);
 }
 
 .deportes-cierre p {
@@ -196,7 +197,7 @@
 
 /* RESPONSIVE */
 @media (max-width: 768px) {
-    .header-deportes h2 {
+    .header-deportes h1 {
         font-size: 1.7rem;
     }
     .header-deportes {
@@ -210,7 +211,7 @@
 {% block content %}
 
 <div class="header-deportes">
-    <h2>Viví el deporte</h2>
+    <h1>Viví el deporte</h1>
     <p>
         Entrená. Competí. Crecé.
     </p>

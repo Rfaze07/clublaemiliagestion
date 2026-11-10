@@ -1,6 +1,7 @@
 {% extends '../../template.html' %}
 
 {% block title %}Bienvenido - Torneo Acercamiento{% endblock %}
+{% block description %}Información de equipos y torneo del Club Social y Deportivo La Emilia.{% endblock %}
 
 
 {% block styles %}
@@ -8,7 +9,9 @@
 <style>
   .card-equipo {
   background: #fff;
-  border: 1px solid #e5e5e5;
+    border: 1px solid var(--club-border);
+    border-radius: var(--club-radius);
+    overflow: hidden;
   transition: box-shadow 0.25s ease;
   height: 100%;
 }
@@ -48,7 +51,7 @@
 
 .tabla-jugadores td {
   padding: 8px 4px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--club-border);
 }
 
 .tabla-jugadores td:first-child {
